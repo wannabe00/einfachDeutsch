@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { fetchWords } from "@/api/vocabulary"
 import { splitArticle, shuffle } from "@/lib/german"
+import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DrillShell } from "./DrillShell"
@@ -20,6 +21,7 @@ export function GenderTriage({ onExit }: { onExit: () => void }) {
   const [i, setI] = useState(0)
   const [score, setScore] = useState({ correct: 0, wrong: 0 })
   const [picked, setPicked] = useState<string | null>(null)
+  const { guard } = useGuestLimit()
 
   const pool = useMemo(() => {
     const nouns = (words ?? [])
@@ -52,6 +54,7 @@ export function GenderTriage({ onExit }: { onExit: () => void }) {
   const current = pool[i]
   function choose(a: string) {
     if (picked) return
+    if (!guard()) return // guests: blocked once the daily free cap is hit
     setPicked(a)
     const ok = a === current.article
     setScore((s) => ({ correct: s.correct + (ok ? 1 : 0), wrong: s.wrong + (ok ? 0 : 1) }))

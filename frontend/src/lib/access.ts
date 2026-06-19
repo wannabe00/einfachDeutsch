@@ -10,8 +10,13 @@
  * auth); these flags drive the UI (route guards, lock badges, sign-up wall).
  */
 
-/** Routes a guest cannot open — they get bounced to /login. */
-export const ACCOUNT_ONLY_PATHS = ["/drills", "/ai", "/speak"] as const
+/**
+ * Routes whose content is account-only. Guests reaching them see the content
+ * blurred behind a "log in to use" overlay (see LockedFeature) rather than a
+ * redirect. The Drills *hub* is public — individual drills gate themselves
+ * (Gender Triage is free; the rest are members-only), so it's not listed here.
+ */
+export const ACCOUNT_ONLY_PATHS = ["/ai", "/speak"] as const
 
 export function isAccountOnlyPath(path: string): boolean {
   return ACCOUNT_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`))

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 
 import { fetchDueWords, fetchDueCounts, reviewWord } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
+import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { ReviewQuality, Chapter, Book, Word } from "@/types"
 import { FlashCard } from "@/components/vocabulary/FlashCard"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ export default function ReviewPage() {
   const [total, setTotal] = useState(0)
   const [stats, setStats] = useState({ answered: 0, correct: 0, again: 0 })
   const [done, setDone] = useState(false)
+  const { guard } = useGuestLimit()
 
   const { data: books } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
   const { data: counts } = useQuery({
@@ -74,6 +76,7 @@ export default function ReviewPage() {
   function handleRate(quality: ReviewQuality) {
     const word = queue[0]
     if (!word) return
+    if (!guard()) return // guests: blocked once the daily free cap is hit
     mutation.mutate(
       { id: word.id, quality },
       {

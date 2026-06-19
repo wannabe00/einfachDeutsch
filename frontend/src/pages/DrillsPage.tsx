@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Shield, Hammer, Shuffle, Zap, ArrowUpDown, Link2 } from "lucide-react"
+import { Shield, Hammer, Shuffle, Zap, ArrowUpDown, Link2, Lock } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { GenderTriage } from "@/components/drills/GenderTriage"
@@ -8,6 +8,8 @@ import { Unscramble } from "@/components/drills/Unscramble"
 import { FlashRecall } from "@/components/drills/FlashRecall"
 import { SentenceShuffle } from "@/components/drills/SentenceShuffle"
 import { MatchPairs } from "@/components/drills/MatchPairs"
+import { LockedFeature } from "@/components/auth/LockedFeature"
+import { useAuth } from "@/contexts/AuthContext"
 
 type DrillId =
   | "gender"
@@ -23,6 +25,8 @@ interface DrillDef {
   codename: string
   tagline: string
   icon: LucideIcon
+  /** Playable without an account (a free taste of the drills). */
+  guest?: boolean
 }
 
 const DRILLS: DrillDef[] = [
@@ -32,6 +36,7 @@ const DRILLS: DrillDef[] = [
     codename: "der · die · das",
     tagline: "Snap each noun to its article before the round runs out.",
     icon: Shield,
+    guest: true,
   },
   {
     id: "forge",
@@ -71,7 +76,19 @@ const DRILLS: DrillDef[] = [
 ]
 
 export default function DrillsPage() {
+  const { user } = useAuth()
   const [active, setActive] = useState<DrillId | null>(null)
+
+  const activeDef = DRILLS.find((d) => d.id === active)
+  // A guest opening a members-only drill sees it locked instead of playing.
+  if (activeDef && !user && !activeDef.guest) {
+    return (
+      <LockedFeature
+        title="This drill is members-only"
+        description="Gender Triage is free to try — create a free account to unlock the rest."
+      />
+    )
+  }
 
   if (active === "gender") return <GenderTriage onExit={() => setActive(null)} />
   if (active === "forge") return <BlindForge onExit={() => setActive(null)} />
@@ -88,29 +105,40 @@ export default function DrillsPage() {
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {DRILLS.map((d) => (
-          <button
-            key={d.id}
-            onClick={() => setActive(d.id)}
-            className="group flex flex-col items-start gap-3 rounded-xl border border-border bg-surface p-5 text-left shadow-sm transition-all hover:border-accent hover:shadow-md"
-          >
-            <div className="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <d.icon className="size-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-foreground">{d.name}</h2>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {d.codename}
-                </span>
+        {DRILLS.map((d) => {
+          const locked = !user && !d.guest
+          return (
+            <button
+              key={d.id}
+              onClick={() => setActive(d.id)}
+              className="group relative flex flex-col items-start gap-3 rounded-xl border border-border bg-surface p-5 text-left shadow-sm transition-all hover:border-accent hover:shadow-md"
+            >
+              <div className="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <d.icon className="size-5" />
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
-            </div>
-            <span className="mt-1 text-sm font-medium text-accent group-hover:underline">
-              Play →
-            </span>
-          </button>
-        ))}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-foreground">{d.name}</h2>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {d.codename}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
+              </div>
+              <span className="mt-1 text-sm font-medium text-accent group-hover:underline">
+                {locked ? "Members only" : "Play →"}
+              </span>
+              {locked && (
+                <span
+                  className="absolute right-4 top-4 text-muted-foreground"
+                  title="Members only"
+                >
+                  <Lock className="size-4" aria-hidden="true" />
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

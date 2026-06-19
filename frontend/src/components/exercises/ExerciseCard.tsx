@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query"
 
 import { attemptExercise, type UserAnswer } from "@/api/exercises"
 import { aiCheckAnswer } from "@/api/ai"
+import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { Exercise, AttemptResult } from "@/types"
 import { exerciseTypeLabel } from "@/lib/labels"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
   const [result, setResult] = useState<AttemptResult | null>(null)
   const [aiFeedback, setAiFeedback] = useState("")
+  const { guard } = useGuestLimit()
 
   function currentAnswer(): UserAnswer {
     switch (exercise.exercise_type) {
@@ -81,6 +83,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
   function handleSubmit(e?: FormEvent) {
     e?.preventDefault()
     if (result || !answerReady(exercise.exercise_type, currentAnswer())) return
+    if (!guard()) return // guests: blocked once the daily free cap is hit
     mutation.mutate()
   }
 
