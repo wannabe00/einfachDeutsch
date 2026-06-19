@@ -1,5 +1,6 @@
 import uuid
 
+from allauth.account.models import EmailAddress
 from dj_rest_auth.registration.serializers import (
     RegisterSerializer as BaseRegisterSerializer,
 )
@@ -23,6 +24,17 @@ class LoginSerializer(serializers.Serializer):
             raise invalid
         if not user.is_active:
             raise serializers.ValidationError("This account is disabled.")
+
+        # Block unverified accounts. Superusers (created via the CLI) and legacy
+        # accounts with no email record predate verification, so they're exempt.
+        if not user.is_superuser:
+            emails = EmailAddress.objects.filter(user=user)
+            if emails.exists() and not emails.filter(verified=True).exists():
+                raise serializers.ValidationError(
+                    "Please verify your email address before logging in. "
+                    "Check your inbox for the confirmation link."
+                )
+
         attrs["user"] = user
         return attrs
 

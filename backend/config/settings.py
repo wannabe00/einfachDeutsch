@@ -161,8 +161,17 @@ REST_FRAMEWORK = {
 # ---- Auth (allauth + dj-rest-auth), token-based ----
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "optional"  # dev: don't block login on verification
+# Mandatory email verification: registration sends a confirmation link and does
+# not return a token; login is blocked until the email is verified (see
+# LoginSerializer). In dev the link prints to the runserver terminal (console
+# email backend); production wires real SMTP (Phase 12).
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True  # required by allauth when verification is mandatory
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
+
+# Where the SPA lives — used to build the email-confirmation link.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 REST_AUTH = {
     "USE_JWT": False,  # simple DRF token in localStorage — easiest for the SPA

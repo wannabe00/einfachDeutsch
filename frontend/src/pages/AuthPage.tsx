@@ -18,6 +18,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [sentTo, setSentTo] = useState("")
 
   const isRegister = mode === "register"
 
@@ -26,8 +27,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
     setError("")
     setPending(true)
     try {
-      if (isRegister) await register(email, password)
-      else await login(email, password)
+      if (isRegister) {
+        const result = await register(email, password)
+        if (result.status === "verify_email") {
+          setSentTo(email)
+          return
+        }
+      } else {
+        await login(email, password)
+      }
       navigate("/")
     } catch (err) {
       let msg = "Something went wrong. Please try again."
@@ -53,7 +61,23 @@ export default function AuthPage({ mode }: AuthPageProps) {
           {isRegister ? "Create your account" : "Welcome back"}
         </p>
 
-        <form
+        {sentTo ? (
+          <div className="mt-8 rounded-xl border border-border bg-surface p-6 text-center">
+            <h2 className="text-base font-semibold">Check your email</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a verification link to{" "}
+              <span className="font-medium text-foreground">{sentTo}</span>. Click
+              it to activate your account, then log in.
+            </p>
+            <Link
+              to="/login"
+              className="mt-4 inline-block text-sm font-medium text-accent hover:underline"
+            >
+              Back to log in
+            </Link>
+          </div>
+        ) : (
+          <form
           onSubmit={handleSubmit}
           className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6"
         >
@@ -78,14 +102,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
           {error && (
             <p className="text-sm text-[hsl(var(--danger))]">{error}</p>
           )}
-          <Button type="submit" disabled={pending} className="mt-1">
-            {pending
-              ? "Please wait…"
-              : isRegister
-                ? "Create account"
-                : "Log in"}
-          </Button>
-        </form>
+            <Button type="submit" disabled={pending} className="mt-1">
+              {pending
+                ? "Please wait…"
+                : isRegister
+                  ? "Create account"
+                  : "Log in"}
+            </Button>
+          </form>
+        )}
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           {isRegister ? (

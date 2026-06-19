@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { Layout } from "@/components/layout/Layout"
 import AuthPage from "@/pages/AuthPage"
+import VerifyEmailPage from "@/pages/VerifyEmailPage"
 import Dashboard from "@/pages/Dashboard"
 import ReviewPage from "@/pages/ReviewPage"
 import WordBankPage from "@/pages/WordBankPage"
@@ -43,6 +44,7 @@ function App() {
         path="/register"
         element={user ? <Navigate to="/" replace /> : <AuthPage mode="register" />}
       />
+      <Route path="/verify-email/:key" element={<VerifyEmailPage />} />
 
       {/* The app shell is open to guests; individual routes decide whether
           they require an account (see lib/access.ts). */}
