@@ -5,6 +5,8 @@
 
 export type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 
+export type UserRole = "student" | "teacher"
+
 export interface User {
   pk: number
   username: string
@@ -12,6 +14,9 @@ export interface User {
   first_name: string
   last_name: string
   cefr_level: CEFRLevel
+  role: UserRole
+  /** Whether the user has chosen/confirmed their level (onboarding done). */
+  level_set: boolean
 }
 
 export interface Book {

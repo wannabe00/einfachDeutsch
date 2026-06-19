@@ -52,9 +52,17 @@ class RegisterSerializer(BaseRegisterSerializer):
 
 
 class UserDetailsSerializer(BaseUserDetailsSerializer):
-    """Adds the CEFR level to GET /api/auth/user/."""
+    """Adds profile fields (CEFR level, role, onboarding state) to
+    GET /api/auth/user/."""
 
     cefr_level = serializers.CharField(source="profile.cefr_level", read_only=True)
+    role = serializers.CharField(source="profile.role", read_only=True)
+    level_set = serializers.BooleanField(source="profile.level_set", read_only=True)
 
     class Meta(BaseUserDetailsSerializer.Meta):
-        fields = (*BaseUserDetailsSerializer.Meta.fields, "cefr_level")
+        fields = (
+            *BaseUserDetailsSerializer.Meta.fields,
+            "cefr_level",
+            "role",
+            "level_set",
+        )
