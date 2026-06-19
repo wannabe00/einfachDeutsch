@@ -12,6 +12,8 @@ interface ChapterButtonsProps {
   badge?: (chapterId: number) => string | number | undefined
 }
 
+const GRID = "grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4"
+
 export function ChapterButtons({
   books,
   selected,
@@ -19,51 +21,54 @@ export function ChapterButtons({
   includeAll = true,
   badge,
 }: ChapterButtonsProps) {
-  const pill = (active: boolean) =>
+  const tile = (active: boolean) =>
     cn(
-      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+      "flex aspect-square flex-col justify-between rounded-xl border p-3 text-left transition-colors",
       active
-        ? "border-accent bg-accent text-accent-foreground"
-        : "border-border bg-surface text-foreground hover:border-accent",
+        ? "border-accent bg-accent text-accent-foreground shadow-sm"
+        : "border-border bg-surface text-foreground hover:border-accent hover:shadow-sm",
     )
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {includeAll && (
-        <div>
-          <button onClick={() => onSelect("all")} className={pill(selected === "all")}>
-            All chapters
+        <div className={GRID}>
+          <button
+            onClick={() => onSelect("all")}
+            className={tile(selected === "all")}
+          >
+            <span className="text-sm font-semibold leading-tight">
+              All chapters
+            </span>
+            <span className="text-xs opacity-70">Everything</span>
           </button>
         </div>
       )}
       {books.map((book) => (
         <div key={book.id}>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {book.title}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className={GRID}>
             {book.chapters.map((c) => {
               const b = badge?.(c.id)
+              const active = selected === c.id
               return (
                 <button
                   key={c.id}
                   onClick={() => onSelect(c.id)}
-                  className={pill(selected === c.id)}
+                  className={tile(active)}
                   title={c.title}
                 >
-                  {c.title.replace(/ —.*/, "")}
-                  {b !== undefined && b !== 0 && (
-                    <span
-                      className={cn(
-                        "rounded-full px-1.5 text-xs",
-                        selected === c.id
-                          ? "bg-white/20"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {b}
+                  <span className="line-clamp-3 text-sm font-semibold leading-tight">
+                    {c.title.replace(/ —.*/, "")}
+                  </span>
+                  {b !== undefined && b !== 0 ? (
+                    <span className="leading-none">
+                      <span className="text-xl font-bold">{b}</span>{" "}
+                      <span className="text-xs opacity-70">due</span>
                     </span>
-                  )}
+                  ) : null}
                 </button>
               )
             })}
