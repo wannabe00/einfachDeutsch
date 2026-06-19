@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from apps.books.models import Chapter
@@ -18,9 +19,21 @@ class Word(models.Model):
 
 
 class WordProgress(models.Model):
-    """SM-2 spaced-repetition state for a single word."""
+    """SM-2 spaced-repetition state for one (user, word) pair.
 
-    word = models.OneToOneField(Word, on_delete=models.CASCADE, related_name="progress")
+    Progress is **per-user**; the Word itself is shared/global content. A row is
+    created on demand the first time a signed-in user reviews a word. Guests get
+    no persisted progress (the review endpoint computes but does not save).
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="word_progress",
+        null=True,
+        blank=True,
+    )
+    word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name="progress_records")
     repetitions = models.IntegerField(default=0)
     ease_factor = models.FloatField(default=2.5)
     interval = models.IntegerField(default=1)  # days until next review
@@ -32,6 +45,10 @@ class WordProgress(models.Model):
     times_wrong = models.IntegerField(default=0)
     lapses = models.IntegerField(default=0)  # times rated "Again"
 
+    class Meta:
+        # One progress row per user per word.
+        unique_together = [("user", "word")]
+
     def __str__(self):
         return f"{self.word.english} — next: {self.next_review}"
 
@@ -40,8 +57,16 @@ class ReviewLog(models.Model):
     """One row per review event — enables historical activity charts.
 
     WordProgress only keeps the *latest* review; this keeps the full history.
+    Per-user (nullable for safety; the review endpoint always sets it).
     """
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="review_logs",
+        null=True,
+        blank=True,
+    )
     word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name="review_logs")
     quality = models.IntegerField()
     reviewed_at = models.DateTimeField(auto_now_add=True)

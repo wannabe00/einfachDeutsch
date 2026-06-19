@@ -3,6 +3,17 @@
  * Mirrors the models defined in backend/apps/*.
  */
 
+export type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+
+export interface User {
+  pk: number
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  cefr_level: CEFRLevel
+}
+
 export interface Book {
   id: number
   title: string
@@ -36,7 +47,8 @@ export interface Word {
   english: string
   german: string
   notes: string
-  progress: WordProgress
+  /** Per-user SM-2 state; null for new (unreviewed) words and for guests. */
+  progress: WordProgress | null
 }
 
 /** Quality scale sent to the review endpoint: Again | Hard | Good | Easy. */

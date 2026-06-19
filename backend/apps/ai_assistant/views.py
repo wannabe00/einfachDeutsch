@@ -4,10 +4,21 @@ If the API key is absent -> 503 with a clear message.
 """
 
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import (
+    api_view,
+    permission_classes,
+    throttle_classes,
+)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from . import llm
+from .throttles import AIBurstThrottle, AIDailyThrottle
+
+# AI is account-only (it spends the owner's Gemini quota) and rate-limited
+# per user. Applied to every endpoint below via these decorator stacks.
+_AI_PERMISSIONS = [IsAuthenticated]
+_AI_THROTTLES = [AIBurstThrottle, AIDailyThrottle]
 
 
 def _missing(data, *fields):
@@ -22,6 +33,8 @@ def _run(fn, *args):
 
 
 @api_view(["POST"])
+@permission_classes(_AI_PERMISSIONS)
+@throttle_classes(_AI_THROTTLES)
 def suggest_words(request):
     missing = _missing(request.data, "chapter_title")
     if missing:
@@ -39,6 +52,8 @@ def suggest_words(request):
 
 
 @api_view(["POST"])
+@permission_classes(_AI_PERMISSIONS)
+@throttle_classes(_AI_THROTTLES)
 def explain_grammar(request):
     missing = _missing(request.data, "topic")
     if missing:
@@ -50,6 +65,8 @@ def explain_grammar(request):
 
 
 @api_view(["POST"])
+@permission_classes(_AI_PERMISSIONS)
+@throttle_classes(_AI_THROTTLES)
 def generate_exercises(request):
     missing = _missing(request.data, "chapter_title")
     if missing:
@@ -65,6 +82,8 @@ def generate_exercises(request):
 
 
 @api_view(["POST"])
+@permission_classes(_AI_PERMISSIONS)
+@throttle_classes(_AI_THROTTLES)
 def check_answer(request):
     missing = _missing(request.data, "prompt", "correct_answer", "user_answer")
     if missing:
@@ -81,6 +100,8 @@ def check_answer(request):
 
 
 @api_view(["POST"])
+@permission_classes(_AI_PERMISSIONS)
+@throttle_classes(_AI_THROTTLES)
 def chat(request):
     missing = _missing(request.data, "message")
     if missing:

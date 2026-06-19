@@ -11,6 +11,9 @@ from .views import api_root
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api_root, name="api-root"),
+    # Auth: login, logout, user, password reset (dj-rest-auth) + registration.
+    path("api/auth/", include("dj_rest_auth.urls")),
+    path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
     path("api/", include("apps.books.urls")),
     path("api/", include("apps.vocabulary.urls")),
     path("api/", include("apps.grammar.urls")),

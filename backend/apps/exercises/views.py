@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Exercise, ExerciseAttempt
@@ -53,6 +54,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     queryset = Exercise.objects.select_related("chapter").all()
     serializer_class = ExerciseSerializer
 
+    def get_permissions(self):
+        # Editing the shared exercise content requires an account; reading and
+        # attempting (guests may practice) do not.
+        if self.action in {"create", "update", "partial_update", "destroy"}:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
     def get_queryset(self):
         qs = super().get_queryset()
         chapter = self.request.query_params.get("chapter")
@@ -71,6 +79,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
         ExerciseAttempt.objects.create(
             exercise=exercise,
+            user=request.user if request.user.is_authenticated else None,
             user_answer=str(user_answer),
             is_correct=is_correct,
             ai_feedback="",

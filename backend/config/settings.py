@@ -34,16 +34,27 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",  # required by allauth
     # Third-party
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
     # Local apps
+    "apps.accounts",
     "apps.books",
     "apps.vocabulary",
     "apps.grammar",
     "apps.exercises",
     "apps.ai_assistant",
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     # CorsMiddleware must come first so CORS headers are added to every response.
@@ -55,6 +66,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # allauth requires its middleware after AuthenticationMiddleware.
+    "allauth.account.middleware.AccountMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -113,12 +131,51 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # ---- Django REST Framework ----
-# No authentication in v1 — this is a single-user, local-first tool.
+# Token auth (Authorization: Token <key>) for the SPA; session auth kept for the
+# browsable API/admin. Content endpoints stay public-readable; per-user endpoints
+# enforce auth at the view level.
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    # Anti-abuse: a request ceiling per anonymous IP and per signed-in user.
+    # This is the real spam/DDoS guard (the frontend guest cap is just UX).
+    # AI endpoints add their own tighter per-user caps (see ai_assistant.throttles).
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("THROTTLE_ANON", "120/min"),
+        "user": os.getenv("THROTTLE_USER", "600/min"),
+        # Protect the (free, limited) Gemini quota — per signed-in user.
+        "ai_burst": os.getenv("THROTTLE_AI_BURST", "12/min"),
+        "ai_daily": os.getenv("THROTTLE_AI_DAILY", "120/day"),
+    },
 }
+
+# ---- Auth (allauth + dj-rest-auth), token-based ----
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # dev: don't block login on verification
+ACCOUNT_UNIQUE_EMAIL = True
+
+REST_AUTH = {
+    "USE_JWT": False,  # simple DRF token in localStorage — easiest for the SPA
+    "SESSION_LOGIN": False,
+    "TOKEN_MODEL": "rest_framework.authtoken.models.Token",
+    "REGISTER_SERIALIZER": "apps.accounts.serializers.RegisterSerializer",
+    "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
+    "LOGIN_SERIALIZER": "apps.accounts.serializers.LoginSerializer",
+}
+
+# Dev email backend — verification/reset links print to the runserver terminal.
+# Production should set a real SMTP backend.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # ---- CORS ----
 # Allow the Vite dev server to call the API during development.
@@ -126,6 +183,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+# In local dev, accept any localhost port (Vite may pick an alternate port).
+# Production keeps the explicit allow-list above only.
+if DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^http://localhost:\d+$",
+        r"^http://127\.0\.0\.1:\d+$",
+    ]
 
 
 # LLM API keys (AI features). Empty until configured in .env.

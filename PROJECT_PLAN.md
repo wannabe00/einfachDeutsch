@@ -292,10 +292,17 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - [ ] **12.3 Prod config** — `django-cors-headers` for the cross-domain Vercel↔Render setup (keep the Vite dev proxy locally); `ALLOWED_HOSTS`, `DEBUG=False`, static via WhiteNoise, `gunicorn`. Frontend → **Vercel**, backend → **Render** (persistent web service, not serverless).
 
 ## Phase 13 — Accounts & multi-user foundation (BIG — foundational)
-- [ ] **13.1 Auth** — `django-allauth`: email/password (+ verification) and Google OAuth.
-- [ ] **13.2 Per-user data migration** — the app is currently single-user (no `User` anywhere). Make **progress** per-user while **content stays shared**: add a user FK to `WordProgress`, `ReviewLog`, `ExerciseAttempt` (and new progress models); content models (`Book/Chapter/Word/GrammarRule/Exercise`) stay global. Migrate existing rows to a default owner.
-- [ ] **13.3 `UserProfile`** — current CEFR level, join date; one-to-one with `User`. API auth (session or token) + protect endpoints.
-- [ ] **13.4 Forward-compat for teachers** — model so a future `Teacher`/`Student` link + per-student curation can be added without a rewrite.
+
+> **Access model (decided 2026-06-19, owner):** the app is **freemium / guest-friendly**, not fully login-walled.
+> - **Guest-OK** (free to the owner, read-only or cheap, server-rate-limited): Grammar, Exercises, Word Bank (browse), Review (limited, progress NOT saved), Books (browse). Guests are capped by a **daily action limit** (localStorage) → then a **sign-up wall**.
+> - **Account-only** (costs the owner / abusable / speech): **Drills, AI Assistant, Recite (speak)**, plus anything that **writes per-user progress** or **edits content** (add/import words, add chapters, save SRS reviews).
+> - **Anti-abuse:** server-side **DRF throttling** (`AnonRateThrottle`/`UserRateThrottle`) is the real DDoS/spam guard — the localStorage cap is just UX. Passwords are hashed (Django PBKDF2, via allauth) — security requirement satisfied.
+
+- [x] **13.1 Auth** — `django-allauth` + `dj-rest-auth` + DRF token: email/password (verification optional in dev, console email backend). `apps.accounts` + `UserProfile`(cefr_level) auto-created via signal. Frontend: token interceptor + 401 auto-logout, `AuthContext`, `AuthPage` (login/register), **guest-aware app shell** (sidebar user/logout, account-only routes gated). Google OAuth deferred (needs owner's OAuth creds).
+- [x] **13.2 Per-user data migration** — added nullable `user` FK to `WordProgress` (now FK not OneToOne, `unique_together(user, word)`, created on-demand), `ReviewLog`, `ExerciseAttempt`; content models stay global. Removed the auto-create-progress signal. Per-user queries: `due`/`due-counts` treat unseen words as new/due, `WordSerializer.progress` is the requesting user's row (prefetched) or null, `review` persists only for signed-in users (guests get computed-but-unsaved), Stats/Activity are per-user. Data migration assigns pre-existing single-user rows to the first user (owner) or drops them if no account exists. Per-action auth (content edits require login). **Verified:** A↔B isolation, guest non-persistence, owner's legacy 560 rows preserved.
+- [x] **13.3 Endpoint protection + throttling** — `UserProfile` exposed via `/api/auth/user/` (13.1). Content writes auth-gated (13.2). AI endpoints now **account-only** (`IsAuthenticated`) + tighter per-user caps (`ai_burst` 12/min, `ai_daily` 120/day) to protect Gemini quota. Global `AnonRateThrottle` (120/min) + `UserRateThrottle` (600/min) as the spam/DDoS guard — all rates configurable via env. Drills/Recite are frontend-gated (no dedicated backend endpoints). **Verified:** guest AI→401, authed AI→200, 429 after burst. _(Flagged separately: wrap non-config AI errors in a clean 502 instead of raw 500.)_
+- [ ] **13.4 Guest limit + sign-up wall (frontend)** — daily action cap in localStorage (configurable count), a reusable `useGuestLimit` hook + `SignUpWall` component; account-only routes redirect guests to `/login`.
+- [ ] **13.5 Forward-compat for teachers** — model so a future `Teacher`/`Student` link + per-student curation can be added without a rewrite.
 
 ## Phase 14 — CEFR leveling
 - [ ] **14.1 Models** — `LevelDefinition` (CEFR A1–C2, required lessons/reviews) + `UserLessonProgress` (user, lesson, completed_at, score).

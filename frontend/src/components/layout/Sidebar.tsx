@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
   GraduationCap,
@@ -12,10 +12,15 @@ import {
   Mic,
   PanelLeftClose,
   PanelLeft,
+  Lock,
+  LogIn,
+  LogOut,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { SITE_NAME } from "@/lib/site"
+import { isAccountOnlyPath } from "@/lib/access"
+import { useAuth } from "@/contexts/AuthContext"
 import { ThemeToggle } from "./ThemeToggle"
 
 const navItems = [
@@ -33,6 +38,8 @@ const navItems = [
 const STORAGE_KEY = "sidebar-collapsed"
 
 export function Sidebar() {
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(STORAGE_KEY) === "true",
   )
@@ -40,6 +47,11 @@ export function Sidebar() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, String(collapsed))
   }, [collapsed])
+
+  async function handleLogout() {
+    await logout()
+    navigate("/")
+  }
 
   return (
     <aside
@@ -73,30 +85,82 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 px-3">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            title={collapsed ? label : undefined}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
-                collapsed ? "justify-center px-2" : "px-3",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-background hover:text-foreground",
-              )
-            }
-          >
-            <Icon className="size-5 shrink-0" aria-hidden="true" />
-            {!collapsed && label}
-          </NavLink>
-        ))}
+        {navItems.map(({ to, label, icon: Icon, end }) => {
+          // Show a lock on features a signed-out guest can't open.
+          const locked = !user && isAccountOnlyPath(to)
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              title={
+                collapsed ? `${label}${locked ? " (sign in)" : ""}` : undefined
+              }
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+                  collapsed ? "justify-center px-2" : "px-3",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-background hover:text-foreground",
+                )
+              }
+            >
+              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              {!collapsed && <span className="flex-1">{label}</span>}
+              {!collapsed && locked && (
+                <Lock className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />
+              )}
+            </NavLink>
+          )
+        })}
       </nav>
 
-      <div className={cn("mt-auto pb-4", collapsed ? "px-2" : "px-3")}>
+      <div
+        className={cn(
+          "mt-auto flex flex-col gap-1 pb-4",
+          collapsed ? "px-2" : "px-3",
+        )}
+      >
         <ThemeToggle collapsed={collapsed} />
+
+        {user ? (
+          <>
+            {!collapsed && (
+              <p
+                className="truncate px-3 pt-1 text-xs text-muted-foreground"
+                title={user.email}
+              >
+                {user.email}
+              </p>
+            )}
+            <button
+              onClick={handleLogout}
+              aria-label="Log out"
+              title={collapsed ? "Log out" : undefined}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground",
+                collapsed ? "justify-center px-2" : "px-3",
+              )}
+            >
+              <LogOut className="size-5 shrink-0" aria-hidden="true" />
+              {!collapsed && "Log out"}
+            </button>
+          </>
+        ) : (
+          <NavLink
+            to="/login"
+            aria-label="Log in"
+            title={collapsed ? "Log in" : undefined}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-primary transition-colors hover:bg-background",
+              collapsed ? "justify-center px-2" : "px-3",
+            )}
+          >
+            <LogIn className="size-5 shrink-0" aria-hidden="true" />
+            {!collapsed && "Log in / Sign up"}
+          </NavLink>
+        )}
       </div>
     </aside>
   )
