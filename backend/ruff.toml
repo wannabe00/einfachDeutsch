@@ -1,0 +1,8 @@
+# Ruff config — Python linter + formatter for the Django backend.
+line-length = 100
+target-version = "py312"
+exclude = ["venv", "venv_mac", "migrations", "**/migrations/**"]
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]  # pycodestyle, pyflakes, isort, pyupgrade, bugbear
+ignore = ["E501"]  # line length handled by the formatter
