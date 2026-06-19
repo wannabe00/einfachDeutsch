@@ -10,10 +10,12 @@ import { DrillShell } from "./DrillShell"
 
 const ROUNDS = 15
 const ARTICLES = ["der", "die", "das"] as const
-const COLOR: Record<string, string> = {
-  der: "article-der",
-  die: "article-die",
-  das: "article-das",
+// Full, literal class strings so Tailwind can see them at build time (it scans
+// source text — a `var(--${...})` interpolation would emit unparseable CSS).
+const ARTICLE_TEXT: Record<string, string> = {
+  der: "text-[hsl(var(--article-der))]",
+  die: "text-[hsl(var(--article-die))]",
+  das: "text-[hsl(var(--article-das))]",
 }
 
 export function GenderTriage({ onExit }: { onExit: () => void }) {
@@ -86,7 +88,8 @@ export function GenderTriage({ onExit }: { onExit: () => void }) {
                     ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                     : isWrongPick
                       ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))]"
-                      : `border-border bg-surface text-[hsl(var(--${COLOR[a]}))] hover:border-accent`,
+                      : "border-border bg-surface hover:border-accent " +
+                        ARTICLE_TEXT[a],
                 )}
               >
                 {a}
