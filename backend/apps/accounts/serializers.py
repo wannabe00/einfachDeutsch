@@ -5,6 +5,7 @@ from dj_rest_auth.registration.serializers import (
     RegisterSerializer as BaseRegisterSerializer,
 )
 from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -25,9 +26,11 @@ class LoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise serializers.ValidationError("This account is disabled.")
 
-        # Block unverified accounts. Superusers (created via the CLI) and legacy
-        # accounts with no email record predate verification, so they're exempt.
-        if not user.is_superuser:
+        # Block unverified accounts only when verification is mandatory.
+        # Superusers (created via the CLI) and legacy accounts with no email
+        # record predate verification, so they're always exempt.
+        mandatory = settings.ACCOUNT_EMAIL_VERIFICATION == "mandatory"
+        if mandatory and not user.is_superuser:
             emails = EmailAddress.objects.filter(user=user)
             if emails.exists() and not emails.filter(verified=True).exists():
                 raise serializers.ValidationError(

@@ -180,8 +180,11 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # not return a token; login is blocked until the email is verified (see
 # LoginSerializer). In dev the link prints to the runserver terminal (console
 # email backend); production wires real SMTP (Phase 12).
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_EMAIL_REQUIRED = True  # required by allauth when verification is mandatory
+# "mandatory" blocks login until the email is confirmed (needs a working email
+# sender + a verified domain). "optional" lets users in immediately (good for
+# launching without a domain). Flip via env once a sending domain is set up.
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "mandatory")
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
 
