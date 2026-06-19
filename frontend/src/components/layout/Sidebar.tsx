@@ -38,9 +38,13 @@ const STORAGE_KEY = "sidebar-collapsed"
 export function Sidebar() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
-  const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === "true",
-  )
+  const [collapsed, setCollapsed] = useState(() => {
+    // Respect a saved preference; otherwise default to collapsed on small
+    // (phone-width) screens so the icon rail leaves room for content.
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored !== null) return stored === "true"
+    return typeof window !== "undefined" && window.innerWidth < 768
+  })
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, String(collapsed))
