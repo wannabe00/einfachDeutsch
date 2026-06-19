@@ -17,6 +17,10 @@ services:
         value: "False"
       - key: SECRET_KEY
         generateValue: true
+      # Launch without a sending domain: users log in without email verification.
+      # Change to "mandatory" once a Resend domain is verified.
+      - key: ACCOUNT_EMAIL_VERIFICATION
+        value: "optional"
       # Set these in the Render dashboard (sync:false = not stored in git):
       - key: ALLOWED_HOSTS # e.g. einfachdeutsch-api.onrender.com
         sync: false
