@@ -287,9 +287,9 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 > **Recommended defaults:** video suggestions unlock after **A2** (at B1); history track shows English+German through **A2**, German-only from **B1**; video source = **hand-curated list** per CEFR level; streak = **2** freeze tokens, **+1 per 14-day** unbroken streak (capped), auto-consumed on a missed scheduled day.
 
 ## Phase 12 — Deployment foundation
-- [ ] **12.1 Postgres (Neon)** — add `psycopg`, read `DATABASE_URL` (via `dj-database-url`), keep SQLite fallback for local. **Do NOT use Render's bundled Postgres** (30-day auto-expiry = data loss); use **Neon** (no expiry, pooled).
-- [ ] **12.2 Data migration path** — `dumpdata` (or `pg_dump`) → load into Neon once provisioned. Current dev DB is **SQLite** (confirmed).
-- [ ] **12.3 Prod config** — `django-cors-headers` for the cross-domain Vercel↔Render setup (keep the Vite dev proxy locally); `ALLOWED_HOSTS`, `DEBUG=False`, static via WhiteNoise, `gunicorn`. Frontend → **Vercel**, backend → **Render** (persistent web service, not serverless).
+- [x] **12.1 Postgres (Neon)** — `dj-database-url` + `psycopg[binary]`; `DATABASES` reads `DATABASE_URL` (ssl_require + conn_max_age) and falls back to local SQLite when unset. Deps in requirements.txt. **Use Neon, not Render's bundled Postgres.**
+- [ ] **12.2 Data migration path** — _executed at deploy time:_ `manage.py dumpdata` (content only) → load into Neon, or just run `seed_menschen` on Neon. Pending Neon provisioning (needs owner's `DATABASE_URL`).
+- [x] **12.3 Prod config** — env-driven `ALLOWED_HOSTS`/`CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS`; WhiteNoise (CompressedManifest static, `STATIC_ROOT`); `gunicorn`; SMTP email backend when `EMAIL_HOST` set (else console); prod hardening when `DEBUG=False` (SSL redirect, HSTS, secure cookies, proxy header). `render.yaml` (backend Blueprint) + `frontend/vercel.json` (Vite + SPA rewrite). `.env.example` documents all prod vars. Verified: collectstatic OK (154 files), wsgi imports, `check --deploy` clean except the dev SECRET_KEY (Render generates one).
 
 ## Phase 13 — Accounts & multi-user foundation (BIG — foundational)
 

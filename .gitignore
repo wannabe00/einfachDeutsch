@@ -8,6 +8,7 @@ __pycache__/
 db.sqlite3
 .env
 *.log
+staticfiles/
 
 # ---- Node / React (frontend) ----
 node_modules/

@@ -24,7 +24,10 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
+# Hosts: localhost for dev, plus any comma-separated hosts from the env
+# (e.g. the Render domain) for production.
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS += [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
 
 
 INSTALLED_APPS = [
@@ -60,6 +63,8 @@ MIDDLEWARE = [
     # CorsMiddleware must come first so CORS headers are added to every response.
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise serves static files in production (must follow SecurityMiddleware).
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -95,11 +100,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
+# Postgres (Neon) in production via DATABASE_URL; SQLite locally otherwise.
+import dj_database_url  # noqa: E402
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=bool(os.getenv("DATABASE_URL")),
+    )
 }
 
 
@@ -126,6 +135,12 @@ USE_TZ = True
 
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+# WhiteNoise: compressed, hashed static files in production.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -182,23 +197,50 @@ REST_AUTH = {
     "LOGIN_SERIALIZER": "apps.accounts.serializers.LoginSerializer",
 }
 
-# Dev email backend — verification/reset links print to the runserver terminal.
-# Production should set a real SMTP backend.
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email: real SMTP when EMAIL_HOST is configured (production), else the dev
+# console backend (verification/reset links print to the runserver terminal).
+if os.getenv("EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.getenv("EMAIL_HOST")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@einfachdeutsch.local")
 
 # ---- CORS ----
-# Allow the Vite dev server to call the API during development.
+# Dev: the Vite server (any localhost port). Prod: explicit origins from env
+# (comma-separated, e.g. the Vercel domain).
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-# In local dev, accept any localhost port (Vite may pick an alternate port).
-# Production keeps the explicit allow-list above only.
+CORS_ALLOWED_ORIGINS += [
+    o.strip() for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
+# Cross-site POSTs (login/registration) from the SPA domain need CSRF trust.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
 if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES = [
         r"^http://localhost:\d+$",
         r"^http://127\.0\.0\.1:\d+$",
     ]
+
+# ---- Production hardening (only when DEBUG is off) ----
+if not DEBUG:
+    # Render terminates TLS at the proxy and forwards this header.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True") == "True"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "2592000"))  # 30 days
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # LLM API keys (AI features). Empty until configured in .env.
