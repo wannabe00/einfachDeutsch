@@ -14,4 +14,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Honor a PORT env var (used by tooling/preview) but default to Vite's 5173.
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+  },
 })

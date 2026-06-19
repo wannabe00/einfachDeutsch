@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from apps.books.models import Chapter
@@ -42,6 +43,13 @@ class Exercise(models.Model):
 
 
 class ExerciseAttempt(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="exercise_attempts",
+        null=True,
+        blank=True,
+    )
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="attempts")
     user_answer = models.TextField()
     is_correct = models.BooleanField()

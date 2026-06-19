@@ -12,5 +12,5 @@ class ExerciseAdmin(admin.ModelAdmin):
 
 @admin.register(ExerciseAttempt)
 class ExerciseAttemptAdmin(admin.ModelAdmin):
-    list_display = ["exercise", "is_correct", "attempted_at"]
-    list_filter = ["is_correct"]
+    list_display = ["exercise", "user", "is_correct", "attempted_at"]
+    list_filter = ["is_correct", "user"]

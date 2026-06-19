@@ -1,8 +1,10 @@
 from datetime import date
 
+from django.db.models import Count, Prefetch, Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,40 +16,80 @@ from .serializers import WordProgressSerializer, WordSerializer
 from .srs import calculate_next_review
 
 
+def current_user(request):
+    """The authenticated user, or None for a guest."""
+    return request.user if request.user.is_authenticated else None
+
+
+def due_words_for(user, chapter_id=None):
+    """Words due for review for `user`.
+
+    A word is due if the user has a progress row scheduled on/before today, OR
+    the user has never reviewed it (new words are due). For a guest (user=None)
+    every word is new, so all words are due.
+    """
+    today = date.today()
+    qs = Word.objects.select_related("chapter")
+    if chapter_id:
+        qs = qs.filter(chapter_id=chapter_id)
+    if user is None:
+        return qs
+    seen = WordProgress.objects.filter(user=user).values("word_id")
+    due_seen = WordProgress.objects.filter(user=user, next_review__lte=today).values("word_id")
+    return qs.filter(Q(pk__in=due_seen) | ~Q(pk__in=seen))
+
+
 class WordViewSet(viewsets.ModelViewSet):
-    queryset = Word.objects.select_related("progress", "chapter").all()
+    queryset = Word.objects.select_related("chapter").all()
     serializer_class = WordSerializer
 
+    def get_permissions(self):
+        # Content edits require an account; reading + (guest-safe) review do not.
+        if self.action in {
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "import_csv",
+            "bulk",
+        }:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def _with_user_progress(self, qs):
+        """Attach the requesting user's progress to each word as `user_progress`
+        (a list of 0 or 1 WordProgress) so the serializer avoids an N+1."""
+        user = current_user(self.request)
+        if user is not None:
+            qs = qs.prefetch_related(
+                Prefetch(
+                    "progress_records",
+                    queryset=WordProgress.objects.filter(user=user),
+                    to_attr="user_progress",
+                )
+            )
+        return qs
+
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = Word.objects.select_related("chapter")
         chapter = self.request.query_params.get("chapter")
         if chapter:
             qs = qs.filter(chapter_id=chapter)
-        return qs
+        return self._with_user_progress(qs)
 
     @action(detail=False, methods=["get"], url_path="due")
     def due(self, request):
-        words = (
-            Word.objects.select_related("progress", "chapter")
-            .filter(progress__next_review__lte=date.today())
-            .order_by("progress__next_review")
-        )
+        user = current_user(request)
         chapter = request.query_params.get("chapter")
-        if chapter:
-            words = words.filter(chapter_id=chapter)
+        words = self._with_user_progress(due_words_for(user, chapter))
         serializer = self.get_serializer(words, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="due-counts")
     def due_counts(self, request):
         """Count of due words per chapter, plus the overall total."""
-        from django.db.models import Count
-
-        rows = (
-            Word.objects.filter(progress__next_review__lte=date.today())
-            .values("chapter_id")
-            .annotate(count=Count("id"))
-        )
+        user = current_user(request)
+        rows = due_words_for(user).values("chapter_id").annotate(count=Count("id"))
         per_chapter = {r["chapter_id"]: r["count"] for r in rows}
         return Response({"total": sum(per_chapter.values()), "per_chapter": per_chapter})
 
@@ -55,16 +97,21 @@ class WordViewSet(viewsets.ModelViewSet):
     def review(self, request, pk=None):
         word = self.get_object()
         quality = int(request.data.get("quality", 0))
+        user = current_user(request)
 
-        progress = word.progress
+        if user is None:
+            # Guest: compute the next SM-2 state for display but don't persist it
+            # (progress is account-only). Starts from defaults each time.
+            progress = WordProgress(word=word)
+        else:
+            progress, _ = WordProgress.objects.get_or_create(user=user, word=word)
+
         new_reps, new_ef, new_interval, next_review_date = calculate_next_review(
             progress.repetitions,
             progress.ease_factor,
             progress.interval,
             quality,
         )
-
-        from django.utils import timezone
 
         progress.repetitions = new_reps
         progress.ease_factor = new_ef
@@ -77,9 +124,10 @@ class WordViewSet(viewsets.ModelViewSet):
             progress.lapses += 1
         else:
             progress.times_correct += 1
-        progress.save()
 
-        ReviewLog.objects.create(word=word, quality=quality)
+        if user is not None:
+            progress.save()
+            ReviewLog.objects.create(word=word, quality=quality, user=user)
 
         return Response(WordProgressSerializer(progress).data)
 
@@ -149,23 +197,35 @@ class WordViewSet(viewsets.ModelViewSet):
 
 
 class StatsView(APIView):
-    """Aggregate dashboard stats."""
+    """Aggregate dashboard stats for the requesting user (per-user progress;
+    content totals are global). Guests see content totals with all words counted
+    as new/due and zero personal activity."""
+
+    permission_classes = [AllowAny]
 
     def get(self, request):
+        user = current_user(request)
         today = date.today()
         midnight = timezone.make_aware(
             timezone.datetime.combine(today, timezone.datetime.min.time())
         )
 
-        reviewed_today = (
-            WordProgress.objects.filter(last_reviewed__gte=midnight).count()
-            + ExerciseAttempt.objects.filter(attempted_at__gte=midnight).count()
-        )
+        if user is None:
+            due_today = Word.objects.count()  # everything is new for a guest
+            learned_total = 0
+            reviewed_today = 0
+        else:
+            due_today = due_words_for(user).count()
+            learned_total = WordProgress.objects.filter(user=user, interval__gt=21).count()
+            reviewed_today = (
+                WordProgress.objects.filter(user=user, last_reviewed__gte=midnight).count()
+                + ExerciseAttempt.objects.filter(user=user, attempted_at__gte=midnight).count()
+            )
 
         return Response(
             {
-                "due_today": WordProgress.objects.filter(next_review__lte=today).count(),
-                "learned_total": WordProgress.objects.filter(interval__gt=21).count(),
+                "due_today": due_today,
+                "learned_total": learned_total,
                 "reviewed_today": reviewed_today,
                 "total_words": Word.objects.count(),
                 "total_grammar_rules": GrammarRule.objects.count(),
@@ -175,26 +235,30 @@ class StatsView(APIView):
 
 
 class ActivityView(APIView):
-    """Review counts per day for the last 7 days: [{date, count}]."""
+    """Review counts per day for the last 7 days: [{date, count}] for the
+    requesting user. Guests get all-zero days."""
+
+    permission_classes = [AllowAny]
 
     def get(self, request):
         from datetime import timedelta
 
+        user = current_user(request)
         today = date.today()
         days = [today - timedelta(days=i) for i in range(6, -1, -1)]
-
-        # Count word reviews + exercise attempts per local day.
         counts = {d: 0 for d in days}
-        start = timezone.make_aware(
-            timezone.datetime.combine(days[0], timezone.datetime.min.time())
-        )
-        for log in ReviewLog.objects.filter(reviewed_at__gte=start):
-            d = timezone.localtime(log.reviewed_at).date()
-            if d in counts:
-                counts[d] += 1
-        for att in ExerciseAttempt.objects.filter(attempted_at__gte=start):
-            d = timezone.localtime(att.attempted_at).date()
-            if d in counts:
-                counts[d] += 1
+
+        if user is not None:
+            start = timezone.make_aware(
+                timezone.datetime.combine(days[0], timezone.datetime.min.time())
+            )
+            for log in ReviewLog.objects.filter(user=user, reviewed_at__gte=start):
+                d = timezone.localtime(log.reviewed_at).date()
+                if d in counts:
+                    counts[d] += 1
+            for att in ExerciseAttempt.objects.filter(user=user, attempted_at__gte=start):
+                d = timezone.localtime(att.attempted_at).date()
+                if d in counts:
+                    counts[d] += 1
 
         return Response([{"date": d.isoformat(), "count": counts[d]} for d in days])

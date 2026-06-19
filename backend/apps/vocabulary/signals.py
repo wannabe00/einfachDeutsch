@@ -1,11 +1,8 @@
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+"""Vocabulary signals.
 
-from .models import Word, WordProgress
-
-
-@receiver(post_save, sender=Word)
-def create_word_progress(sender, instance, created, **kwargs):
-    """Auto-create the SM-2 progress row the first time a Word is saved."""
-    if created:
-        WordProgress.objects.create(word=instance)
+The old post_save signal that auto-created a WordProgress per Word was removed
+in Phase 13.2: progress is now **per-user**, so a Word no longer maps to a
+single progress row. WordProgress is created on demand the first time a signed-in
+user reviews a word (see WordViewSet.review). Kept as a module so apps.ready()
+import stays valid and future per-user signals have a home.
+"""

@@ -20,7 +20,10 @@ class WordProgressSerializer(serializers.ModelSerializer):
 
 
 class WordSerializer(serializers.ModelSerializer):
-    progress = WordProgressSerializer(read_only=True)
+    # Per-user SM-2 state for the requesting user, or null for guests / words the
+    # user has never reviewed. The viewset prefetches it into `user_progress`
+    # (a list with 0 or 1 item) to avoid an N+1 query.
+    progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Word
@@ -33,3 +36,9 @@ class WordSerializer(serializers.ModelSerializer):
             "created_at",
             "progress",
         ]
+
+    def get_progress(self, obj):
+        records = getattr(obj, "user_progress", None)
+        if records:
+            return WordProgressSerializer(records[0]).data
+        return None
