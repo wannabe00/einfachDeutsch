@@ -40,6 +40,7 @@ export async function loginUser(
     email,
     password,
   })
+  if (!data.key) throw new Error("Login did not return a token")
   localStorage.setItem(TOKEN_KEY, data.key)
   return data.key
 }

@@ -23,7 +23,7 @@ interface ExerciseCardProps {
 
 const SIMPLE_TYPES = ["translation", "fill_blank", "article", "conjugation", "free_text"]
 
-function answerReady(type: string, ans: UserAnswer): boolean {
+function answerReady(ans: UserAnswer): boolean {
   if (typeof ans === "string") return ans.trim().length > 0
   if (Array.isArray(ans)) return ans.length > 0
   return Object.keys(ans).length > 0
@@ -82,7 +82,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
 
   function handleSubmit(e?: FormEvent) {
     e?.preventDefault()
-    if (result || !answerReady(exercise.exercise_type, currentAnswer())) return
+    if (result || !answerReady(currentAnswer())) return
     if (!guard()) return // guests: blocked once the daily free cap is hit
     mutation.mutate()
   }
