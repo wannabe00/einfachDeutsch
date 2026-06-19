@@ -56,12 +56,24 @@ export function Sidebar() {
   }
 
   return (
-    <aside
-      className={cn(
-        "sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200",
-        collapsed ? "w-16" : "w-60",
+    <>
+      {/* On phones, an expanded sidebar overlays the content (drawer) instead
+          of pushing it off-screen. Tapping the backdrop closes it. */}
+      {!collapsed && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setCollapsed(true)}
+          aria-hidden="true"
+        />
       )}
-    >
+      <aside
+        className={cn(
+          "sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200",
+          collapsed ? "w-16" : "w-60",
+          // expanded on mobile → fixed overlay so main content keeps full width
+          !collapsed && "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:shadow-2xl",
+        )}
+      >
       <div
         className={cn(
           "flex items-center py-5",
@@ -155,6 +167,7 @@ export function Sidebar() {
           </NavLink>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
