@@ -1,8 +1,9 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 import type { ReactNode } from "react"
 
 import { useAuth } from "@/contexts/AuthContext"
 import { Layout } from "@/components/layout/Layout"
+import { LockedFeature } from "@/components/auth/LockedFeature"
 import AuthPage from "@/pages/AuthPage"
 import VerifyEmailPage from "@/pages/VerifyEmailPage"
 import Dashboard from "@/pages/Dashboard"
@@ -18,7 +19,6 @@ import AIAssistantPage from "@/pages/AIAssistantPage"
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  const location = useLocation()
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
@@ -26,7 +26,9 @@ function RequireAuth({ children }: { children: ReactNode }) {
       </div>
     )
   }
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
+  // Guests see the section blurred behind a sign-up/login overlay rather than
+  // being redirected away.
+  if (!user) return <LockedFeature />
   return <>{children}</>
 }
 
@@ -57,16 +59,11 @@ function App() {
         <Route path="/exercises" element={<ExercisesPage />} />
         <Route path="/books" element={<BooksPage />} />
         <Route path="/chapters/:chapterId" element={<ChapterDetailPage />} />
+        {/* Drills hub is public; individual drills gate themselves (Gender
+            Triage is free, the rest are members-only — see DrillsPage). */}
+        <Route path="/drills" element={<DrillsPage />} />
 
         {/* Account-only (cost the owner / abusable / speech) */}
-        <Route
-          path="/drills"
-          element={
-            <RequireAuth>
-              <DrillsPage />
-            </RequireAuth>
-          }
-        />
         <Route
           path="/speak"
           element={

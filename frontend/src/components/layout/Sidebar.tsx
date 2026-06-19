@@ -12,14 +12,12 @@ import {
   Mic,
   PanelLeftClose,
   PanelLeft,
-  Lock,
   LogIn,
   LogOut,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { SITE_NAME } from "@/lib/site"
-import { isAccountOnlyPath } from "@/lib/access"
 import { useAuth } from "@/contexts/AuthContext"
 import { ThemeToggle } from "./ThemeToggle"
 
@@ -85,35 +83,26 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 px-3">
-        {navItems.map(({ to, label, icon: Icon, end }) => {
-          // Show a lock on features a signed-out guest can't open.
-          const locked = !user && isAccountOnlyPath(to)
-          return (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              title={
-                collapsed ? `${label}${locked ? " (sign in)" : ""}` : undefined
-              }
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
-                  collapsed ? "justify-center px-2" : "px-3",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-background hover:text-foreground",
-                )
-              }
-            >
-              <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {!collapsed && <span className="flex-1">{label}</span>}
-              {!collapsed && locked && (
-                <Lock className="size-3.5 shrink-0 opacity-60" aria-hidden="true" />
-              )}
-            </NavLink>
-          )
-        })}
+        {navItems.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            title={collapsed ? label : undefined}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+                collapsed ? "justify-center px-2" : "px-3",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-background hover:text-foreground",
+              )
+            }
+          >
+            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            {!collapsed && <span className="flex-1">{label}</span>}
+          </NavLink>
+        ))}
       </nav>
 
       <div

@@ -7,6 +7,7 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/contexts/ThemeContext"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { GuestLimitProvider } from "@/contexts/GuestLimitContext"
 
 const queryClient = new QueryClient()
 
@@ -16,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <App />
+            <GuestLimitProvider>
+              <App />
+            </GuestLimitProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
