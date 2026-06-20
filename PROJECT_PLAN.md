@@ -305,8 +305,8 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - [x] **13.5 Forward-compat for teachers** — `UserProfile.role` (student/teacher, default student) + `level_set` flag added (accounts migration 0002); exposed via `/api/auth/user/` and in the frontend `User` type. Content already shared + progress already per-user, so a future Teacher↔Student link model + per-student curation layers on without reshaping tables.
 
 ## Phase 14 — CEFR leveling
-- [ ] **14.1 Models** — `LevelDefinition` (CEFR A1–C2, required lessons/reviews) + `UserLessonProgress` (user, lesson, completed_at, score).
-- [ ] **14.2 Gating** — advance a level only when the current level's required content is complete (completion-gated, not XP). One progression engine drives level-ups + content unlocks.
+- [x] **14.1 Models** — `LevelDefinition` (cefr/order/required_lessons/required_reviews, seeded A1–C2 via migration 0004) + `UserLessonProgress` (user, chapter, score, completed_at). Both in `apps.accounts`, admin-registered.
+- [x] **14.2 Gating engine + onboarding** — `leveling.evaluate_level(user)` computes completion-gated `can_advance` (lessons + reviews vs the level's thresholds), exposed at `GET /api/accounts/level-status/`. Onboarding flow: authored locally-graded **placement test** (`/api/accounts/placement-test/`) + quick-pick + `POST /api/accounts/set-level/` (sets cefr_level + level_set); frontend `/onboarding` is forced after first login until a level is chosen, with ±1 adjust after the test. **Note:** the engine's `can_advance`/unlock signal is consumed by content-unlock UI in Phase 15 (Mon/Wed/Fri schedule).
 
 ## Phase 15 — Lesson schedule + streaks
 - [ ] **15.1 Mon/Wed/Fri unlock** — new topic/chapter unlocks only on Mon/Wed/Fri; **reviews available any day**.

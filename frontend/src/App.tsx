@@ -6,6 +6,7 @@ import { Layout } from "@/components/layout/Layout"
 import { LockedFeature } from "@/components/auth/LockedFeature"
 import AuthPage from "@/pages/AuthPage"
 import VerifyEmailPage from "@/pages/VerifyEmailPage"
+import OnboardingPage from "@/pages/OnboardingPage"
 import Dashboard from "@/pages/Dashboard"
 import ReviewPage from "@/pages/ReviewPage"
 import WordBankPage from "@/pages/WordBankPage"
@@ -32,6 +33,14 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** The app shell — but a signed-in user who hasn't chosen a level yet is sent
+    to onboarding first. Guests pass through (they have no level to set). */
+function AppShell() {
+  const { user } = useAuth()
+  if (user && !user.level_set) return <Navigate to="/onboarding" replace />
+  return <Layout />
+}
+
 function App() {
   const { user } = useAuth()
 
@@ -47,10 +56,24 @@ function App() {
         element={user ? <Navigate to="/" replace /> : <AuthPage mode="register" />}
       />
       <Route path="/verify-email/:key" element={<VerifyEmailPage />} />
+      {/* First-login level onboarding (only for signed-in users without a
+          level set; once set, bounce to the app). */}
+      <Route
+        path="/onboarding"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : user.level_set ? (
+            <Navigate to="/" replace />
+          ) : (
+            <OnboardingPage />
+          )
+        }
+      />
 
       {/* The app shell is open to guests; individual routes decide whether
           they require an account (see lib/access.ts). */}
-      <Route element={<Layout />}>
+      <Route element={<AppShell />}>
         {/* Guest-OK (free to the owner, read-only or cheap, backend-throttled) */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/review" element={<ReviewPage />} />
