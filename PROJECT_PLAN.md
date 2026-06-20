@@ -313,12 +313,12 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - [x] **15.2 Streaks + freeze tokens** — `StreakRecord` (current/longest streak, freeze_tokens_available, last_active_date); `register_activity()` increments on each review/exercise (best-effort), auto-consumes a freeze per missed **scheduled** day and only resets when freezes run out; earns +1 freeze per `STREAK_FREEZE_EARN_DAYS` (14, capped `STREAK_FREEZE_MAX`=5); 2 initial tokens — all in settings. Verified with controlled dates + live review.
 
 ## Phase 16 — Recitation v2 (retell in your own words) — replaces Phase 10
-- [ ] **16.1 Record + upload** — browser records the spoken retelling; POST the audio blob to Django (audio **discarded** after transcription — no object storage).
-- [ ] **16.2 Transcribe (Gemini)** — server-side German speech→text via Gemini multimodal, behind a **swappable `Transcriber` interface** (so paid Whisper / Azure can drop in later for v2 fidelity).
-- [ ] **16.3 Grade (Gemini)** — send transcript + source text → structured JSON: **content-coverage** score + missed points, **grammar** errors (article gender + case specifically), and a short feedback summary.
-- [ ] **16.4 Pronunciation (proxy)** — Whisper/Gemini-transcript-as-proxy: mis-transcribed words flagged as likely pronunciation issues. Behind the same swappable interface for a future real phoneme API.
-- [ ] **16.5 Cost control** — configurable per-user daily attempt cap + max audio length.
-- [ ] **16.6 Feedback card** — covered ✅ / missed / grammar corrections.
+- [x] **16.1 Record + upload** — `RecitePage` records via MediaRecorder (max-duration auto-stop), POSTs the blob as multipart to `/api/recitation/attempt/`. Audio is read in-memory and **never stored** (only transcript + grading saved on `RecitationAttempt`). `/speak` route now points here (old SpeakPage retired).
+- [x] **16.2 Transcribe (Gemini)** — `apps/recitation/transcribe.py`: `Transcriber` ABC + `GeminiTranscriber` (multimodal `Part.from_bytes`) + `get_transcriber()` factory — swap for paid Whisper/Azure without caller changes.
+- [x] **16.3 Grade (Gemini)** — `grading.py` `grade_retelling(source, transcript)` → JSON (`response_mime_type=application/json`): coverage_score, covered, missed, grammar_errors (typed: article/case/verb/word_order), summary; meaning-based (own words OK).
+- [x] **16.4 Pronunciation (proxy)** — Gemini flags likely mis-said words from odd transcription → `pronunciation_notes` (same swappable interface).
+- [x] **16.5 Cost control** — `RECITATION_DAILY_CAP` (5), `RECITATION_MAX_AUDIO_SECONDS` (120, client-enforced), `RECITATION_MAX_AUDIO_MB` (10, server-enforced) — all settings/env; AI throttles applied; account-only.
+- [x] **16.6 Feedback card** — RecitePage shows coverage %, covered ✅ / missed, grammar corrections (strike→fix + type), pronunciation notes, summary, and a collapsible transcript. _(Note: real-audio transcribe/grade path needs a mic + live Gemini to exercise; guard paths — auth 401, validation 400, cap 429 — verified.)_
 
 ## Phase 17 — Video / show suggestions
 - [ ] **17.1 Unlock** — after finishing **A2** (configurable), via the same leveling engine.

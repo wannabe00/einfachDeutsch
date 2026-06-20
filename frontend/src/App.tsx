@@ -13,7 +13,7 @@ import WordBankPage from "@/pages/WordBankPage"
 import GrammarPage from "@/pages/GrammarPage"
 import ExercisesPage from "@/pages/ExercisesPage"
 import DrillsPage from "@/pages/DrillsPage"
-import SpeakPage from "@/pages/SpeakPage"
+import RecitePage from "@/pages/RecitePage"
 import BooksPage from "@/pages/BooksPage"
 import ChapterDetailPage from "@/pages/ChapterDetailPage"
 import AIAssistantPage from "@/pages/AIAssistantPage"
@@ -91,7 +91,7 @@ function App() {
           path="/speak"
           element={
             <RequireAuth>
-              <SpeakPage />
+              <RecitePage />
             </RequireAuth>
           }
         />
