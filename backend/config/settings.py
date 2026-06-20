@@ -250,3 +250,13 @@ if not DEBUG:
 # Gemini is the active provider for the AI chat/assistant.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")  # legacy / optional
+
+
+# ---- Lesson schedule + streaks (Phase 15, all tunable) ----
+# Weekdays new lessons unlock on (Mon=0 … Sun=6). Default Mon/Wed/Fri.
+LESSON_UNLOCK_WEEKDAYS = [
+    int(d) for d in os.getenv("LESSON_UNLOCK_WEEKDAYS", "0,2,4").split(",") if d != ""
+]
+STREAK_INITIAL_FREEZE_TOKENS = int(os.getenv("STREAK_INITIAL_FREEZE_TOKENS", "2"))
+STREAK_FREEZE_EARN_DAYS = int(os.getenv("STREAK_FREEZE_EARN_DAYS", "14"))
+STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))

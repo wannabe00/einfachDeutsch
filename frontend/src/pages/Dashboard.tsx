@@ -15,6 +15,7 @@ import { fetchDueCounts } from "@/api/vocabulary"
 import { StatCard } from "@/components/ui/StatCard"
 import { Button } from "@/components/ui/button"
 import { ReviewActivityChart } from "@/components/charts/ReviewActivityChart"
+import { StreakBanner } from "@/components/dashboard/StreakBanner"
 
 export default function Dashboard() {
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: fetchStats })
@@ -42,6 +43,9 @@ export default function Dashboard() {
           <Button disabled>Nothing due</Button>
         )}
       </div>
+
+      {/* Streak + schedule (signed-in only) */}
+      <StreakBanner />
 
       {/* Stat cards */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
