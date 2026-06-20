@@ -288,7 +288,7 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 
 ## Phase 12 — Deployment foundation
 - [x] **12.1 Postgres (Neon)** — `dj-database-url` + `psycopg[binary]`; `DATABASES` reads `DATABASE_URL` (ssl_require + conn_max_age) and falls back to local SQLite when unset. Deps in requirements.txt. **Use Neon, not Render's bundled Postgres.**
-- [ ] **12.2 Data migration path** — _executed at deploy time:_ `manage.py dumpdata` (content only) → load into Neon, or just run `seed_menschen` on Neon. Pending Neon provisioning (needs owner's `DATABASE_URL`).
+- [x] **12.2 Data migration path** — Neon provisioned; ran `migrate` + `seed_menschen` against it (559 words, 15 chapters, 18 grammar rules, 33 exercises loaded). Render deploys re-run `migrate` automatically.
 - [x] **12.3 Prod config** — env-driven `ALLOWED_HOSTS`/`CORS_ALLOWED_ORIGINS`/`CSRF_TRUSTED_ORIGINS`; WhiteNoise (CompressedManifest static, `STATIC_ROOT`); `gunicorn`; SMTP email backend when `EMAIL_HOST` set (else console); prod hardening when `DEBUG=False` (SSL redirect, HSTS, secure cookies, proxy header). `render.yaml` (backend Blueprint) + `frontend/vercel.json` (Vite + SPA rewrite). `.env.example` documents all prod vars. Verified: collectstatic OK (154 files), wsgi imports, `check --deploy` clean except the dev SECRET_KEY (Render generates one).
 
 ## Phase 13 — Accounts & multi-user foundation (BIG — foundational)
