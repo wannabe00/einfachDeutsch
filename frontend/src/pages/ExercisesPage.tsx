@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 
 import { fetchExercises } from "@/api/exercises"
 import { fetchBooks } from "@/api/books"
-import type { Chapter, ExerciseType, Book } from "@/types"
+import type { Chapter, ExerciseType } from "@/types"
 import { EXERCISE_TYPES } from "@/lib/labels"
+import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { ExerciseCard } from "@/components/exercises/ExerciseCard"
 import { ExerciseForm } from "@/components/exercises/ExerciseForm"
 import { Button } from "@/components/ui/button"
@@ -38,26 +39,18 @@ export default function ExercisesPage() {
           Choose a chapter to practice.
         </p>
 
-        <div className="mt-6 flex flex-col gap-6">
-          {books?.map((book: Book) => (
-            <div key={book.id}>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {book.title}
-              </h2>
-              <div className="flex flex-col gap-2">
-                {book.chapters.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setChapterId(c.id)}
-                    className="rounded-lg border border-border bg-surface px-4 py-3 text-left text-sm text-foreground transition-colors hover:border-accent"
-                  >
-                    {c.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        {books && (
+          <div className="mt-6">
+            <ChapterButtons
+              books={books}
+              selected={-1}
+              onSelect={(v) => {
+                if (v !== "all") setChapterId(v)
+              }}
+              includeAll={false}
+            />
+          </div>
+        )}
       </div>
     )
   }
