@@ -85,6 +85,14 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             ai_feedback="",
         )
 
+        if request.user.is_authenticated:
+            try:
+                from apps.accounts.scheduling import register_activity
+
+                register_activity(request.user)
+            except Exception:  # noqa: BLE001 — streak is non-critical
+                pass
+
         return Response(
             {
                 "is_correct": is_correct,

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from .leveling import evaluate_level, grade_placement, public_questions
 from .models import CEFR_LEVELS
+from .scheduling import streak_status
 
 VALID_LEVELS = {code for code, _ in CEFR_LEVELS}
 
@@ -39,3 +40,10 @@ def placement_test(request):
 def level_status(request):
     """Progression status: current level, requirements, and advance eligibility."""
     return Response(evaluate_level(request.user))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def streak(request):
+    """Streak, freeze tokens, and the Mon/Wed/Fri unlock schedule."""
+    return Response(streak_status(request.user))

@@ -60,6 +60,26 @@ class LevelDefinition(models.Model):
         return f"{self.cefr_level} (#{self.order})"
 
 
+class StreakRecord(models.Model):
+    """Daily-practice streak + freeze tokens (Phase 15). One row per user.
+
+    A streak only breaks on a missed *scheduled* day (Mon/Wed/Fri) with no
+    freeze token left — a freeze is auto-consumed otherwise. Tunable defaults
+    live in settings (STREAK_*).
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="streak"
+    )
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    freeze_tokens_available = models.PositiveIntegerField(default=0)
+    last_active_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user}: {self.current_streak}🔥 ({self.freeze_tokens_available} freezes)"
+
+
 class UserLessonProgress(models.Model):
     """Marks a lesson (Chapter) completed by a user — feeds the level engine."""
 

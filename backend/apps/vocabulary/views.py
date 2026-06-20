@@ -21,6 +21,16 @@ def current_user(request):
     return request.user if request.user.is_authenticated else None
 
 
+def _record_activity(user):
+    """Update the user's streak — best-effort, never breaks the request."""
+    try:
+        from apps.accounts.scheduling import register_activity
+
+        register_activity(user)
+    except Exception:  # noqa: BLE001 — streak is non-critical
+        pass
+
+
 def due_words_for(user, chapter_id=None):
     """Words due for review for `user`.
 
@@ -128,6 +138,7 @@ class WordViewSet(viewsets.ModelViewSet):
         if user is not None:
             progress.save()
             ReviewLog.objects.create(word=word, quality=quality, user=user)
+            _record_activity(user)
 
         return Response(WordProgressSerializer(progress).data)
 

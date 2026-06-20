@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import LevelDefinition, UserLessonProgress, UserProfile
+from .models import (
+    LevelDefinition,
+    StreakRecord,
+    UserLessonProgress,
+    UserProfile,
+)
 
 
 @admin.register(UserProfile)
@@ -20,3 +25,15 @@ class UserLessonProgressAdmin(admin.ModelAdmin):
     list_display = ("user", "chapter", "score", "completed_at")
     list_filter = ("completed_at",)
     raw_id_fields = ("user", "chapter")
+
+
+@admin.register(StreakRecord)
+class StreakRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "current_streak",
+        "longest_streak",
+        "freeze_tokens_available",
+        "last_active_date",
+    )
+    raw_id_fields = ("user",)

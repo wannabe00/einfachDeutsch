@@ -1,5 +1,15 @@
 import { apiClient } from "./client"
-import type { CEFRLevel, PlacementQuestion, PlacementResult } from "@/types"
+import type {
+  CEFRLevel,
+  PlacementQuestion,
+  PlacementResult,
+  StreakStatus,
+} from "@/types"
+
+export async function fetchStreak(): Promise<StreakStatus> {
+  const { data } = await apiClient.get<StreakStatus>("/accounts/streak/")
+  return data
+}
 
 export async function setLevel(level: CEFRLevel): Promise<void> {
   await apiClient.post("/accounts/set-level/", { cefr_level: level })

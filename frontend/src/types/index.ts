@@ -19,6 +19,16 @@ export interface PlacementResult {
   per_level: Record<string, { correct: number; total: number }>
 }
 
+export interface StreakStatus {
+  current_streak: number
+  longest_streak: number
+  freeze_tokens: number
+  last_active_date: string | null
+  today_is_unlock_day: boolean
+  next_unlock_date: string
+  unlock_weekdays: number[]
+}
+
 export type UserRole = "student" | "teacher"
 
 export interface User {
