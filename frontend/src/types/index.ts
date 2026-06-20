@@ -29,6 +29,23 @@ export interface StreakStatus {
   unlock_weekdays: number[]
 }
 
+export interface RecitationGrammarError {
+  error: string
+  correction: string
+  type: string
+}
+
+export interface RecitationResult {
+  id: number
+  transcript: string
+  coverage_score: number | null
+  covered: string[]
+  missed: string[]
+  grammar_errors: RecitationGrammarError[]
+  pronunciation_notes: string[]
+  summary: string
+}
+
 export type UserRole = "student" | "teacher"
 
 export interface User {
