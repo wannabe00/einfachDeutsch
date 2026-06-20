@@ -14,6 +14,7 @@ urlpatterns = [
     # Auth: login, logout, user, password reset (dj-rest-auth) + registration.
     path("api/auth/", include("dj_rest_auth.urls")),
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("api/", include("apps.accounts.urls")),
     path("api/", include("apps.books.urls")),
     path("api/", include("apps.vocabulary.urls")),
     path("api/", include("apps.grammar.urls")),

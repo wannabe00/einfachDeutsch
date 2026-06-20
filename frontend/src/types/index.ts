@@ -5,6 +5,20 @@
 
 export type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 
+export interface PlacementQuestion {
+  id: string
+  level: CEFRLevel
+  prompt: string
+  options: string[]
+}
+
+export interface PlacementResult {
+  suggested_level: CEFRLevel
+  correct: number
+  total: number
+  per_level: Record<string, { correct: number; total: number }>
+}
+
 export type UserRole = "student" | "teacher"
 
 export interface User {
