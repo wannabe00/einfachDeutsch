@@ -100,68 +100,81 @@ export default function WordBankPage() {
         </div>
       )}
 
-      {/* Chapter buttons */}
-      {books && (
-        <div className="mt-6">
-          <ChapterButtons books={books} selected={selection} onSelect={setSelection} />
-        </div>
-      )}
-
-      {/* Word table (paginated) */}
-      <div className="mt-6">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
-        ) : !words?.length ? (
-          <p className="text-sm text-muted-foreground">No words yet. Add some above.</p>
-        ) : (
-          <>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  {["English", "German", "Chapter", "Next review", "Progress"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="pb-2 pr-4 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {pageWords.map((w) => (
-                  <WordRow key={w.id} word={w} chapterTitle={chapterTitle(w.chapter)} />
-                ))}
-              </tbody>
-            </table>
-
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Page {page + 1} of {totalPages}
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page === 0}
-                  >
-                    <ChevronLeft className="size-4" /> Prev
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                    disabled={page >= totalPages - 1}
-                  >
-                    Next <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
+      {/* Two-pane: chapters on the left, words on the right (stacked on mobile) */}
+      <div className="mt-6 lg:flex lg:gap-6">
+        {books && (
+          <div className="lg:w-[42%] lg:shrink-0">
+            <ChapterButtons
+              books={books}
+              selected={selection}
+              onSelect={setSelection}
+            />
+          </div>
         )}
+
+        <div className="mt-6 min-w-0 lg:mt-0 lg:flex-1">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : !words?.length ? (
+            <p className="text-sm text-muted-foreground">
+              No words yet. Add some above.
+            </p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      {["English", "German", "Chapter", "Next review", "Progress"].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            className="pb-2 pr-4 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                          >
+                            {h}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageWords.map((w) => (
+                      <WordRow
+                        key={w.id}
+                        word={w}
+                        chapterTitle={chapterTitle(w.chapter)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={page === 0}
+                    >
+                      <ChevronLeft className="size-4" /> Prev
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      disabled={page >= totalPages - 1}
+                    >
+                      Next <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

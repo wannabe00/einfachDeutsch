@@ -5,8 +5,9 @@ import { Link } from "react-router-dom"
 import { fetchDueWords, fetchDueCounts, reviewWord } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
 import { useGuestLimit } from "@/contexts/GuestLimitContext"
-import type { ReviewQuality, Chapter, Book, Word } from "@/types"
+import type { ReviewQuality, Chapter, Word } from "@/types"
 import { FlashCard } from "@/components/vocabulary/FlashCard"
+import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { Button } from "@/components/ui/button"
 
 // `null` = choosing; "all" = every chapter; number = a specific chapter id.
@@ -104,6 +105,15 @@ export default function ReviewPage() {
   // --- Start screen: choose a chapter -------------------------------------
   if (!started) {
     const total = counts?.total ?? 0
+    // Only offer chapters that actually have words due.
+    const dueBooks = (books ?? [])
+      .map((b) => ({
+        ...b,
+        chapters: b.chapters.filter(
+          (c) => (counts?.per_chapter[c.id] ?? 0) > 0,
+        ),
+      }))
+      .filter((b) => b.chapters.length > 0)
     return (
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
@@ -122,44 +132,13 @@ export default function ReviewPage() {
             </Button>
           </div>
         ) : (
-          <div className="mt-6 flex flex-col gap-6">
-            <button
-              onClick={() => setSelection("all")}
-              className="flex items-center justify-between rounded-xl border border-border bg-surface px-5 py-4 text-left shadow-sm transition-shadow hover:shadow-md"
-            >
-              <span className="font-medium text-foreground">All chapters</span>
-              <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
-                {total} due
-              </span>
-            </button>
-
-            {books?.map((book: Book) => {
-              const chaptersWithDue = book.chapters.filter(
-                (c) => (counts?.per_chapter[c.id] ?? 0) > 0,
-              )
-              if (chaptersWithDue.length === 0) return null
-              return (
-                <div key={book.id}>
-                  <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {book.title}
-                  </h2>
-                  <div className="flex flex-col gap-2">
-                    {chaptersWithDue.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setSelection(c.id)}
-                        className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 text-left transition-colors hover:border-accent"
-                      >
-                        <span className="text-sm text-foreground">{c.title}</span>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                          {counts?.per_chapter[c.id]} due
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+          <div className="mt-6">
+            <ChapterButtons
+              books={dueBooks}
+              selected={-1}
+              onSelect={setSelection}
+              badge={(id) => counts?.per_chapter[id]}
+            />
           </div>
         )}
       </div>
