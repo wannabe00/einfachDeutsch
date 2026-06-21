@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.exercises",
     "apps.ai_assistant",
     "apps.recitation",
+    "apps.videos",
 ]
 
 SITE_ID = 1
@@ -266,3 +267,7 @@ STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))
 RECITATION_DAILY_CAP = int(os.getenv("RECITATION_DAILY_CAP", "5"))
 RECITATION_MAX_AUDIO_SECONDS = int(os.getenv("RECITATION_MAX_AUDIO_SECONDS", "120"))
 RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
+
+# ---- Video / show suggestions (Phase 17) ----
+# Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
+VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")

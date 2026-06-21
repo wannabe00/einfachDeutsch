@@ -46,6 +46,22 @@ export interface RecitationResult {
   summary: string
 }
 
+export interface ShowSuggestion {
+  id: number
+  title: string
+  description: string
+  url: string
+  platform: string
+  cefr_level: CEFRLevel
+}
+
+export interface VideoSuggestionsResponse {
+  unlocked: boolean
+  unlock_level: CEFRLevel
+  current_level: CEFRLevel
+  suggestions: ShowSuggestion[]
+}
+
 export type UserRole = "student" | "teacher"
 
 export interface User {

@@ -2,7 +2,7 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
-> **Status (2026-06-21):** Phases **0–16 done** and live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 17 (video suggestions), Phase 18 (history track), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
+> **Status (2026-06-21):** Phases **0–17 done** (17 on branch `phase-17-videos`, pending merge); 0–16 live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 18 (history track), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
 
 ---
 
@@ -323,8 +323,8 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - [x] **16.6 Feedback card** — RecitePage shows coverage %, covered ✅ / missed, grammar corrections (strike→fix + type), pronunciation notes, summary, and a collapsible transcript. _(Note: real-audio transcribe/grade path needs a mic + live Gemini to exercise; guard paths — auth 401, validation 400, cap 429 — verified.)_
 
 ## Phase 17 — Video / show suggestions
-- [ ] **17.1 Unlock** — after finishing **A2** (configurable), via the same leveling engine.
-- [ ] **17.2 Curated source** — hand-curated list per CEFR level (model `ShowSuggestion` with CEFR tag), not an external API to start.
+- [x] **17.1 Unlock** — `GET /api/accounts/../videos/` (`apps.videos`) gates on `VIDEO_UNLOCK_MIN_LEVEL` (default **B1**, env-configurable); returns entries at/below the user's level. Below the threshold the page shows a friendly "unlocks at B1" panel; guests get the login wall (account-only). Verified A1→locked, B1→A1–B1 entries, guest→401.
+- [x] **17.2 Curated source** — `ShowSuggestion` model (title, description, url, platform, cefr_level), admin-editable; seeded with 14 real hand-curated resources (DW/Easy German/ZDF/ARD/Netflix/YouTube) across A1–C1 via migration 0002. No external API. Frontend `VideosPage` groups by level with cards (platform badge, external link) + sidebar "Videos" entry.
 
 ## Phase 18 — German history track
 - [ ] **18.1 Always-available track** — separate from Mon/Wed/Fri + streaks; reuses the existing lesson/quiz UI pattern.

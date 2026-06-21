@@ -10,6 +10,7 @@ import {
   Sparkles,
   Swords,
   Mic,
+  Tv,
   PanelLeftClose,
   PanelLeft,
   LogIn,
@@ -29,6 +30,7 @@ const navItems = [
   { to: "/exercises", label: "Exercises", icon: NotebookPen, end: false },
   { to: "/drills", label: "Drills", icon: Swords, end: false },
   { to: "/speak", label: "Recite", icon: Mic, end: false },
+  { to: "/videos", label: "Videos", icon: Tv, end: false },
   { to: "/books", label: "Books", icon: Library, end: false },
   { to: "/ai", label: "AI Assistant", icon: Sparkles, end: false },
 ]
