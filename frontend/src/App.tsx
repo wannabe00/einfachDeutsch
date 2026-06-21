@@ -19,6 +19,9 @@ import ChapterDetailPage from "@/pages/ChapterDetailPage"
 import AIAssistantPage from "@/pages/AIAssistantPage"
 import VideosPage from "@/pages/VideosPage"
 import HistoryPage from "@/pages/HistoryPage"
+import LandingPage from "@/pages/LandingPage"
+import SettingsPage from "@/pages/SettingsPage"
+import PrivacyPage from "@/pages/PrivacyPage"
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -43,6 +46,26 @@ function AppShell() {
   return <Layout />
 }
 
+/** Root: the marketing landing page for guests, the app dashboard for
+    signed-in users (onboarding first if they haven't set a level). */
+function Home() {
+  const { user, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    )
+  }
+  if (!user) return <LandingPage />
+  if (!user.level_set) return <Navigate to="/onboarding" replace />
+  return (
+    <Layout>
+      <Dashboard />
+    </Layout>
+  )
+}
+
 function App() {
   const { user } = useAuth()
 
@@ -58,6 +81,8 @@ function App() {
         element={user ? <Navigate to="/" replace /> : <AuthPage mode="register" />}
       />
       <Route path="/verify-email/:key" element={<VerifyEmailPage />} />
+      {/* Root: landing page (guests) or dashboard (signed-in). */}
+      <Route path="/" element={<Home />} />
       {/* First-login level onboarding (only for signed-in users without a
           level set; once set, bounce to the app). */}
       <Route
@@ -77,7 +102,6 @@ function App() {
           they require an account (see lib/access.ts). */}
       <Route element={<AppShell />}>
         {/* Guest-OK (free to the owner, read-only or cheap, backend-throttled) */}
-        <Route path="/" element={<Dashboard />} />
         <Route path="/review" element={<ReviewPage />} />
         <Route path="/words" element={<WordBankPage />} />
         <Route path="/grammar" element={<GrammarPage />} />
@@ -121,7 +145,18 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <SettingsPage />
+            </RequireAuth>
+          }
+        />
       </Route>
+
+      {/* Privacy is public (linked from the landing footer) and standalone. */}
+      <Route path="/privacy" element={<PrivacyPage />} />
     </Routes>
   )
 }
