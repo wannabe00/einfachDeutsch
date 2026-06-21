@@ -21,8 +21,8 @@ Single-user. No authentication in v1. Content is added progressively as you work
 
 ## 2. Current status
 
-- **Built (Phases 0–17):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, deployment config, and B1-gated video suggestions. Phases 0–16 **live in production** (Vercel + Render + Neon); Phase 17 is on branch `phase-17-videos` pending merge.
-- **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 18 (history track), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
+- **Built (Phases 0–18):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, deployment config, B1-gated video suggestions, and the German-history track. Phases 0–17 **live in production** (Vercel + Render + Neon); Phase 18 is on branch `phase-18-history` pending merge.
+- **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
 - **AI: LIVE.** Google Gemini (`gemini-2.5-flash`) via `apps/ai_assistant/llm.py`; `GEMINI_API_KEY` in `backend/.env`. AI endpoints are account-only + rate-limited; without a key they return a graceful **503**.
 - **Lint/build clean:** `npm run build` (the real `tsc -b && vite build`), `npx eslint src`, `ruff check`, `python manage.py check` all green.
 - **Dev env:** macOS venv is `venv_mac/`. Verify the frontend with `npm run build` — **not** `tsc --noEmit` (root tsconfig has no files and passes falsely).
@@ -145,6 +145,7 @@ All variables are documented (no values) in `backend/.env.example` and `frontend
 | AI (account-only) | `/api/ai/{chat,suggest-words,explain-grammar,generate-exercises,check-answer}/` |
 | Recitation (account-only) | `/api/recitation/attempt/` (multipart) |
 | Videos (account-only) | `/api/videos/` (B1-gated curated suggestions) |
+| History (account-only) | `/api/history/`, `/api/history/{id}/`, `/api/history/{id}/complete/` |
 | Admin | `/admin/` (all models registered) |
 
 Permissions: content GET is public (guests); writes, AI, and recitation require auth. Throttled (anon/user + AI burst/daily).
@@ -168,6 +169,7 @@ All live. Guest-OK unless marked account-only (those render a blurred "log in" o
 | `/drills` | `DrillsPage` | hub; Gender Triage guest-free, rest account-only |
 | `/speak` | `RecitePage` | **account-only** |
 | `/videos` | `VideosPage` | **account-only**; unlocks at B1 (friendly panel below) |
+| `/history` | `HistoryPage` | **account-only**; EN+DE through A2, DE-only from B1; per-lesson quiz |
 | `/ai` | `AIAssistantPage` | **account-only** |
 | `/books`, `/chapters/:id` | `BooksPage`, `ChapterDetailPage` | |
 
@@ -190,13 +192,14 @@ Shared chrome: `Layout.tsx` (sidebar + centered `max-w-900px` main); `Sidebar.ts
 Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaining:
 
 - **Phase 11 (ongoing content/features):** more original per-lesson exercise sets; a "paste-your-own" exercise importer; voice conversation practice; extra drill/question-style variants.
-- **Phase 18 — German history track:** always-available track (separate from the Mon/Wed/Fri schedule); English+German through A2, German-only from B1.
 - **Phase 19 — Generic readers:** a `Passage` model with CEFR tagging so public-domain/self-written readers slot in; licensing gate.
 - **Polish/ops:** rotate shared secrets; wire production SMTP + a domain to flip email verification back to mandatory; optional Google OAuth; graceful 502 wrapper for AI provider errors.
 
 ---
 
 ## 11. Changelog (append newest at top)
+
+- _2026-06-21 — Phase 18 (German history track) DONE (branch `phase-18-history`, pending merge). New app **apps.history**: `HistoryLesson` (title, era, order, body_en, body_de, quiz JSON with answers) + `UserHistoryProgress` (user, lesson, score; unique). `HistoryLessonViewSet` (ReadOnly + `complete` action) at `/api/history/` — account-only; list/detail serializers **strip quiz answers**, `complete` grades server-side, saves score, marks done. Always-available (no schedule gating). Migrations 0001 (models) + 0002 (seed 6 authored bilingual lessons: HRE, Reformation, 1871 unification, Weimar, division/Wall, reunification — each with a 3-question MC quiz). Frontend: `api/history.ts`, history types, `HistoryPage` (era-grouped list → lesson view: German always + English alongside through A2 / German-only from B1 via `cefr_level`; per-lesson MC quiz with correct/wrong reveal + score), sidebar "History" (Landmark) entry, `/history` route (RequireAuth). **Verified:** list 6 + completed flag, detail body_en+body_de + quiz w/o answers, complete→100% marks done, guest→401; npm run build + eslint + ruff + django check clean. — backend/apps/history/* (+migrations 0001/0002), backend/config/{settings,urls}.py, frontend/src/{App.tsx,types/index.ts,api/history.ts,pages/HistoryPage.tsx,components/layout/Sidebar.tsx}_
 
 - _2026-06-21 — Phase 17 (Video / show suggestions) DONE (branch `phase-17-videos`, pending merge). New app **apps.videos**: `ShowSuggestion` (title, description, url, platform, cefr_level; ordering by level) + admin. `GET /api/videos/` (IsAuthenticated) unlocks at `VIDEO_UNLOCK_MIN_LEVEL` (default B1, env), returns entries at/below the user's level (`{unlocked, unlock_level, current_level, suggestions}`). Migrations 0001 (model) + 0002 (seed 14 real curated resources A1–C1: DW Nico's Weg, Easy German, ZDF logo!/heute-show, ARD Tagesschau/Tatort, Netflix Dark, Y-Kollektiv, Kurzgesagt). Frontend: `api/videos.ts`, `ShowSuggestion`/`VideoSuggestionsResponse` types, `VideosPage` (grouped cards + external links; friendly "unlocks at B1" panel below threshold; guest login wall via RequireAuth), sidebar "Videos" (Tv) entry, `/videos` route. **Verified:** A1→locked/0, B1→9 entries (A1–B1), guest→401; npm run build + eslint + ruff + django check clean. — backend/apps/videos/* (+migrations 0001/0002), backend/config/{settings,urls}.py, backend/.env.example, frontend/src/{App.tsx,types/index.ts,api/videos.ts,pages/VideosPage.tsx,components/layout/Sidebar.tsx}_
 

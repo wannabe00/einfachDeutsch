@@ -11,6 +11,7 @@ import {
   Swords,
   Mic,
   Tv,
+  Landmark,
   PanelLeftClose,
   PanelLeft,
   LogIn,
@@ -31,6 +32,7 @@ const navItems = [
   { to: "/drills", label: "Drills", icon: Swords, end: false },
   { to: "/speak", label: "Recite", icon: Mic, end: false },
   { to: "/videos", label: "Videos", icon: Tv, end: false },
+  { to: "/history", label: "History", icon: Landmark, end: false },
   { to: "/books", label: "Books", icon: Library, end: false },
   { to: "/ai", label: "AI Assistant", icon: Sparkles, end: false },
 ]

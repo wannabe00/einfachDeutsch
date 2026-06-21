@@ -22,4 +22,5 @@ urlpatterns = [
     path("api/", include("apps.ai_assistant.urls")),
     path("api/", include("apps.recitation.urls")),
     path("api/", include("apps.videos.urls")),
+    path("api/", include("apps.history.urls")),
 ]

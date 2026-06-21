@@ -2,7 +2,7 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
-> **Status (2026-06-21):** Phases **0–17 done** (17 on branch `phase-17-videos`, pending merge); 0–16 live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 18 (history track), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
+> **Status (2026-06-21):** Phases **0–18 done** (18 on branch `phase-18-history`, pending merge); 0–17 live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
 
 ---
 
@@ -327,8 +327,8 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - [x] **17.2 Curated source** — `ShowSuggestion` model (title, description, url, platform, cefr_level), admin-editable; seeded with 14 real hand-curated resources (DW/Easy German/ZDF/ARD/Netflix/YouTube) across A1–C1 via migration 0002. No external API. Frontend `VideosPage` groups by level with cards (platform badge, external link) + sidebar "Videos" entry.
 
 ## Phase 18 — German history track
-- [ ] **18.1 Always-available track** — separate from Mon/Wed/Fri + streaks; reuses the existing lesson/quiz UI pattern.
-- [ ] **18.2 Language progression** — English+German through **A2**, German-only from **B1** (same CEFR mechanism).
+- [x] **18.1 Always-available track** — `apps.history`: `HistoryLesson` (title, era, order, body_en, body_de, quiz JSON) + `UserHistoryProgress`. `HistoryLessonViewSet` (ReadOnly + `complete` action) at `/api/history/`, account-only; list/detail strip quiz answers, `complete` grades server-side + marks done. No schedule gating. Frontend `HistoryPage` (era-grouped list → lesson + per-lesson MC quiz with reveal). Seeded 6 authored lessons (HRE → Reformation → 1871 → Weimar → division/Wall → reunification).
+- [x] **18.2 Language progression** — each lesson stores `body_en` + `body_de`; the page shows German always and English alongside **through A2**, German-only from **B1** (driven by the user's `cefr_level`).
 
 ## Phase 19 — Generic book/reading content
 - [ ] **19.1 Generic model** — `Book` (exists) + `Chapter` (exists) + new `Passage` with **CEFR-level tagging**, so public-domain / licensed / self-written readers slot in without schema change.
