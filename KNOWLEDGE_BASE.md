@@ -21,7 +21,8 @@ Single-user. No authentication in v1. Content is added progressively as you work
 
 ## 2. Current status
 
-- **Built (Phases 0–18):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, deployment config, B1-gated video suggestions, and the German-history track. Phases 0–17 **live in production** (Vercel + Render + Neon); Phase 18 is on branch `phase-18-history` pending merge.
+- **Built & live (Phases 0–18 + landing):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, deployment, B1-gated video suggestions, German-history track, and a marketing **landing page** + **account menu / Settings / Privacy**. All in production (Vercel + Render + Neon).
+- **In progress:** page-by-page **UI polish pass** — improving each page's visuals, integrating hand-copied 21st.dev components re-themed to our tokens (Magic MCP at dev time; components copied into the repo, no runtime dependency).
 - **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
 - **AI: LIVE.** Google Gemini (`gemini-2.5-flash`) via `apps/ai_assistant/llm.py`; `GEMINI_API_KEY` in `backend/.env`. AI endpoints are account-only + rate-limited; without a key they return a graceful **503**.
 - **Lint/build clean:** `npm run build` (the real `tsc -b && vite build`), `npx eslint src`, `ruff check`, `python manage.py check` all green.
@@ -160,8 +161,10 @@ All live. Guest-OK unless marked account-only (those render a blurred "log in" o
 |---|---|---|
 | `/login`, `/register` | `AuthPage` | public |
 | `/verify-email/:key` | `VerifyEmailPage` | public |
+| `/privacy` | `PrivacyPage` | public, standalone (linked from landing footer) |
 | `/onboarding` | `OnboardingPage` | forced after first login until a level is set |
-| `/` | `Dashboard` | stats + activity chart + streak banner |
+| `/` | `LandingPage` (guests) / `Dashboard` (signed-in) | landing marketing page for guests; dashboard for users |
+| `/settings` | `SettingsPage` | **account-only**; account info + level changer + theme |
 | `/review` | `ReviewPage` | guest-OK (not saved, capped) |
 | `/words` | `WordBankPage` | two-pane |
 | `/grammar` | `GrammarPage` | topic-card gallery |
@@ -189,8 +192,9 @@ Shared chrome: `Layout.tsx` (sidebar + centered `max-w-900px` main); `Sidebar.ts
 
 ## 10. What's left to build
 
-Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaining:
+Phases 0–18 are done and live (see `PROJECT_PLAN.md` for the ticked checklist). Remaining:
 
+- **UI polish pass (in progress):** page-by-page visual upgrade, integrating hand-copied 21st.dev components re-themed to our DESIGN tokens. Components are copied into the repo (no runtime dependency on 21st.dev); the Magic MCP is a dev-time generator only.
 - **Phase 11 (ongoing content/features):** more original per-lesson exercise sets; a "paste-your-own" exercise importer; voice conversation practice; extra drill/question-style variants.
 - **Phase 19 — Generic readers:** a `Passage` model with CEFR tagging so public-domain/self-written readers slot in; licensing gate.
 - **Polish/ops:** rotate shared secrets; wire production SMTP + a domain to flip email verification back to mandatory; optional Google OAuth; graceful 502 wrapper for AI provider errors.
@@ -198,6 +202,8 @@ Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaini
 ---
 
 ## 11. Changelog (append newest at top)
+
+- _2026-06-22 — Signed-in home redesign + global top bar (branch `docs-current`, pending merge). **Top bar** (`components/layout/TopBar.tsx`) added to `Layout` above the sidebar+main row: brand text (→ `/`) on the left; on the right the account avatar dropdown (`AccountMenu`, now opens downward) for users, or Log in / Sign up for guests. `Sidebar` slimmed (brand + account/login moved to the top bar; keeps collapse toggle, nav, theme; now sticky under the 56px bar). **Home** (`pages/Dashboard.tsx` rewritten): parallax Munich hero (greeting + "Start review · N due" CTA) → quick-launch cards grid (Review/Words/Grammar/Exercises/Drills/Recite/Videos/History) → progress section reusing StreakBanner + StatCards + ReviewActivityChart. Guests' `/` still shows the standalone LandingPage (its own hero bar); the global top bar appears on the in-app pages. **Verified:** npm run build + eslint clean. Frontend-only. — frontend/src/{components/layout/{TopBar,Layout,Sidebar,AccountMenu}.tsx,pages/Dashboard.tsx}_
 
 - _2026-06-21 — Landing page + account menu (branch `landing-and-account-menu`, pending merge). **Routing:** `/` now renders a marketing `LandingPage` for guests and the dashboard (in `Layout`) for signed-in users (onboarding gate preserved); `Layout` accepts optional `children` for this. App pages (`/review` etc.) stay under `AppShell` for everyone. **LandingPage** (`pages/LandingPage.tsx`): parallax Munich hero (Unsplash URL w/ gradient fallback + scroll-driven transform), value props, how-it-works, inline der/die/das teaser, feature showcase, CEFR path, culture hook, stat counters, FAQ + CTA + footer. **Account menu** (`components/layout/AccountMenu.tsx`): Facebook-style dropdown in the sidebar footer (email + level header, Settings, Privacy, Log out; click-outside close) — replaces the old inline email/logout. **Pages:** `SettingsPage` (account info + working level changer via set-level + theme toggle; account-only) and `PrivacyPage` (standalone **public** page, linked from the landing footer). Routes: `/settings` (RequireAuth), `/privacy` (public). **Verified:** npm run build + eslint clean. Frontend-only (no backend/migrations). — frontend/src/{App.tsx,pages/{LandingPage,SettingsPage,PrivacyPage}.tsx,components/layout/{Layout,Sidebar,AccountMenu}.tsx}_
 
