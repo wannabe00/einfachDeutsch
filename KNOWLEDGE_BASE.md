@@ -21,24 +21,25 @@ Single-user. No authentication in v1. Content is added progressively as you work
 
 ## 2. Current status
 
-- **Phase:** 0–7 complete; post-plan feature work ongoing (see §11 Roadmap).
-- **Last completed:** interactive exercise types + 6 drills + original Lektion 1 exercise set + deep-editorial dark-first redesign.
-- **In progress / next up:** Spec v2 — the big build (deployment, accounts, CEFR leveling, recitation v2, video/history/book tracks). Full phased plan in `PROJECT_PLAN.md`. Project just cleaned + linted (ruff backend, eslint frontend, both clean).
-- **AI chat: LIVE.** Provider is **Google Gemini** (`gemini-2.5-flash`) via `apps/ai_assistant/llm.py`. `GEMINI_API_KEY` is set in `backend/.env`. Note: `gemini-2.0-flash` free quota was exhausted (429) so we use `2.5-flash`. Without a key, endpoints still return a graceful **503**.
-- **Both servers:** backend (`venv_mac/bin/python manage.py runserver` → :8000); frontend (`npm run dev` → :5173). `tsc --noEmit` clean.
-- **Note:** venv was recreated for macOS as `venv_mac/` (original `venv/` was Windows). node_modules also reinstalled for macOS. Filters use the chapter DB **id** (not lesson number) — after a `seed_menschen --reset` the ids shift.
+- **Built & merged to `main` (Phases 0–16):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, and full deployment config. **Live in production** (Vercel + Render + Neon).
+- **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 17 (video suggestions), Phase 18 (history track), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
+- **AI: LIVE.** Google Gemini (`gemini-2.5-flash`) via `apps/ai_assistant/llm.py`; `GEMINI_API_KEY` in `backend/.env`. AI endpoints are account-only + rate-limited; without a key they return a graceful **503**.
+- **Lint/build clean:** `npm run build` (the real `tsc -b && vite build`), `npx eslint src`, `ruff check`, `python manage.py check` all green.
+- **Dev env:** macOS venv is `venv_mac/`. Verify the frontend with `npm run build` — **not** `tsc --noEmit` (root tsconfig has no files and passes falsely).
 
 ### Feature inventory (what exists now)
-- **Dashboard** — 6 stat cards, 7-day review activity chart, per-chapter due counts.
-- **Review** — chapter-pick start screen, SM-2 flashcards, Skip (re-queues), umlaut buttons, quality buttons.
-- **Word Bank** — chapter pills, 15/page pagination, overview (New/Learning/Review/Learned + accuracy/mistakes/correct + most-missed), Add Words popup (single + paste-list + CSV), "Generate with AI" button. Per-word performance tracked on the backend.
-- **Grammar** — By-chapter ⇄ By-topic toggle, pill menus, topic quick-buttons, Markdown rules. **← being redesigned.**
-- **Exercises** — chapter chooser; 9 types (translation, fill_blank, article, conjugation, free_text, multiple_choice, matching, sentence_order, word_bank); interactive renderers + server-side grading; original Lektion 1 set authored.
-- **Drills** — Gender Triage, Blind Forge, Unscramble, Flash Recall, Sentence Shuffle, Match Pairs (all run off the user's own vocab/grammar data).
-- **Books** — book + chapter list; chapters link to placeholder detail pages (teacher-panel ready).
-- **AI Assistant** — chat page + slide-in AI panel (LIVE via Gemini).
-- **Recite (speak-to-AI)** — paste a text → study → hide & speak it (Web Speech API, de-DE) → word-diff highlight (missing/extra, accuracy %) + short Gemini tutor note. Chrome/Edge only.
-- **Chrome** — collapsible sticky sidebar, dark-first editorial theme + light mode toggle.
+- **Accounts** — email/password auth (django-allauth + dj-rest-auth, DRF token, PBKDF2). Email verification configurable (`ACCOUNT_EMAIL_VERIFICATION`, default mandatory; SPA confirm at `/verify-email/:key`). **Freemium:** guests use free features with a daily action cap → sign-up wall; account-only = AI, Recite, Drills, all per-user writes. Server-side throttling (anon/user + tighter AI caps).
+- **Onboarding** — first login forces `/onboarding`: quick-pick A1–C2 **or** an authored, locally-graded placement test → suggested level with ±1 adjust.
+- **Dashboard** — stat cards, 7-day review activity chart, **streak banner** (streak, freeze tokens, next-unlock day).
+- **Review** — chapter tile-grid start screen (due counts), SM-2 flashcards, Skip, umlaut bar, quality buttons. Guests can practice (not saved) within the cap.
+- **Word Bank** — two-pane (chapter tile grid left, word list right), overview stats, Add Words (single + paste-list + CSV). Per-word performance tracked.
+- **Grammar** — searchable topic-card gallery (Markdown rules).
+- **Exercises** — chapter tile grid; 9 interactive types + server-side grading.
+- **Drills** — Gender Triage (guest-free), Blind Forge, Unscramble, Flash Recall, Sentence Shuffle, Match Pairs (others account-only).
+- **AI Assistant** — chat page + slide-in panel (Gemini, account-only).
+- **Recite (v2)** — read a text → retell from memory → record (MediaRecorder) → Gemini transcribes (audio **discarded**) + grades (coverage, grammar, pronunciation) → feedback card. `/speak`, account-only, daily cap + size limit.
+- **Leveling/schedule** — `LevelDefinition`/`UserLessonProgress`/`StreakRecord`; `/api/accounts/level-status`, `/streak`; Mon/Wed/Fri unlock surfaced (reviews any day).
+- **Chrome** — collapsible sticky sidebar (drawer overlay on mobile), dark-first theme + light toggle, responsive tile grids.
 
 ---
 
@@ -75,140 +76,128 @@ cd backend && python manage.py check
 | Routing | react-router-dom | built (BrowserRouter, 7 routes, layout route) |
 | HTTP client | Axios | built (src/api/client.ts) |
 | Database (dev) | SQLite (Django default) | built (migrated + seeded) |
-| Database (prod, later) | PostgreSQL | not planned yet |
-| SRS algorithm | SM-2 (custom implementation, no library) | not built |
-| AI | Claude API via anthropic SDK (backend only) | not built |
-| Markdown rendering | react-markdown | not built |
-| Charts (Phase 7) | Recharts | not built |
-| Auth | None in v1; Django auth in Phase 7+ | deferred |
+| Database (prod) | Neon Postgres via `DATABASE_URL` (`dj-database-url` + `psycopg`) | built (live) |
+| SRS algorithm | SM-2 (custom, `apps/vocabulary/srs.py`) | built |
+| AI / speech | Google Gemini (`gemini-2.5-flash`, `google-genai`); swappable interfaces | built (live) |
+| Markdown rendering | react-markdown + remark-gfm | built |
+| Charts | Recharts | built |
+| Auth | django-allauth + dj-rest-auth, DRF token | built (multi-user) |
+| Hosting | Vercel (frontend) · Render (backend, gunicorn + WhiteNoise) | built (live) |
 
 ---
 
 ## 5. Directory map (current reality)
 
 ```
-german-platform/
-├── AGENTS.md
-├── CLAUDE.md
-├── WORKFLOW.md
-├── PROJECT_PLAN.md
-├── KNOWLEDGE_BASE.md    ← this file
-├── DESIGN.md
-├── CONTRIBUTING.md
-├── README.md
-├── .gitignore
-├── backend/                    ← Django project (brick 0.1)
-│   ├── manage.py
-│   ├── requirements.txt        ← frozen deps (Django 5.2.15, DRF, cors, dotenv, anthropic)
-│   ├── .env.example
-│   ├── venv/                   ← virtual environment (git-ignored)
-│   ├── db.sqlite3              ← dev DB, built-in migrations applied (git-ignored)
-│   ├── config/                 ← settings.py, urls.py, wsgi.py, asgi.py
+einfachDeutsch/
+├── README.md  AGENTS.md  CLAUDE.md  WORKFLOW.md  CONTRIBUTING.md
+├── PROJECT_PLAN.md  KNOWLEDGE_BASE.md (this file)  DESIGN.md
+├── render.yaml                 ← Render backend blueprint
+├── backend/
+│   ├── manage.py  requirements.txt  .env.example
+│   ├── venv_mac/ db.sqlite3 staticfiles/   ← git-ignored
+│   ├── config/                 ← settings.py (env-driven prod), urls.py, wsgi.py
 │   └── apps/
-│       ├── books/              ← models, serializers, views (BookViewSet), urls, admin, migrations, seed_data
-│       ├── vocabulary/         ← models (Word/WordProgress), serializers, signals, admin; srs.py placeholder (Phase 3)
-│       ├── grammar/            ← models (GrammarRule), serializers, admin; views/urls placeholder (Phase 4)
-│       ├── exercises/          ← models (Exercise/ExerciseAttempt), serializers, admin; views/urls placeholder (Phase 4)
-│       └── ai_assistant/       ← claude.py/views/urls placeholders (Phase 6)
-└── frontend/                   ← React + TS + Vite (brick 0.3)
-    ├── package.json            ← react 19.2, vite 8, axios, react-query, react-router-dom, react-markdown
-    ├── index.html, vite.config.ts, eslint.config.js
-    ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
-    ├── node_modules/           ← git-ignored
-    ├── public/                 ← favicon.svg, icons.svg
+│       ├── accounts/           ← UserProfile, LevelDefinition, UserLessonProgress, StreakRecord;
+│       │                          serializers (register/login/user), adapter, leveling.py,
+│       │                          scheduling.py, views (set-level/placement/level-status/streak)
+│       ├── books/              ← Book/Chapter; seed_menschen + _menschen_{vocab,lessons}
+│       ├── vocabulary/         ← Word/WordProgress/ReviewLog, srs.py (SM-2), views (due/review/import/bulk/stats)
+│       ├── grammar/            ← GrammarRule + viewset
+│       ├── exercises/          ← Exercise/ExerciseAttempt + grading
+│       ├── ai_assistant/       ← llm.py (Gemini), throttles.py, views (/api/ai/*)
+│       └── recitation/         ← RecitationAttempt, transcribe.py (swappable), grading.py, views
+└── frontend/
+    ├── package.json  vite.config.ts (honors PORT)  vercel.json  tsconfig*
     └── src/
-        ├── main.tsx            ← QueryClientProvider + BrowserRouter
-        ├── App.tsx             ← Routes (7 pages under Layout)
-        ├── index.css           ← Tailwind + DESIGN tokens (light/.dark)
-        ├── vite-env.d.ts       ← typed VITE_API_BASE_URL
-        ├── api/client.ts       ← Axios instance (other api/*.ts are placeholders)
-        ├── lib/                ← utils.ts (cn), site.ts (SITE_NAME); levenshtein.ts placeholder
-        ├── types/index.ts      ← all shared API interfaces
-        ├── hooks/ contexts/    ← placeholders (filled in later phases)
-        ├── components/
-        │   ├── ui/             ← button, input, badge, card, separator (shadcn)
-        │   ├── layout/         ← Layout.tsx, Sidebar.tsx (PageHeader/ThemeToggle placeholders)
-        │   └── vocabulary/ grammar/ exercises/ ai/ charts/  ← placeholders
-        └── pages/              ← 7 routed placeholder pages
+        ├── main.tsx            ← Theme + Auth + GuestLimit providers, Router, React Query
+        ├── App.tsx             ← routes; AppShell (onboarding gate) + RequireAuth (blur lock)
+        ├── api/                ← client.ts (+token interceptor), auth, leveling, recitation, vocabulary, …
+        ├── contexts/           ← AuthContext, GuestLimitContext, ThemeContext, AIPanelContext
+        ├── lib/                ← access.ts (freemium policy), guestLimit.ts, site.ts, utils.ts, levenshtein.ts
+        ├── types/index.ts      ← shared API interfaces (kept in sync with serializers)
+        ├── components/         ← ui/ layout/ auth/ vocabulary/ grammar/ exercises/ drills/ dashboard/ charts/ ai/
+        └── pages/              ← Dashboard, Review, WordBank, Grammar, Exercises, Drills, Recite,
+                                   Books, ChapterDetail, AIAssistant, Auth, VerifyEmail, Onboarding
 ```
-
-This map grows with each brick. Update it here when new directories or key files appear.
 
 ---
 
 ## 6. Environment variables
 
-### Backend (`backend/.env`) — git-ignored
-| Var | Needed for | Set yet? |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | Claude API (Phase 6) | no |
-| `SECRET_KEY` | Django (auto-generated in settings) | auto |
-| `DEBUG` | Django debug mode | yes (True for dev) |
+All variables are documented (no values) in `backend/.env.example` and `frontend/.env.example`. Key ones:
 
-### Frontend (`frontend/.env.local`) — git-ignored
-| Var | Needed for | Set yet? |
-|---|---|---|
-| `VITE_API_BASE_URL` | Axios base URL | no (defaults to `http://localhost:8000/api`) |
+**Backend (`backend/.env`):** `SECRET_KEY`, `DEBUG`, `GEMINI_API_KEY`; prod: `DATABASE_URL` (Neon), `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS`, `FRONTEND_URL`, `EMAIL_*` (SMTP), `ACCOUNT_EMAIL_VERIFICATION`; tunables: `THROTTLE_*`, `LESSON_UNLOCK_WEEKDAYS`, `STREAK_*`, `RECITATION_*`.
 
-All documented (no values) in `backend/.env.example` and `frontend/.env.example`.
+**Frontend (`frontend/.env.local`):** `VITE_API_BASE_URL` (defaults to `http://localhost:8000/api`; set to the Render URL + `/api` in prod, baked in at build time).
 
 ---
 
 ## 7. API routes (current reality)
 
-| Method | Route | Purpose |
-|---|---|---|
-| GET | `/api/` | Browsable API root (links to registered endpoints) |
-| GET/POST | `/api/books/` | List / create books (nested `chapters` in each) |
-| GET/PUT/PATCH/DELETE | `/api/books/{id}/` | Retrieve / update / delete a book |
-| GET/POST | `/api/books/{id}/chapters/` | List / create chapters for a book |
-| * | `/admin/` | Django admin (all models registered) |
+| Area | Routes |
+|---|---|
+| Auth | `/api/auth/registration/`, `/api/auth/login/`, `/api/auth/logout/`, `/api/auth/user/`, `/api/auth/registration/verify-email/` |
+| Accounts/leveling | `/api/accounts/set-level/`, `/api/accounts/placement-test/` (GET/POST), `/api/accounts/level-status/`, `/api/accounts/streak/` |
+| Books | `/api/books/`, `/api/books/{id}/chapters/` |
+| Vocabulary | `/api/vocabulary/words/` (CRUD), `…/due/`, `…/due-counts/`, `…/{id}/review/`, `…/import/`, `…/bulk/`; `/api/stats/`, `/api/stats/activity/` |
+| Grammar / Exercises | `/api/grammar/rules/`; `/api/exercises/` + `/api/exercises/{id}/attempt/` |
+| AI (account-only) | `/api/ai/{chat,suggest-words,explain-grammar,generate-exercises,check-answer}/` |
+| Recitation (account-only) | `/api/recitation/attempt/` (multipart) |
+| Admin | `/admin/` (all models registered) |
+
+Permissions: content GET is public (guests); writes, AI, and recitation require auth. Throttled (anon/user + AI burst/daily).
 
 ---
 
 ## 8. Pages (current reality)
 
-All routed and rendering placeholders (filled in later phases):
+All live. Guest-OK unless marked account-only (those render a blurred "log in" overlay for guests via `RequireAuth`/`LockedFeature`).
 
-| Route | Component | Status |
+| Route | Component | Notes |
 |---|---|---|
-| `/` | `Dashboard` | placeholder |
-| `/review` | `ReviewPage` | placeholder |
-| `/words` | `WordBankPage` | placeholder |
-| `/grammar` | `GrammarPage` | placeholder |
-| `/exercises` | `ExercisesPage` | placeholder |
-| `/books` | `BooksPage` | **live** — lists books + chapters, inline add-chapter form |
-| `/ai` | `AIAssistantPage` | placeholder |
+| `/login`, `/register` | `AuthPage` | public |
+| `/verify-email/:key` | `VerifyEmailPage` | public |
+| `/onboarding` | `OnboardingPage` | forced after first login until a level is set |
+| `/` | `Dashboard` | stats + activity chart + streak banner |
+| `/review` | `ReviewPage` | guest-OK (not saved, capped) |
+| `/words` | `WordBankPage` | two-pane |
+| `/grammar` | `GrammarPage` | topic-card gallery |
+| `/exercises` | `ExercisesPage` | tile-grid chooser |
+| `/drills` | `DrillsPage` | hub; Gender Triage guest-free, rest account-only |
+| `/speak` | `RecitePage` | **account-only** |
+| `/ai` | `AIAssistantPage` | **account-only** |
+| `/books`, `/chapters/:id` | `BooksPage`, `ChapterDetailPage` | |
 
-Shared chrome: `components/layout/Layout.tsx` (sidebar + centered `max-w-900px` main) and `components/layout/Sidebar.tsx` (240px nav, active link highlighted via `NavLink`).
+Shared chrome: `Layout.tsx` (sidebar + centered `max-w-900px` main); `Sidebar.tsx` (collapsible; mobile drawer overlay; user/logout footer); `AppShell` gates onboarding.
 
 ---
 
 ## 9. Known issues / open decisions
 
-- **Dev DB is SQLite** (`backend/db.sqlite3`, git-ignored). Prod target: **Neon Postgres** (NOT Render's bundled Postgres — it auto-expires after 30 days). Migration path: `dumpdata`/`loaddata` once Neon is provisioned (Phase 12).
-- **AI provider is Gemini** (`gemini-2.5-flash`). Transcription + grading for recitation v2 will also use Gemini, behind a swappable interface (so paid Whisper/Azure can drop in later). `gemini-2.0-flash` free quota was exhausted → use `2.5-flash`.
-- **Multi-user is live** (Phase 13.1–13.2): email/password auth (token), content shared / progress per-user, freemium guest access. Remaining in Phase 13: server-side throttling (13.3), frontend guest daily-cap + sign-up wall (13.4), teacher forward-compat (13.5). Google OAuth deferred (needs owner's creds).
-- Free-tier LLM quotas are low — chat/grading may 429 when exhausted (resets daily).
+- **Email verification** defaults to `mandatory`; sending to non-owner addresses needs a real SMTP sender + verified domain. Launched with `ACCOUNT_EMAIL_VERIFICATION=optional` until a domain is set up.
+- **Free-tier Gemini quota is low** — AI/recitation may 429/502 when exhausted (resets daily). AI errors degrade gracefully; a clean 502 wrapper for non-config Gemini errors is still a pending polish (see flagged task).
+- **Recitation audio format** — browser MediaRecorder usually emits `audio/webm`; Gemini's acceptance of webm isn't guaranteed. Failures return a graceful 502; the `Transcriber` interface is swappable for a paid/format-robust provider.
+- **Google OAuth** deferred (needs the owner's OAuth credentials).
+- **Secrets to rotate:** the Neon password + Resend key were shared in chat during setup — regenerate them.
 
 ---
 
-## 10. Roadmap — see PROJECT_PLAN.md "Spec v2"
+## 10. What's left to build
 
-The full phased plan now lives in **`PROJECT_PLAN.md`** (Phases 8–19). Phases 8–10 are **done** (grammar gallery, Gemini chat, recite v1). The big upcoming build (Spec v2) — with these **locked decisions** — is detailed there:
+Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaining:
 
-- **Hosting:** frontend → Vercel, backend → Render (persistent), DB → **Neon Postgres**.
-- **AI:** all transcription + grading on **Gemini** (free key), behind a swappable `Transcriber`/grader interface (not paid Whisper/Claude).
-- **Accounts:** content **shared**, progress **per-user** (`django-allauth` email + Google); teacher→student curation comes later.
-- **Recitation v2:** retell-in-your-own-words → record → upload → Gemini transcribe + grade (content coverage, der/die/das + case errors, pronunciation proxy); **audio discarded** after transcription; configurable per-user daily cap.
-- **Leveling:** CEFR A1–C2, completion-gated. **Schedule:** Mon/Wed/Fri unlocks, reviews any day, streak freeze tokens (2 + 1 per 14-day streak, auto-consumed, all configurable).
-- **Defaults:** video suggestions unlock after **A2** (curated list per level); history track English+German through A2 then German-only from **B1**.
-
-Still ongoing from the earlier roadmap: original per-lesson exercise sets, a "paste-your-own" exercise importer, voice conversation practice, and the extra drill/question-style variants (Phase 11).
+- **Phase 11 (ongoing content/features):** more original per-lesson exercise sets; a "paste-your-own" exercise importer; voice conversation practice; extra drill/question-style variants.
+- **Phase 17 — Video / show suggestions:** `ShowSuggestion` model (CEFR-tagged, hand-curated), unlock at B1 via the leveling engine. *(Not started.)*
+- **Phase 18 — German history track:** always-available track (separate from the Mon/Wed/Fri schedule); English+German through A2, German-only from B1.
+- **Phase 19 — Generic readers:** a `Passage` model with CEFR tagging so public-domain/self-written readers slot in; licensing gate.
+- **Polish/ops:** rotate shared secrets; wire production SMTP + a domain to flip email verification back to mandatory; optional Google OAuth; graceful 502 wrapper for AI provider errors.
 
 ---
 
 ## 11. Changelog (append newest at top)
+
+- _2026-06-21 — Cleanup + docs refresh. Removed dead code: old Web-Speech recite (`SpeakPage.tsx`, `hooks/useSpeechRecognition.ts`, `lib/worddiff.ts` — replaced by RecitePage), unused shadcn primitives (`ui/badge.tsx`, `ui/separator.tsx`), unreferenced `charts/ChapterProgressChart.tsx`, superseded `seed_data` command, now-empty `vocabulary/signals.py` (+ its `apps.py` ready() hook), and the old `german_learning_platform_plan.md`. Build/lint clean after. Rewrote README + this file's body sections (§2/§4–§10) to current reality (Phases 0–16 done; Gemini; multi-user; deploy). Phase 17 WIP parked on a local branch (not in main). md docs otherwise left intact._
 
 - _2026-06-20 — Phase 16 (Recitation v2 — retell in your own words) DONE (code; real-audio path needs mic + live Gemini). New app **apps.recitation**. **Model:** `RecitationAttempt` (user, source_text, transcript, coverage_score, feedback JSON, created_at — migration 0001; **audio never stored**). **Transcribe (16.2):** `transcribe.py` — `Transcriber` ABC + `GeminiTranscriber` (google-genai multimodal `types.Part.from_bytes`, model gemini-2.5-flash) + `get_transcriber()` factory (swappable for paid Whisper/Azure). **Grade (16.3/16.4):** `grading.py` `grade_retelling()` calls Gemini with `response_mime_type=application/json` → {coverage_score 0-100, covered[], missed[], grammar_errors[{error,correction,type}], pronunciation_notes[], summary}; robust JSON parse w/ fallback. **Endpoint:** `POST /api/recitation/attempt/` (multipart source_text+audio) — IsAuthenticated + AIBurst/AIDaily throttles + MultiPart parser; flow = validate → size cap → per-user daily cap → transcribe (audio discarded) → grade → save → return card. AIConfigError→503, other failures→502. **Cost control (16.5):** settings RECITATION_DAILY_CAP=5, RECITATION_MAX_AUDIO_SECONDS=120 (client), RECITATION_MAX_AUDIO_MB=10 (server) — env-tunable. **Frontend (16.1/16.6):** `api/recitation.ts`, `RecitationResult` type, `RecitePage` (edit→study→record via MediaRecorder w/ max-duration auto-stop + timer→upload→feedback card: coverage %, covered/missed, grammar strike→fix + type, pronunciation notes, summary, collapsible transcript); `/speak` route now → RecitePage (old Web-Speech SpeakPage retired/orphaned). **Verified:** guard paths (guest 401, no-audio/no-source 400, daily-cap 429); npm run build ✓; ruff+eslint+django check clean. Wired in INSTALLED_APPS + config/urls + .env.example. — backend/apps/recitation/* + migration 0001, backend/config/{settings,urls}.py, backend/.env.example, frontend/src/{App.tsx,types/index.ts,api/recitation.ts,pages/RecitePage.tsx}_
 

@@ -1,46 +1,56 @@
-# German Learning Platform
+# German Learning Platform (einfachDeutsch)
 
-A personal tool for learning German — built with Django (backend) and React + TypeScript (frontend). Spaced repetition flashcards, grammar reference, book exercises, and a Claude AI assistant.
+A web app for learning German — SRS vocabulary flashcards, grammar reference, interactive exercises, drills, an AI tutor, and a "retell it in your own words" speaking exercise. Multi-user with CEFR leveling, a Mon/Wed/Fri lesson schedule, and practice streaks.
 
-Built as a learning project: learn German, learn Django, learn TypeScript — all at once.
+**Stack:** Django 5 + DRF (backend) · React 19 + TypeScript + Vite (frontend) · Google Gemini (AI) · SQLite (dev) / Postgres-Neon (prod).
 
 ---
 
-## Quick start
+## Project status
+
+**Built and live (Phases 0–16):**
+- **Vocabulary + SRS** — SM-2 flashcards (type the German with its article), per-word performance tracking.
+- **Word Bank** — chapters as a tile grid + word list (two-pane), add/import words (single, paste-list, CSV).
+- **Grammar** — searchable topic-card gallery (Markdown rules).
+- **Exercises** — 9 interactive types with server-side grading; **Drills** hub (6 games).
+- **Dashboard** — stats, 7-day activity chart, streak banner.
+- **AI Assistant** — chat, word/exercise generation, answer feedback (Google Gemini, account-only + rate-limited).
+- **Recite (v2)** — read a text, retell it from memory; audio is transcribed (Gemini) and graded (coverage, grammar, pronunciation) then **discarded**.
+- **Accounts & multi-user** — email/password auth (hashed, optional email verification), **content shared / progress per-user**, freemium guest access with a daily cap + sign-up wall, server-side throttling.
+- **CEFR leveling** — onboarding placement test (or quick-pick) with ±1 adjust; completion-gated progression engine.
+- **Schedule + streaks** — Mon/Wed/Fri lesson unlock; streaks with auto-consumed freeze tokens.
+- **Deployment** — Neon Postgres + Render (backend) + Vercel (frontend); WhiteNoise, gunicorn, env-driven prod config.
+
+**Not yet built (see `PROJECT_PLAN.md`):**
+- **Phase 11** — more original per-lesson exercises, a "paste-your-own" exercise importer, voice conversation practice, extra drill/question variants.
+- **Phase 17** — curated video/show suggestions (unlock at B1).
+- **Phase 18** — German history track.
+- **Phase 19** — generic readers / `Passage` model with CEFR tagging.
+
+---
+
+## Quick start (local dev)
 
 ```bash
-# Clone
-git clone <your-repo-url> german-platform
-cd german-platform
-
 # Backend
 cd backend
-python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env           # fill in ANTHROPIC_API_KEY when you have it
+cp .env.example .env            # set GEMINI_API_KEY (optional); dev defaults work
 python manage.py migrate
-python manage.py seed_data     # loads sample book + chapter + words
-python manage.py runserver     # http://localhost:8000
+python manage.py seed_menschen  # loads the Menschen A1.1/A1.2 content
+python manage.py createsuperuser
+python manage.py runserver      # http://localhost:8000
 
 # Frontend (new terminal)
 cd frontend
 npm install
-cp .env.example .env.local     # optional: set VITE_API_BASE_URL if not using default
-npm run dev                    # http://localhost:5173
+npm run dev                     # http://localhost:5173
 ```
 
-Open http://localhost:5173 in your browser. The Django admin is at http://localhost:8000/admin.
+Open http://localhost:5173. Admin: http://localhost:8000/admin.
 
----
-
-## Features
-
-- **Review** — SRS flashcards: see the English word, type the German translation with the correct article (e.g. `der Hund`). Rated as Again / Hard / Good / Easy — schedules the next review automatically.
-- **Word Bank** — Add vocabulary chapter by chapter as you work through your textbook. Bulk import via CSV.
-- **Grammar** — Write grammar rules from your books (Markdown supported). Browse by chapter or category.
-- **Exercises** — Add exercises from your books. Submit answers and see feedback.
-- **AI Assistant** — Ask Claude to explain grammar, suggest vocabulary for a chapter, generate exercises, or just answer German questions.
+> **Email verification:** mandatory by default. In dev the link prints to the runserver terminal (console email backend); superusers are exempt. To skip it entirely while developing, set `ACCOUNT_EMAIL_VERIFICATION=optional` in `backend/.env`.
 
 ---
 
@@ -49,11 +59,18 @@ Open http://localhost:5173 in your browser. The Django admin is at http://localh
 | Layer | Tech |
 |---|---|
 | Backend | Django 5 + Django REST Framework |
-| Frontend | React 19 + TypeScript + Vite |
-| Styling | Tailwind v3 + shadcn/ui |
-| Database (dev) | SQLite |
-| SRS algorithm | SM-2 (custom implementation) |
-| AI | Claude (claude-sonnet-4) via Anthropic API |
+| Frontend | React 19 + TypeScript + Vite + Tailwind v3 + shadcn/ui |
+| Database | SQLite (dev) · Neon Postgres (prod, via `DATABASE_URL`) |
+| SRS | SM-2 (custom, `apps/vocabulary/srs.py`) |
+| AI / speech | Google Gemini (`gemini-2.5-flash`), behind swappable interfaces |
+| Auth | django-allauth + dj-rest-auth, DRF token |
+| Hosting | Vercel (frontend) · Render (backend) · Neon (DB) |
+
+---
+
+## Deployment
+
+The repo is deploy-ready: `render.yaml` (backend blueprint), `frontend/vercel.json`, and env-driven settings (`ALLOWED_HOSTS`, `DATABASE_URL`, CORS/CSRF, SMTP, prod security). All variables are documented in `backend/.env.example`. Backend migrations run automatically on each Render deploy.
 
 ---
 
@@ -61,31 +78,15 @@ Open http://localhost:5173 in your browser. The Django admin is at http://localh
 
 | File | What it covers |
 |---|---|
-| `WORKFLOW.md` | How to drive the project day-to-day |
-| `PROJECT_PLAN.md` | The full brick-by-brick build plan |
-| `KNOWLEDGE_BASE.md` | Current state of what's built |
+| `PROJECT_PLAN.md` | Phase-by-phase build plan — what's done and what's left |
+| `KNOWLEDGE_BASE.md` | Current state: features, API routes, directory map, changelog |
 | `DESIGN.md` | UI design system, tokens, component rules |
-| `CONTRIBUTING.md` | Git conventions, branching, how to add things |
-| `AGENTS.md` | Rules for Claude sessions on this project |
-
----
-
-## Environment variables
-
-### `backend/.env`
-```
-SECRET_KEY=<django-secret-key>
-DEBUG=True
-ANTHROPIC_API_KEY=<your-key>       # needed for Phase 6+ (AI features)
-```
-
-### `frontend/.env.local`
-```
-VITE_API_BASE_URL=http://localhost:8000/api   # default if not set
-```
+| `AGENTS.md` / `CLAUDE.md` | Rules for AI coding sessions on this project |
+| `WORKFLOW.md` | How work is driven ("do the next brick") |
+| `CONTRIBUTING.md` | Git conventions |
 
 ---
 
 ## License
 
-Personal project — not licensed for redistribution.
+Personal project — not licensed for redistribution. Textbook content is author-original (not reproduced from copyrighted workbooks).

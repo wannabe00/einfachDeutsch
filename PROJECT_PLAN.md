@@ -2,6 +2,8 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
+> **Status (2026-06-21):** Phases **0–16 done** and live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 17 (video suggestions), Phase 18 (history track), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
+
 ---
 
 ## Phase 0 — Scaffold & Config
