@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "apps.ai_assistant",
     "apps.recitation",
     "apps.videos",
+    "apps.history",
 ]
 
 SITE_ID = 1

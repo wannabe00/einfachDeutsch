@@ -62,6 +62,37 @@ export interface VideoSuggestionsResponse {
   suggestions: ShowSuggestion[]
 }
 
+export interface HistoryLessonSummary {
+  id: number
+  title: string
+  era: string
+  order: number
+  completed: boolean
+}
+
+export interface HistoryQuizQuestion {
+  id: number
+  prompt: string
+  options: string[]
+}
+
+export interface HistoryLessonDetail {
+  id: number
+  title: string
+  era: string
+  body_en: string
+  body_de: string
+  quiz: HistoryQuizQuestion[]
+  completed: boolean
+}
+
+export interface HistoryCompleteResult {
+  score: number
+  correct: number
+  total: number
+  results: { id: number; correct: boolean; answer: string }[]
+}
+
 export type UserRole = "student" | "teacher"
 
 export interface User {
