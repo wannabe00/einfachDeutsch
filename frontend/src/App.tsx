@@ -17,6 +17,7 @@ import RecitePage from "@/pages/RecitePage"
 import BooksPage from "@/pages/BooksPage"
 import ChapterDetailPage from "@/pages/ChapterDetailPage"
 import AIAssistantPage from "@/pages/AIAssistantPage"
+import VideosPage from "@/pages/VideosPage"
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -100,6 +101,14 @@ function App() {
           element={
             <RequireAuth>
               <AIAssistantPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/videos"
+          element={
+            <RequireAuth>
+              <VideosPage />
             </RequireAuth>
           }
         />

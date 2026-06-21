@@ -21,8 +21,8 @@ Single-user. No authentication in v1. Content is added progressively as you work
 
 ## 2. Current status
 
-- **Built & merged to `main` (Phases 0–16):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, and full deployment config. **Live in production** (Vercel + Render + Neon).
-- **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 17 (video suggestions), Phase 18 (history track), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
+- **Built (Phases 0–17):** vocab+SRS, grammar, exercises, drills, dashboard, AI (Gemini), recitation v2, accounts/multi-user, CEFR leveling + onboarding, Mon/Wed/Fri schedule + streaks, deployment config, and B1-gated video suggestions. Phases 0–16 **live in production** (Vercel + Render + Neon); Phase 17 is on branch `phase-17-videos` pending merge.
+- **Left to build:** Phase 11 (more exercise content, paste-your-own importer, voice practice, drill variants), Phase 18 (history track), Phase 19 (generic readers). See `PROJECT_PLAN.md`.
 - **AI: LIVE.** Google Gemini (`gemini-2.5-flash`) via `apps/ai_assistant/llm.py`; `GEMINI_API_KEY` in `backend/.env`. AI endpoints are account-only + rate-limited; without a key they return a graceful **503**.
 - **Lint/build clean:** `npm run build` (the real `tsc -b && vite build`), `npx eslint src`, `ruff check`, `python manage.py check` all green.
 - **Dev env:** macOS venv is `venv_mac/`. Verify the frontend with `npm run build` — **not** `tsc --noEmit` (root tsconfig has no files and passes falsely).
@@ -144,6 +144,7 @@ All variables are documented (no values) in `backend/.env.example` and `frontend
 | Grammar / Exercises | `/api/grammar/rules/`; `/api/exercises/` + `/api/exercises/{id}/attempt/` |
 | AI (account-only) | `/api/ai/{chat,suggest-words,explain-grammar,generate-exercises,check-answer}/` |
 | Recitation (account-only) | `/api/recitation/attempt/` (multipart) |
+| Videos (account-only) | `/api/videos/` (B1-gated curated suggestions) |
 | Admin | `/admin/` (all models registered) |
 
 Permissions: content GET is public (guests); writes, AI, and recitation require auth. Throttled (anon/user + AI burst/daily).
@@ -166,6 +167,7 @@ All live. Guest-OK unless marked account-only (those render a blurred "log in" o
 | `/exercises` | `ExercisesPage` | tile-grid chooser |
 | `/drills` | `DrillsPage` | hub; Gender Triage guest-free, rest account-only |
 | `/speak` | `RecitePage` | **account-only** |
+| `/videos` | `VideosPage` | **account-only**; unlocks at B1 (friendly panel below) |
 | `/ai` | `AIAssistantPage` | **account-only** |
 | `/books`, `/chapters/:id` | `BooksPage`, `ChapterDetailPage` | |
 
@@ -188,7 +190,6 @@ Shared chrome: `Layout.tsx` (sidebar + centered `max-w-900px` main); `Sidebar.ts
 Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaining:
 
 - **Phase 11 (ongoing content/features):** more original per-lesson exercise sets; a "paste-your-own" exercise importer; voice conversation practice; extra drill/question-style variants.
-- **Phase 17 — Video / show suggestions:** `ShowSuggestion` model (CEFR-tagged, hand-curated), unlock at B1 via the leveling engine. *(Not started.)*
 - **Phase 18 — German history track:** always-available track (separate from the Mon/Wed/Fri schedule); English+German through A2, German-only from B1.
 - **Phase 19 — Generic readers:** a `Passage` model with CEFR tagging so public-domain/self-written readers slot in; licensing gate.
 - **Polish/ops:** rotate shared secrets; wire production SMTP + a domain to flip email verification back to mandatory; optional Google OAuth; graceful 502 wrapper for AI provider errors.
@@ -196,6 +197,8 @@ Phases 0–16 are done (see `PROJECT_PLAN.md` for the ticked checklist). Remaini
 ---
 
 ## 11. Changelog (append newest at top)
+
+- _2026-06-21 — Phase 17 (Video / show suggestions) DONE (branch `phase-17-videos`, pending merge). New app **apps.videos**: `ShowSuggestion` (title, description, url, platform, cefr_level; ordering by level) + admin. `GET /api/videos/` (IsAuthenticated) unlocks at `VIDEO_UNLOCK_MIN_LEVEL` (default B1, env), returns entries at/below the user's level (`{unlocked, unlock_level, current_level, suggestions}`). Migrations 0001 (model) + 0002 (seed 14 real curated resources A1–C1: DW Nico's Weg, Easy German, ZDF logo!/heute-show, ARD Tagesschau/Tatort, Netflix Dark, Y-Kollektiv, Kurzgesagt). Frontend: `api/videos.ts`, `ShowSuggestion`/`VideoSuggestionsResponse` types, `VideosPage` (grouped cards + external links; friendly "unlocks at B1" panel below threshold; guest login wall via RequireAuth), sidebar "Videos" (Tv) entry, `/videos` route. **Verified:** A1→locked/0, B1→9 entries (A1–B1), guest→401; npm run build + eslint + ruff + django check clean. — backend/apps/videos/* (+migrations 0001/0002), backend/config/{settings,urls}.py, backend/.env.example, frontend/src/{App.tsx,types/index.ts,api/videos.ts,pages/VideosPage.tsx,components/layout/Sidebar.tsx}_
 
 - _2026-06-21 — Cleanup + docs refresh. Removed dead code: old Web-Speech recite (`SpeakPage.tsx`, `hooks/useSpeechRecognition.ts`, `lib/worddiff.ts` — replaced by RecitePage), unused shadcn primitives (`ui/badge.tsx`, `ui/separator.tsx`), unreferenced `charts/ChapterProgressChart.tsx`, superseded `seed_data` command, now-empty `vocabulary/signals.py` (+ its `apps.py` ready() hook), and the old `german_learning_platform_plan.md`. Build/lint clean after. Rewrote README + this file's body sections (§2/§4–§10) to current reality (Phases 0–16 done; Gemini; multi-user; deploy). Phase 17 WIP parked on a local branch (not in main). md docs otherwise left intact._
 
