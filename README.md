@@ -8,7 +8,7 @@ A web app for learning German — SRS vocabulary flashcards, grammar reference, 
 
 ## Project status
 
-**Built (Phases 0–18):** *(0–17 live; Phase 18 on branch `phase-18-history`, pending merge)*
+**Built & live (Phases 0–18 + landing page):**
 - **Vocabulary + SRS** — SM-2 flashcards (type the German with its article), per-word performance tracking.
 - **Word Bank** — chapters as a tile grid + word list (two-pane), add/import words (single, paste-list, CSV).
 - **Grammar** — searchable topic-card gallery (Markdown rules).
@@ -21,9 +21,11 @@ A web app for learning German — SRS vocabulary flashcards, grammar reference, 
 - **Schedule + streaks** — Mon/Wed/Fri lesson unlock; streaks with auto-consumed freeze tokens.
 - **Videos & shows** — curated German watch/listen suggestions tagged by level, unlocked at B1.
 - **History track** — short German-history lessons (English+German through A2, German-only from B1) with a per-lesson quiz.
+- **Landing page & account menu** — marketing landing page for guests; account dropdown with Settings (incl. level changer) and a public Privacy page.
 - **Deployment** — Neon Postgres + Render (backend) + Vercel (frontend); WhiteNoise, gunicorn, env-driven prod config.
 
 **Not yet built (see `PROJECT_PLAN.md`):**
+- **UI polish pass (in progress)** — page-by-page visual upgrade using hand-copied 21st.dev components re-themed to our tokens (copied into the repo; no runtime dependency).
 - **Phase 11** — more original per-lesson exercises, a "paste-your-own" exercise importer, voice conversation practice, extra drill/question variants.
 - **Phase 19** — generic readers / `Passage` model with CEFR tagging.
 

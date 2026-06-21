@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { ChevronUp, LogOut, Settings, Shield } from "lucide-react"
+import { LogOut, Settings, Shield } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { useAuth } from "@/contexts/AuthContext"
-import { cn } from "@/lib/utils"
 
-export function AccountMenu({ collapsed }: { collapsed?: boolean }) {
+export function AccountMenu() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -32,15 +31,23 @@ export function AccountMenu({ collapsed }: { collapsed?: boolean }) {
 
   return (
     <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-sm font-bold text-accent transition-colors hover:bg-accent/25"
+      >
+        {initial}
+      </button>
+
       {open && (
-        <div className="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
           <div className="px-3 py-2">
             <p className="truncate text-sm font-medium" title={user.email}>
               {user.email}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Level {user.cefr_level}
-            </p>
+            <p className="text-xs text-muted-foreground">Level {user.cefr_level}</p>
           </div>
           <div className="my-1 h-px bg-border" />
           <MenuLink to="/settings" icon={Settings} label="Settings" onClick={() => setOpen(false)} />
@@ -53,29 +60,6 @@ export function AccountMenu({ collapsed }: { collapsed?: boolean }) {
           </button>
         </div>
       )}
-
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        title={collapsed ? user.email : undefined}
-        className={cn(
-          "flex w-full items-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground",
-          collapsed ? "justify-center px-2" : "px-3",
-        )}
-      >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-bold text-accent">
-          {initial}
-        </span>
-        {!collapsed && (
-          <>
-            <span className="flex-1 truncate text-left">{user.email}</span>
-            <ChevronUp
-              className={cn("size-4 transition-transform", !open && "rotate-180")}
-            />
-          </>
-        )}
-      </button>
     </div>
   )
 }

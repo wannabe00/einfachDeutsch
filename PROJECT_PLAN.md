@@ -2,7 +2,7 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
-> **Status (2026-06-21):** Phases **0–18 done** (18 on branch `phase-18-history`, pending merge); 0–17 live in production (Vercel + Render + Neon). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
+> **Status (2026-06-22):** Phases **0–18 done and live** in production (Vercel + Render + Neon), plus a marketing **landing page** + **account menu / Settings / Privacy**. **In progress:** a page-by-page **UI polish pass** (integrating hand-copied 21st.dev components, re-themed to our tokens). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
 
 ---
 
@@ -333,6 +333,11 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 ## Phase 19 — Generic book/reading content
 - [ ] **19.1 Generic model** — `Book` (exists) + `Chapter` (exists) + new `Passage` with **CEFR-level tagging**, so public-domain / licensed / self-written readers slot in without schema change.
 - [ ] **19.2 Licensing gate** — flag: confirm usage rights before publishing any non-public-domain book. Source/content deferred (owner provides later).
+
+## Post-18 — Landing page + UI polish (ongoing)
+- [x] **Landing page** — marketing `/` for guests (Munich parallax hero, value props, how-it-works, der/die/das teaser, feature showcase, CEFR path, culture hook, stats, FAQ + CTA + footer); signed-in users get the dashboard at `/`.
+- [x] **Account menu + pages** — Facebook-style dropdown in the sidebar footer; `SettingsPage` (account + level changer + theme) and a public standalone `PrivacyPage`.
+- [ ] **UI polish pass (page-by-page)** — go through each page (Dashboard, Review, Word Bank, Grammar, Exercises, Drills, Recite, Videos, History, Books, AI, Auth/Onboarding) improving layout/visual quality, integrating hand-copied **21st.dev** components re-themed to our DESIGN tokens (via the Magic MCP at dev time; components are copied into the repo, no runtime dependency).
 
 ## Remaining open items (decide during build)
 - Exact CEFR threshold tuning for video unlock + history language switch (defaults set; revisit once real progression speed is seen).
