@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { NavLink, useNavigate } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard,
   GraduationCap,
@@ -15,13 +15,13 @@ import {
   PanelLeftClose,
   PanelLeft,
   LogIn,
-  LogOut,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { SITE_NAME } from "@/lib/site"
 import { useAuth } from "@/contexts/AuthContext"
 import { ThemeToggle } from "./ThemeToggle"
+import { AccountMenu } from "./AccountMenu"
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -40,8 +40,7 @@ const navItems = [
 const STORAGE_KEY = "sidebar-collapsed"
 
 export function Sidebar() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [collapsed, setCollapsed] = useState(() => {
     // Respect a saved preference; otherwise default to collapsed on small
     // (phone-width) screens so the icon rail leaves room for content.
@@ -53,11 +52,6 @@ export function Sidebar() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, String(collapsed))
   }, [collapsed])
-
-  async function handleLogout() {
-    await logout()
-    navigate("/")
-  }
 
   return (
     <>
@@ -134,28 +128,7 @@ export function Sidebar() {
         <ThemeToggle collapsed={collapsed} />
 
         {user ? (
-          <>
-            {!collapsed && (
-              <p
-                className="truncate px-3 pt-1 text-xs text-muted-foreground"
-                title={user.email}
-              >
-                {user.email}
-              </p>
-            )}
-            <button
-              onClick={handleLogout}
-              aria-label="Log out"
-              title={collapsed ? "Log out" : undefined}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground",
-                collapsed ? "justify-center px-2" : "px-3",
-              )}
-            >
-              <LogOut className="size-5 shrink-0" aria-hidden="true" />
-              {!collapsed && "Log out"}
-            </button>
-          </>
+          <AccountMenu collapsed={collapsed} />
         ) : (
           <NavLink
             to="/login"
