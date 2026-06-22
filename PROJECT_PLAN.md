@@ -2,7 +2,7 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
-> **Status (2026-06-22):** Phases **0–18 done and live** in production (Vercel + Render + Neon), plus a marketing **landing page** + **account menu / Settings / Privacy**. **In progress:** a page-by-page **UI polish pass** (integrating hand-copied 21st.dev components, re-themed to our tokens). **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), plus ops polish (rotate secrets, prod SMTP/domain for mandatory email verification, optional Google OAuth).
+> **Status (2026-06-23):** Phases **0–18 done and live** in production (Vercel + Render + Neon), plus a marketing **landing page** + **account menu / Settings / Privacy**. **Auth is now social-login only** (Google + GitHub) with a username/password fallback; no email/phone verification. **In progress:** a page-by-page **UI polish pass** (integrating hand-copied 21st.dev components, re-themed to our tokens) + a codebase/docs cleanup pass. **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), **password-reset / forgot-password flow** (SMTP already wired), SMS verification (deferred, paid), plus ops polish (rotate secrets).
 
 ---
 
@@ -203,7 +203,9 @@ Goal: A real home page that shows your progress at a glance.
 ---
 
 ## Phase 6 — AI Integration
-Goal: Claude generates content suggestions and checks free-text exercise answers.
+Goal: the LLM generates content suggestions and checks free-text exercise answers.
+
+> **Note (current reality):** the provider was switched from Claude/Anthropic to **Google Gemini** (`gemini-2.5-flash`, free key). The client lives in `apps/ai_assistant/llm.py` (not `claude.py`) and reads `GEMINI_API_KEY`. The brick text below is the original plan, kept for history.
 
 - [x] **6.1 Claude API client in Django**
   What: Add `anthropic` to requirements. Create `apps/ai_assistant/claude.py` with five functions: `suggest_words(chapter_title, chapter_description, count)`, `explain_grammar(topic)`, `generate_exercises(chapter_title, word_list)`, `check_exercise_answer(prompt, correct_answer, user_answer)`, `chat(message, history)`. Load `ANTHROPIC_API_KEY` from `.env`. All functions use `claude-sonnet-4-20250514`.
@@ -345,4 +347,5 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - Source/licensing of "other books" content (owner to provide).
 - **Auth = social login (Google + GitHub) only.** Account creation is OAuth-only; after first sign-in the user completes onboarding (username + password + name; birthday/phone optional) and can then log in with either provider or username + password. **No email or phone verification** (Google/GitHub already verify the email). Email/password registration was removed. OAuth credentials via env (`GOOGLE_CLIENT_*`, `GITHUB_CLIENT_*` backend; `VITE_*_CLIENT_ID` frontend). Live-site callback URLs only for now.
 - **Phone/SMS verification — DEFERRED (not free).** Phone is collected (optional) but never verified. Wiring it up needs a paid SMS gateway (e.g. Twilio Verify) behind a swappable provider interface. Leave as a plan until there's budget.
-- **Email (SMTP) is now optional** — used only for password reset, not verification.
+- **Email (SMTP) is now optional** — wired (dj-rest-auth password endpoints + `EMAIL_*` env) but unused until the password-reset flow below ships.
+- [ ] **Password reset / forgot password (planned).** Backend endpoints exist via `dj_rest_auth.urls` (`/api/auth/password/reset/` + `/confirm/`). To finish: point the reset email link at the SPA (custom adapter or `PasswordResetSerializer` URL), add a "Forgot password?" link on the login page + a `/reset-password/:uid/:token` page that POSTs the new password, and configure a real SMTP sender. No new models needed.
