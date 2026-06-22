@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.github",
     "dj_rest_auth",
     "dj_rest_auth.registration",
     # Local apps
@@ -177,28 +178,49 @@ REST_FRAMEWORK = {
 }
 
 # ---- Auth (allauth + dj-rest-auth), token-based ----
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-# Mandatory email verification: registration sends a confirmation link and does
-# not return a token; login is blocked until the email is verified (see
-# LoginSerializer). In dev the link prints to the runserver terminal (console
-# email backend); production wires real SMTP (Phase 12).
-# "mandatory" blocks login until the email is confirmed (needs a working email
-# sender + a verified domain). "optional" lets users in immediately (good for
-# launching without a domain). Flip via env once a sending domain is set up.
-ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "mandatory")
-ACCOUNT_EMAIL_REQUIRED = True
+# Accounts are created via Google/GitHub OAuth (see GoogleLogin/GitHubLogin).
+# After first sign-in the user completes onboarding (username + password + name)
+# and can then log in with either provider or username + password. No email or
+# phone verification is used.
+ACCOUNT_LOGIN_METHODS = {"username"}
+ACCOUNT_SIGNUP_FIELDS = ["username*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
 
-# Where the SPA lives — used to build the email-confirmation link.
+# Social login: trust the provider's email (already verified by Google/GitHub),
+# create the account automatically, never block on email confirmation.
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
+            "key": "",
+        },
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    },
+    "github": {
+        "APP": {
+            "client_id": os.getenv("GITHUB_CLIENT_ID", ""),
+            "secret": os.getenv("GITHUB_CLIENT_SECRET", ""),
+            "key": "",
+        },
+        "SCOPE": ["read:user", "user:email"],
+    },
+}
+
+# Where the SPA lives — used to build OAuth callback URLs.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 REST_AUTH = {
     "USE_JWT": False,  # simple DRF token in localStorage — easiest for the SPA
     "SESSION_LOGIN": False,
     "TOKEN_MODEL": "rest_framework.authtoken.models.Token",
-    "REGISTER_SERIALIZER": "apps.accounts.serializers.RegisterSerializer",
     "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
     "LOGIN_SERIALIZER": "apps.accounts.serializers.LoginSerializer",
 }

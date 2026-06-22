@@ -5,58 +5,60 @@ interface TokenResponse {
   key?: string
 }
 
-export type RegisterResult =
-  | { status: "logged_in" }
-  | { status: "verify_email" }
+export type SocialProvider = "google" | "github"
 
-export interface RegisterPayload {
-  email: string
-  password: string
+export interface OnboardingPayload {
   username: string
+  password: string
   first_name: string
   last_name: string
   birthday?: string
   phone?: string
 }
 
-export async function registerUser(
-  payload: RegisterPayload,
-): Promise<RegisterResult> {
-  const { data } = await apiClient.post<TokenResponse>("/auth/registration/", {
-    email: payload.email,
-    password1: payload.password,
-    password2: payload.password,
-    username: payload.username,
-    first_name: payload.first_name,
-    last_name: payload.last_name,
-    birthday: payload.birthday || null,
-    phone: payload.phone || "",
+/** Exchange an OAuth `code` (from the provider callback) for a DRF token. */
+export async function socialLogin(
+  provider: SocialProvider,
+  code: string,
+): Promise<string> {
+  const { data } = await apiClient.post<TokenResponse>(`/auth/${provider}/`, {
+    code,
   })
-  // With mandatory email verification the backend returns no token — the user
-  // must confirm their email before logging in. Without verification it would
-  // return a token and we'd be logged in immediately.
-  if (data.key) {
-    localStorage.setItem(TOKEN_KEY, data.key)
-    return { status: "logged_in" }
-  }
-  return { status: "verify_email" }
+  if (!data.key) throw new Error("Social login did not return a token")
+  localStorage.setItem(TOKEN_KEY, data.key)
+  return data.key
 }
 
-export async function verifyEmail(key: string): Promise<void> {
-  await apiClient.post("/auth/registration/verify-email/", { key })
-}
-
+/** Username + password login (the password is set during onboarding). */
 export async function loginUser(
-  email: string,
+  username: string,
   password: string,
 ): Promise<string> {
   const { data } = await apiClient.post<TokenResponse>("/auth/login/", {
-    email,
+    username,
     password,
   })
   if (!data.key) throw new Error("Login did not return a token")
   localStorage.setItem(TOKEN_KEY, data.key)
   return data.key
+}
+
+/** First-run profile setup after a social sign-in. */
+export async function completeOnboarding(
+  payload: OnboardingPayload,
+): Promise<User> {
+  const { data } = await apiClient.post<User>(
+    "/accounts/complete-onboarding/",
+    {
+      username: payload.username,
+      password: payload.password,
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      birthday: payload.birthday || null,
+      phone: payload.phone || "",
+    },
+  )
+  return data
 }
 
 export async function fetchCurrentUser(): Promise<User> {

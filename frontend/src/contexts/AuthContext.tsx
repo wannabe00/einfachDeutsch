@@ -9,20 +9,22 @@ import {
 
 import { TOKEN_KEY } from "@/api/client"
 import {
+  completeOnboarding,
   fetchCurrentUser,
   loginUser,
   logoutUser,
-  registerUser,
-  type RegisterPayload,
-  type RegisterResult,
+  socialLogin,
+  type OnboardingPayload,
+  type SocialProvider,
 } from "@/api/auth"
 import type { User } from "@/types"
 
 interface AuthContextValue {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (payload: RegisterPayload) => Promise<RegisterResult>
+  login: (username: string, password: string) => Promise<void>
+  loginWithCode: (provider: SocialProvider, code: string) => Promise<void>
+  completeProfile: (payload: OnboardingPayload) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -63,19 +65,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("auth:logout", onLogout)
   }, [])
 
-  const login = useCallback(async (email: string, password: string) => {
-    await loginUser(email, password)
+  const login = useCallback(async (username: string, password: string) => {
+    await loginUser(username, password)
     setUser(await fetchCurrentUser())
   }, [])
 
-  const register = useCallback(async (payload: RegisterPayload) => {
-    const result = await registerUser(payload)
-    // Only auto-resolve the user when registration logged us straight in;
-    // with mandatory email verification we stay signed out until confirmed.
-    if (result.status === "logged_in") {
+  const loginWithCode = useCallback(
+    async (provider: SocialProvider, code: string) => {
+      await socialLogin(provider, code)
       setUser(await fetchCurrentUser())
-    }
-    return result
+    },
+    [],
+  )
+
+  const completeProfile = useCallback(async (payload: OnboardingPayload) => {
+    const updated = await completeOnboarding(payload)
+    setUser(updated)
   }, [])
 
   const logout = useCallback(async () => {
@@ -89,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser }}
+      value={{ user, loading, login, loginWithCode, completeProfile, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

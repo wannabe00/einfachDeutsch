@@ -17,10 +17,16 @@ services:
         value: "False"
       - key: SECRET_KEY
         generateValue: true
-      # Launch without a sending domain: users log in without email verification.
-      # Change to "mandatory" once a Resend domain is verified.
-      - key: ACCOUNT_EMAIL_VERIFICATION
-        value: "optional"
+      # OAuth (Google + GitHub) — account creation is social-login only.
+      # Set the secrets in the Render dashboard (sync:false = not stored in git):
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
       # Set these in the Render dashboard (sync:false = not stored in git):
       - key: ALLOWED_HOSTS # e.g. einfachdeutsch-api.onrender.com
         sync: false
@@ -41,7 +47,7 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      # Email (required for verification links in production):
+      # Email (optional now — no verification; used only for password reset):
       - key: EMAIL_HOST
         sync: false
       - key: EMAIL_PORT

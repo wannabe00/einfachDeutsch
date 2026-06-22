@@ -30,6 +30,9 @@ class UserProfile(models.Model):
     )
     cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, default="A1")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="student")
+    # False right after a Google/GitHub signup; set True once the user has
+    # picked a username + password + name in onboarding. Gates the welcome flow.
+    profile_complete = models.BooleanField(default=False)
     # Set once the user has chosen/confirmed their level (onboarding). Until
     # then the frontend shows the level picker / placement test.
     level_set = models.BooleanField(default=False)
