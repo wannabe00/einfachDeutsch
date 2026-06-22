@@ -1,10 +1,10 @@
 # Contributing
 
-How you (and Claude) work on this project without breaking things. This project has two sub-projects in one repo: `backend/` (Django) and `frontend/` (React + TypeScript).
+How you (and your AI assistant) work on this project without breaking things. This project has two sub-projects in one repo: `backend/` (Django) and `frontend/` (React + TypeScript).
 
 ## Before you start
 1. Read `WORKFLOW.md` → `KNOWLEDGE_BASE.md` → `PROJECT_PLAN.md`.
-2. `cd backend && source venv/bin/activate && pip install -r requirements.txt`
+2. `cd backend && source venv_mac/bin/activate && pip install -r requirements.txt`
 3. `cd frontend && npm install`
 4. Copy `backend/.env.example` → `backend/.env` and fill in any keys you have.
 5. `python manage.py runserver` and `npm run dev` — both must boot before you change anything.
@@ -57,8 +57,8 @@ Working alone: you can commit directly to a working branch and merge to `main` y
 ## Before pushing / opening a PR
 A brick is **done** only when:
 
-1. `npx tsc --noEmit` passes (no TypeScript errors)
-2. `python manage.py check` passes (no Django system errors)
+1. `npm run build` + `npx eslint src` pass (frontend — `build` runs the real type-check; root `tsc --noEmit` checks nothing)
+2. `ruff check .` + `python manage.py check` pass (backend)
 3. Both `python manage.py runserver` and `npm run dev` boot without errors
 4. The brick's "Done when" criteria is verified in the browser or with curl
 5. The brick's box is ticked in `PROJECT_PLAN.md`
@@ -92,4 +92,4 @@ Components are added to `frontend/src/components/ui/`. Don't modify them directl
 - Never paste keys into code, commit messages, or chat
 
 ## Keeping docs honest
-`KNOWLEDGE_BASE.md` = current reality. `PROJECT_PLAN.md` = future plan. Update them as part of the change — not later. They are how Claude gets up to speed at the start of every session.
+`KNOWLEDGE_BASE.md` = current reality. `PROJECT_PLAN.md` = future plan. Update them as part of the change — not later. They are how the assistant gets up to speed at the start of every session.

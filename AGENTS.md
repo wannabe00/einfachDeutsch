@@ -1,6 +1,6 @@
 # Project: German Learning Platform
 
-A personal German vocabulary + grammar study app built with **Django 5 + DRF** (backend) and **React 19 + TypeScript + Vite** (frontend). SRS flashcards, spaced repetition via SM-2, grammar reference, book exercises, and a Gemini AI assistant. Single-user for now; no authentication in v1.
+A German vocabulary + grammar study app built with **Django 5 + DRF** (backend) and **React 19 + TypeScript + Vite** (frontend). SRS flashcards, spaced repetition via SM-2, grammar reference, book exercises, and a Gemini AI assistant. **Multi-user** with **social login (Google + GitHub)** — content is shared/global, progress is per-user. Deployed: frontend on Vercel, backend on Render, DB on Neon Postgres.
 
 **New here? Read in this order:** `WORKFLOW.md` (how work is driven) → `KNOWLEDGE_BASE.md` (current state) → `PROJECT_PLAN.md` (brick-by-brick plan). The default way work happens: the user says **"do the next brick"**.
 
@@ -18,6 +18,7 @@ A personal German vocabulary + grammar study app built with **Django 5 + DRF** (
 - **Hosting:** frontend → Vercel, backend → Render (persistent service), DB → **Neon Postgres** (never Render's bundled Postgres — 30-day auto-expiry).
 - **AI:** ALL LLM + speech (chat, grading, transcription) uses **Gemini** behind a swappable interface so a paid provider can drop in later. No hardcoded paid Whisper/Claude.
 - **Multi-user:** content (Book/Chapter/Word/GrammarRule/Exercise) is **shared/global**; progress (WordProgress/ReviewLog/ExerciseAttempt + new per-user models) is **per-user**. Don't add per-user FKs to content models.
+- **Auth:** account creation is **social-login only** (Google + GitHub OAuth via allauth + dj-rest-auth). Onboarding then sets username + password + name (`UserProfile.profile_complete` gate); username/password is a login fallback. **No email/phone verification.** OAuth client IDs/secrets come from env. SMTP is wired only for a future password-reset flow.
 - **Copyright:** never reproduce the Menschen workbooks (or other non-public-domain books) verbatim — author original lesson-matched content instead.
 
 ### Backend (Django)

@@ -187,7 +187,6 @@ ACCOUNT_SIGNUP_FIELDS = ["username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
 
 # Social login: trust the provider's email (already verified by Google/GitHub),
 # create the account automatically, never block on email confirmation.
@@ -226,7 +225,7 @@ REST_AUTH = {
 }
 
 # Email: real SMTP when EMAIL_HOST is configured (production), else the dev
-# console backend (verification/reset links print to the runserver terminal).
+# console backend. Only used for password reset (no email verification).
 if os.getenv("EMAIL_HOST"):
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -271,10 +270,9 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 
-# LLM API keys (AI features). Empty until configured in .env.
-# Gemini is the active provider for the AI chat/assistant.
+# LLM API key (AI features). Gemini is the active provider for the AI
+# chat/assistant; empty until configured in .env (then endpoints return 503).
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")  # legacy / optional
 
 
 # ---- Lesson schedule + streaks (Phase 15, all tunable) ----

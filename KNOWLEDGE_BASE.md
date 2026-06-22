@@ -13,9 +13,9 @@ A personal German vocabulary and grammar study platform. Core features:
 - **Spaced repetition (SM-2)** — same algorithm as Anki; words schedule themselves based on how well you know them
 - **Grammar reference** — grammar rules entered from your textbooks, browsable and searchable
 - **Book exercises** — tasks from your books with answer checking
-- **Claude AI assistant** — generates vocabulary suggestions, explains grammar, creates exercises
+- **Gemini AI assistant** — generates vocabulary suggestions, explains grammar, creates exercises
 
-Single-user. No authentication in v1. Content is added progressively as you work through chapters in your books.
+Multi-user with **social login (Google + GitHub)**; content is shared/global, progress is per-user. Content is added progressively as you work through chapters in your books.
 
 ---
 
@@ -182,7 +182,7 @@ Shared chrome: `Layout.tsx` (sidebar + centered `max-w-900px` main); `Sidebar.ts
 
 ## 9. Known issues / open decisions
 
-- **Email verification** defaults to `mandatory`; sending to non-owner addresses needs a real SMTP sender + verified domain. Launched with `ACCOUNT_EMAIL_VERIFICATION=optional` until a domain is set up.
+- **Auth is social-login only** (Google + GitHub) with a username/password fallback set in onboarding; no email/phone verification. SMTP is wired but currently unused — reserved for a future password-reset/forgot-password flow (not yet built).
 - **Free-tier Gemini quota is low** — AI/recitation may 429/502 when exhausted (resets daily). AI errors degrade gracefully; a clean 502 wrapper for non-config Gemini errors is still a pending polish (see flagged task).
 - **Recitation audio format** — browser MediaRecorder usually emits `audio/webm`; Gemini's acceptance of webm isn't guaranteed. Failures return a graceful 502; the `Transcriber` interface is swappable for a paid/format-robust provider.
 - **Google + GitHub OAuth** are now the only signup path (needs the owner's OAuth client IDs/secrets in env). Live-site callback URLs only for now; add localhost callbacks to test social login in dev.
@@ -202,6 +202,8 @@ Phases 0–18 are done and live (see `PROJECT_PLAN.md` for the ticked checklist)
 ---
 
 ## 11. Changelog (append newest at top)
+
+- _2026-06-23 — **Cleanup pass (dead code + docs).** Removed the now-dead `apps/accounts/adapter.py` (only overrode the unused email-confirmation URL) + its `ACCOUNT_ADAPTER` setting; dropped the legacy `ANTHROPIC_API_KEY` setting + `.env.example` entry; refreshed stale comments (email = password-reset only, no verification). **Docs:** AGENTS/KNOWLEDGE_BASE/PROJECT_PLAN/README/WORKFLOW/CONTRIBUTING updated to current reality — multi-user social login (was "single-user, no auth in v1"), Gemini (was "Claude") provider, corrected dev commands (`venv_mac`, `npm run build`/`eslint`/`ruff` instead of `tsc --noEmit`); genericized "Claude" naming in workflow docs; added a planned **password-reset/forgot-password** brick (SMTP already wired). No orphaned frontend files found. Verified: ruff + `manage.py check` + eslint + `npm run build` all clean. — backend/config/settings.py, backend/.env.example, AGENTS.md, KNOWLEDGE_BASE.md, PROJECT_PLAN.md, WORKFLOW.md, CONTRIBUTING.md (deleted backend/apps/accounts/adapter.py)_
 
 - _2026-06-22 — **Auth pivot: social login only (Google + GitHub).** Dropped email/password registration and ALL email/phone verification (the verification setup was a headache without a domain). **Backend:** added `allauth.socialaccount` GitHub provider (Google already present) + `SOCIALACCOUNT_PROVIDERS` reading `GOOGLE_CLIENT_*`/`GITHUB_CLIENT_*` from env; `ACCOUNT_EMAIL_VERIFICATION="none"`, `ACCOUNT_LOGIN_METHODS={"username"}`, `SOCIALACCOUNT_AUTO_SIGNUP`. New views `GoogleLogin`/`GitHubLogin` (dj-rest-auth `SocialLoginView`, code flow, callback `FRONTEND_URL/auth/callback/<provider>`) at `POST /api/auth/{google,github}/`; `POST /api/accounts/complete-onboarding/` sets username+password+name (+optional birthday/phone), flips new `UserProfile.profile_complete` (migration 0007; existing accounts backfilled True). `LoginSerializer` → username+password; `RegisterSerializer` + `/api/auth/registration/` removed; `UserDetailsSerializer` += `profile_complete`. **Frontend:** rewrote `AuthPage` (Google/GitHub buttons + username login, no register form); new `lib/oauth.ts` (authorize redirect + state/CSRF), `OAuthCallbackPage` (`/auth/callback/:provider` → exchange code), `WelcomePage` (`/welcome` profile setup); `App.tsx` gates `profile_complete` → `level_set`; `/register` now aliases `/login`; deleted `VerifyEmailPage`; `api/auth.ts` (socialLogin/loginUser(username)/completeOnboarding); `User` type += `profile_complete`; new env `VITE_GOOGLE_CLIENT_ID`/`VITE_GITHUB_CLIENT_ID`. `render.yaml` += OAuth vars (email now optional, only for password reset). **Wipe command** `manage.py wipe_users` (keeps superusers) added for the clean slate. **Verified:** routes resolve (google/github 405-on-GET, onboarding 401, old registration 404, username login 400-on-empty), migration applies + backfills, `npm run build`/eslint/ruff/`manage.py check` all clean. **Owner TODO before it works live:** create the Google + GitHub OAuth apps, set the 4 secrets on Render + the 2 client IDs on Vercel, redeploy. — backend/apps/accounts/{models,serializers,views,urls}.py +migration 0007 +management/commands/wipe_users.py, backend/config/{settings,urls}.py, render.yaml, frontend/src/{App.tsx,types/index.ts,api/auth.ts,contexts/AuthContext.tsx,lib/oauth.ts,pages/{AuthPage,OAuthCallbackPage,WelcomePage}.tsx}, frontend/.env.example_
 
@@ -270,7 +272,7 @@ Phases 0–18 are done and live (see `PROJECT_PLAN.md` for the ticked checklist)
 - _2026-06-18 — macOS setup — recreated Python venv as venv_mac/ (venv/ was Windows .exe); reinstalled npm node_modules for darwin-arm64 — backend/venv_mac/, frontend/node_modules/_
 
 > Format: `YYYY-MM-DD — brick X.Y — what changed — key files`
-> Added manually (or by Claude) after each completed brick.
+> Added after each completed brick.
 
 - _2026-06-09 — brick 2.2 — Books frontend page: src/api/books.ts (fetchBooks, createChapter), /books page with React Query — book cards list chapters, inline add-chapter form (number prefilled to next) POSTs to nested route and invalidates the books query; loading/error/empty states — `tsc --noEmit` + build clean — frontend/src/pages/BooksPage.tsx, src/api/books.ts_
 - _2026-06-09 — brick 2.1 — Books/Chapters viewsets + URLs: BookViewSet (ModelViewSet) + custom GET/POST `chapters` action for /api/books/{id}/chapters/, SimpleRouter in apps/books/urls.py, included at /api/, api_root now links to book-list — verified GET /api/books/ (nested chapters), POST chapter (201) persists — backend/apps/books/views.py, urls.py, config/urls.py, config/views.py_
