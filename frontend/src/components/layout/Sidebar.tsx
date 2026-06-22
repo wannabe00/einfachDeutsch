@@ -65,8 +65,8 @@ export function Sidebar() {
       >
         <div
           className={cn(
-            "flex items-center py-3",
-            collapsed ? "justify-center px-2" : "justify-end px-3",
+            "flex items-center py-2",
+            collapsed ? "justify-center px-2" : "px-3",
           )}
         >
           <button
