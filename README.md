@@ -16,7 +16,7 @@ A web app for learning German — SRS vocabulary flashcards, grammar reference, 
 - **Dashboard** — stats, 7-day activity chart, streak banner.
 - **AI Assistant** — chat, word/exercise generation, answer feedback (Google Gemini, account-only + rate-limited).
 - **Recite (v2)** — read a text, retell it from memory; audio is transcribed (Gemini) and graded (coverage, grammar, pronunciation) then **discarded**.
-- **Accounts & multi-user** — email/password auth (hashed, optional email verification), **content shared / progress per-user**, freemium guest access with a daily cap + sign-up wall, server-side throttling.
+- **Accounts & multi-user** — **Google/GitHub sign-in** (account creation is social-login only) + a username/password fallback set during onboarding; no email/phone verification. **Content shared / progress per-user**, freemium guest access with a daily cap + sign-up wall, server-side throttling.
 - **CEFR leveling** — onboarding placement test (or quick-pick) with ±1 adjust; completion-gated progression engine.
 - **Schedule + streaks** — Mon/Wed/Fri lesson unlock; streaks with auto-consumed freeze tokens.
 - **Videos & shows** — curated German watch/listen suggestions tagged by level, unlocked at B1.
@@ -52,7 +52,7 @@ npm run dev                     # http://localhost:5173
 
 Open http://localhost:5173. Admin: http://localhost:8000/admin.
 
-> **Email verification:** mandatory by default. In dev the link prints to the runserver terminal (console email backend); superusers are exempt. To skip it entirely while developing, set `ACCOUNT_EMAIL_VERIFICATION=optional` in `backend/.env`.
+> **Sign-in:** accounts are created via **Google or GitHub** OAuth, then a username + password is set in onboarding (so username/password login also works). No email or phone verification. Configure OAuth client IDs/secrets via env (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` on the backend; `VITE_GOOGLE_CLIENT_ID`/`VITE_GITHUB_CLIENT_ID` on the frontend). The existing superuser still logs in at `/admin`.
 
 ---
 

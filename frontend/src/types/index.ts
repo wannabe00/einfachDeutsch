@@ -105,6 +105,8 @@ export interface User {
   role: UserRole
   /** Whether the user has chosen/confirmed their level (onboarding done). */
   level_set: boolean
+  /** False right after a social signup; true once username/password/name set. */
+  profile_complete: boolean
   birthday: string | null
   phone: string
   avatar_url: string

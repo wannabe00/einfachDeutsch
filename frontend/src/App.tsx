@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Layout } from "@/components/layout/Layout"
 import { LockedFeature } from "@/components/auth/LockedFeature"
 import AuthPage from "@/pages/AuthPage"
-import VerifyEmailPage from "@/pages/VerifyEmailPage"
+import OAuthCallbackPage from "@/pages/OAuthCallbackPage"
+import WelcomePage from "@/pages/WelcomePage"
 import OnboardingPage from "@/pages/OnboardingPage"
 import Dashboard from "@/pages/Dashboard"
 import ReviewPage from "@/pages/ReviewPage"
@@ -23,42 +24,51 @@ import LandingPage from "@/pages/LandingPage"
 import SettingsPage from "@/pages/SettingsPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
+function Loading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      Loading…
+    </div>
+  )
+}
+
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Loading…
-      </div>
-    )
-  }
+  if (loading) return <Loading />
   // Guests see the section blurred behind a sign-up/login overlay rather than
   // being redirected away.
   if (!user) return <LockedFeature />
   return <>{children}</>
 }
 
-/** The app shell — but a signed-in user who hasn't chosen a level yet is sent
-    to onboarding first. Guests pass through (they have no level to set). */
+/** A signed-in user must finish profile setup, then level onboarding, before
+    reaching the app. Returns the redirect target, or null if they're ready. */
+function pendingOnboardingPath(user: {
+  profile_complete: boolean
+  level_set: boolean
+}): string | null {
+  if (!user.profile_complete) return "/welcome"
+  if (!user.level_set) return "/onboarding"
+  return null
+}
+
+/** The app shell — signed-in users with unfinished onboarding are redirected. */
 function AppShell() {
   const { user } = useAuth()
-  if (user && !user.level_set) return <Navigate to="/onboarding" replace />
+  if (user) {
+    const next = pendingOnboardingPath(user)
+    if (next) return <Navigate to={next} replace />
+  }
   return <Layout />
 }
 
-/** Root: the marketing landing page for guests, the app dashboard for
-    signed-in users (onboarding first if they haven't set a level). */
+/** Root: marketing landing for guests, dashboard for signed-in users. */
 function Home() {
   const { user, loading } = useAuth()
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Loading…
-      </div>
-    )
-  }
+  if (loading) return <Loading />
   if (!user) return <LandingPage />
-  if (!user.level_set) return <Navigate to="/onboarding" replace />
+  const next = pendingOnboardingPath(user)
+  if (next) return <Navigate to={next} replace />
   return (
     <Layout>
       <Dashboard />
@@ -71,25 +81,40 @@ function App() {
 
   return (
     <Routes>
-      {/* Public auth routes (redirect to app if already signed in) */}
+      {/* Sign in (Google/GitHub or username+password). */}
       <Route
         path="/login"
-        element={user ? <Navigate to="/" replace /> : <AuthPage mode="login" />}
+        element={user ? <Navigate to="/" replace /> : <AuthPage />}
       />
-      <Route
-        path="/register"
-        element={user ? <Navigate to="/" replace /> : <AuthPage mode="register" />}
-      />
-      <Route path="/verify-email/:key" element={<VerifyEmailPage />} />
+      {/* /register kept as an alias so old links still work. */}
+      <Route path="/register" element={<Navigate to="/login" replace />} />
+      {/* OAuth provider redirect lands here (public — no token yet). */}
+      <Route path="/auth/callback/:provider" element={<OAuthCallbackPage />} />
+
       {/* Root: landing page (guests) or dashboard (signed-in). */}
       <Route path="/" element={<Home />} />
-      {/* First-login level onboarding (only for signed-in users without a
-          level set; once set, bounce to the app). */}
+
+      {/* First-run profile setup (username/password/name) after social signup. */}
+      <Route
+        path="/welcome"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : user.profile_complete ? (
+            <Navigate to="/" replace />
+          ) : (
+            <WelcomePage />
+          )
+        }
+      />
+      {/* Level onboarding (after profile setup, before the app). */}
       <Route
         path="/onboarding"
         element={
           !user ? (
             <Navigate to="/login" replace />
+          ) : !user.profile_complete ? (
+            <Navigate to="/welcome" replace />
           ) : user.level_set ? (
             <Navigate to="/" replace />
           ) : (
@@ -108,8 +133,7 @@ function App() {
         <Route path="/exercises" element={<ExercisesPage />} />
         <Route path="/books" element={<BooksPage />} />
         <Route path="/chapters/:chapterId" element={<ChapterDetailPage />} />
-        {/* Drills hub is public; individual drills gate themselves (Gender
-            Triage is free, the rest are members-only — see DrillsPage). */}
+        {/* Drills hub is public; individual drills gate themselves. */}
         <Route path="/drills" element={<DrillsPage />} />
 
         {/* Account-only (cost the owner / abusable / speech) */}

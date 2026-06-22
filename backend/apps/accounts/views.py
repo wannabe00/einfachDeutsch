@@ -1,5 +1,10 @@
 from datetime import timedelta
 
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -108,8 +113,6 @@ def update_profile(request):
 @parser_classes([MultiPartParser, FormParser])
 def upload_avatar(request):
     """Upload a profile picture to Cloudinary (server-side) and store the URL."""
-    from django.conf import settings
-
     image = request.FILES.get("image")
     if image is None:
         return Response({"detail": "No image provided."}, status=400)
@@ -183,6 +186,64 @@ def reset_progress(request):
     UserLessonProgress.objects.filter(user=user).delete()
     StreakRecord.objects.filter(user=user).delete()
     return Response({"detail": "Progress reset."})
+
+
+class GoogleLogin(SocialLoginView):
+    """Exchange a Google OAuth `code` (sent by the SPA callback) for a DRF token.
+    Creates the account on first sign-in (profile_complete stays False until
+    onboarding)."""
+
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = f"{settings.FRONTEND_URL.rstrip('/')}/auth/callback/google"
+
+
+class GitHubLogin(SocialLoginView):
+    """Exchange a GitHub OAuth `code` for a DRF token (same flow as Google)."""
+
+    adapter_class = GitHubOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = f"{settings.FRONTEND_URL.rstrip('/')}/auth/callback/github"
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def complete_onboarding(request):
+    """First-run profile setup after a social sign-in: set username + password
+    (so username/password login works) + name. Birthday/phone optional. The
+    existing auth token stays valid after the password is set."""
+    user = request.user
+    profile = user.profile
+    data = request.data
+
+    username = str(data.get("username", "")).strip()
+    password = data.get("password") or ""
+    first_name = str(data.get("first_name", "")).strip()
+    last_name = str(data.get("last_name", "")).strip()
+
+    if len(username) < 3:
+        return Response({"detail": "Username must be at least 3 characters."}, status=400)
+    if User.objects.filter(username__iexact=username).exclude(pk=user.pk).exists():
+        return Response({"detail": "That username is already taken."}, status=400)
+    if len(password) < 8:
+        return Response({"detail": "Password must be at least 8 characters."}, status=400)
+    if not first_name or not last_name:
+        return Response({"detail": "First and last name are required."}, status=400)
+
+    user.username = username
+    user.first_name = first_name
+    user.last_name = last_name
+    user.set_password(password)
+    user.save()
+
+    profile.birthday = data.get("birthday") or None
+    profile.phone = str(data.get("phone") or "").strip()
+    profile.profile_complete = True
+    if profile.username_changed_at is None:
+        profile.username_changed_at = timezone.now()
+    profile.save()
+
+    return Response(UserDetailsSerializer(user).data)
 
 
 @api_view(["GET"])

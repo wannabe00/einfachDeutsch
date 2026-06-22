@@ -3,6 +3,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Social login (SPA posts the OAuth `code` → DRF token).
+    path("auth/google/", views.GoogleLogin.as_view(), name="google-login"),
+    path("auth/github/", views.GitHubLogin.as_view(), name="github-login"),
+    path("accounts/complete-onboarding/", views.complete_onboarding, name="complete-onboarding"),
     path("accounts/set-level/", views.set_level, name="set-level"),
     path("accounts/placement-test/", views.placement_test, name="placement-test"),
     path("accounts/level-status/", views.level_status, name="level-status"),
