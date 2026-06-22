@@ -18,10 +18,13 @@ export async function updateProfile(patch: ProfileUpdate): Promise<User> {
 export async function uploadAvatar(image: Blob): Promise<string> {
   const form = new FormData()
   form.append("image", image, "avatar")
+  // Leave Content-Type unset so the browser adds the multipart boundary
+  // (hardcoding "multipart/form-data" omits the boundary and the server
+  // can't parse the upload). `undefined` clears the client's JSON default.
   const { data } = await apiClient.post<{ avatar_url: string }>(
     "/accounts/avatar/",
     form,
-    { headers: { "Content-Type": "multipart/form-data" } },
+    { headers: { "Content-Type": undefined } },
   )
   return data.avatar_url
 }

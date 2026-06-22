@@ -34,6 +34,13 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Cloudinary (server-side avatar uploads). Set in the dashboard:
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       # Email (required for verification links in production):
       - key: EMAIL_HOST
         sync: false
