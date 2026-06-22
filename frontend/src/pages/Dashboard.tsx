@@ -100,6 +100,25 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* Progress */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Your progress
+        </h2>
+        <StreakBanner />
+        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <StatCard icon={CalendarClock} value={dueToday} label="Due today" accent={dueToday > 0} />
+          <StatCard icon={GraduationCap} value={stats?.learned_total ?? 0} label="Words learned" />
+          <StatCard icon={Repeat} value={stats?.reviewed_today ?? 0} label="Reviewed today" />
+          <StatCard icon={Sparkles} value={stats?.total_words ?? 0} label="Total words" />
+        </div>
+        {activity && activity.length > 0 && (
+          <div className="mt-4">
+            <ReviewActivityChart data={activity} />
+          </div>
+        )}
+      </section>
+
       {/* Quick launch */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -129,25 +148,6 @@ export default function Dashboard() {
             </Link>
           ))}
         </div>
-      </section>
-
-      {/* Progress */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Your progress
-        </h2>
-        <StreakBanner />
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard icon={CalendarClock} value={dueToday} label="Due today" accent={dueToday > 0} />
-          <StatCard icon={GraduationCap} value={stats?.learned_total ?? 0} label="Words learned" />
-          <StatCard icon={Repeat} value={stats?.reviewed_today ?? 0} label="Reviewed today" />
-          <StatCard icon={Sparkles} value={stats?.total_words ?? 0} label="Total words" />
-        </div>
-        {activity && activity.length > 0 && (
-          <div className="mt-4">
-            <ReviewActivityChart data={activity} />
-          </div>
-        )}
       </section>
     </div>
   )
