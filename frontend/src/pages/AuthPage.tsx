@@ -16,6 +16,11 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [username, setUsername] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [birthday, setBirthday] = useState("")
+  const [phone, setPhone] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const [sentTo, setSentTo] = useState("")
@@ -28,7 +33,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
     setPending(true)
     try {
       if (isRegister) {
-        const result = await register(email, password)
+        const result = await register({
+          email,
+          password,
+          username,
+          first_name: firstName,
+          last_name: lastName,
+          birthday: birthday || undefined,
+          phone: phone || undefined,
+        })
         if (result.status === "verify_email") {
           setSentTo(email)
           return
@@ -52,8 +65,8 @@ export default function AuthPage({ mode }: AuthPageProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className={isRegister ? "w-full max-w-md" : "w-full max-w-sm"}>
         <h1 className="text-center text-2xl font-semibold tracking-tight">
           {SITE_NAME}
         </h1>
@@ -78,30 +91,79 @@ export default function AuthPage({ mode }: AuthPageProps) {
           </div>
         ) : (
           <form
-          onSubmit={handleSubmit}
-          className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6"
-        >
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            aria-label="Email"
-            autoComplete="email"
-            required
-          />
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            aria-label="Password"
-            autoComplete={isRegister ? "new-password" : "current-password"}
-            required
-          />
-          {error && (
-            <p className="text-sm text-[hsl(var(--danger))]">{error}</p>
-          )}
+            onSubmit={handleSubmit}
+            className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6"
+          >
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              aria-label="Email"
+              autoComplete="email"
+              required
+            />
+
+            {isRegister && (
+              <>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username"
+                  aria-label="Username"
+                  autoComplete="username"
+                  required
+                />
+                <div className="flex gap-3">
+                  <Input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First name"
+                    aria-label="First name"
+                    autoComplete="given-name"
+                    required
+                  />
+                  <Input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Surname"
+                    aria-label="Surname"
+                    autoComplete="family-name"
+                    required
+                  />
+                </div>
+                <label className="text-xs text-muted-foreground">
+                  Birthday
+                  <Input
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    aria-label="Birthday"
+                    className="mt-1"
+                    required
+                  />
+                </label>
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Phone (optional)"
+                  aria-label="Phone"
+                  autoComplete="tel"
+                />
+              </>
+            )}
+
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              aria-label="Password"
+              autoComplete={isRegister ? "new-password" : "current-password"}
+              required
+            />
+            {error && <p className="text-sm text-[hsl(var(--danger))]">{error}</p>}
             <Button type="submit" disabled={pending} className="mt-1">
               {pending
                 ? "Please wait…"

@@ -1,5 +1,3 @@
-import uuid
-
 from allauth.account.models import EmailAddress
 from dj_rest_auth.registration.serializers import (
     RegisterSerializer as BaseRegisterSerializer,
@@ -43,24 +41,50 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(BaseRegisterSerializer):
-    """Email + password only. The default User model still has a username column,
-    so we auto-generate a unique value the user never sees."""
+    """Email + password + profile fields. Username is user-chosen (unique);
+    name/surname go on the auth User; birthday/phone go on the UserProfile."""
 
-    username = None  # drop the username field from the API
+    username = serializers.CharField(max_length=150)
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    birthday = serializers.DateField(required=False, allow_null=True)
+    phone = serializers.CharField(max_length=32, required=False, allow_blank=True)
+
+    def validate_username(self, value):
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError("Username must be at least 3 characters.")
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("That username is already taken.")
+        return value
 
     def get_cleaned_data(self):
         data = super().get_cleaned_data()
-        data["username"] = "u_" + uuid.uuid4().hex[:24]
+        data["username"] = self.validated_data.get("username", "")
+        data["first_name"] = self.validated_data.get("first_name", "")
+        data["last_name"] = self.validated_data.get("last_name", "")
         return data
+
+    def custom_signup(self, request, user):
+        user.first_name = self.validated_data.get("first_name", "")
+        user.last_name = self.validated_data.get("last_name", "")
+        user.save(update_fields=["first_name", "last_name"])
+        profile = user.profile
+        profile.birthday = self.validated_data.get("birthday")
+        profile.phone = self.validated_data.get("phone", "")
+        profile.save(update_fields=["birthday", "phone"])
 
 
 class UserDetailsSerializer(BaseUserDetailsSerializer):
-    """Adds profile fields (CEFR level, role, onboarding state) to
-    GET /api/auth/user/."""
+    """Profile fields surfaced on GET /api/auth/user/."""
 
     cefr_level = serializers.CharField(source="profile.cefr_level", read_only=True)
     role = serializers.CharField(source="profile.role", read_only=True)
     level_set = serializers.BooleanField(source="profile.level_set", read_only=True)
+    birthday = serializers.DateField(source="profile.birthday", read_only=True)
+    phone = serializers.CharField(source="profile.phone", read_only=True)
+    avatar_url = serializers.URLField(source="profile.avatar_url", read_only=True)
+    preferences = serializers.JSONField(source="profile.preferences", read_only=True)
 
     class Meta(BaseUserDetailsSerializer.Meta):
         fields = (
@@ -68,4 +92,8 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "cefr_level",
             "role",
             "level_set",
+            "birthday",
+            "phone",
+            "avatar_url",
+            "preferences",
         )

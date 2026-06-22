@@ -33,6 +33,15 @@ class UserProfile(models.Model):
     # Set once the user has chosen/confirmed their level (onboarding). Until
     # then the frontend shows the level picker / placement test.
     level_set = models.BooleanField(default=False)
+    # Profile fields (name/surname live on the auth User as first_name/last_name).
+    birthday = models.DateField(null=True, blank=True)
+    phone = models.CharField(max_length=32, blank=True)
+    avatar_url = models.URLField(blank=True)
+    # Throttles username changes (allowed once every 30 days).
+    username_changed_at = models.DateTimeField(null=True, blank=True)
+    # Free-form prefs: notifications, daily_goal, reminder_time, language,
+    # timezone, etc. Stored as JSON so new toggles don't need migrations.
+    preferences = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

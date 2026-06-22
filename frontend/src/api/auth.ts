@@ -9,14 +9,28 @@ export type RegisterResult =
   | { status: "logged_in" }
   | { status: "verify_email" }
 
+export interface RegisterPayload {
+  email: string
+  password: string
+  username: string
+  first_name: string
+  last_name: string
+  birthday?: string
+  phone?: string
+}
+
 export async function registerUser(
-  email: string,
-  password: string,
+  payload: RegisterPayload,
 ): Promise<RegisterResult> {
   const { data } = await apiClient.post<TokenResponse>("/auth/registration/", {
-    email,
-    password1: password,
-    password2: password,
+    email: payload.email,
+    password1: payload.password,
+    password2: payload.password,
+    username: payload.username,
+    first_name: payload.first_name,
+    last_name: payload.last_name,
+    birthday: payload.birthday || null,
+    phone: payload.phone || "",
   })
   // With mandatory email verification the backend returns no token — the user
   // must confirm their email before logging in. Without verification it would

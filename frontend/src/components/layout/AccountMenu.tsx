@@ -21,7 +21,8 @@ export function AccountMenu() {
   }, [])
 
   if (!user) return null
-  const initial = (user.email || "?").charAt(0).toUpperCase()
+  const displayName = user.username || user.first_name || "Account"
+  const initial = displayName.charAt(0).toUpperCase()
 
   async function handleLogout() {
     setOpen(false)
@@ -36,16 +37,24 @@ export function AccountMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className="flex size-9 items-center justify-center rounded-full bg-accent/15 text-sm font-bold text-accent transition-colors hover:bg-accent/25"
+        className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-accent/15 text-sm font-bold text-accent transition-colors hover:bg-accent/25"
       >
-        {initial}
+        {user.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt={displayName}
+            className="size-full object-cover"
+          />
+        ) : (
+          initial
+        )}
       </button>
 
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
           <div className="px-3 py-2">
-            <p className="truncate text-sm font-medium" title={user.email}>
-              {user.email}
+            <p className="truncate text-sm font-medium" title={displayName}>
+              {displayName}
             </p>
             <p className="text-xs text-muted-foreground">Level {user.cefr_level}</p>
           </div>

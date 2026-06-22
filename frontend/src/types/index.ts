@@ -105,6 +105,10 @@ export interface User {
   role: UserRole
   /** Whether the user has chosen/confirmed their level (onboarding done). */
   level_set: boolean
+  birthday: string | null
+  phone: string
+  avatar_url: string
+  preferences: Record<string, unknown>
 }
 
 export interface Book {
