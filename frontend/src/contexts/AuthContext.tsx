@@ -13,6 +13,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  type RegisterPayload,
   type RegisterResult,
 } from "@/api/auth"
 import type { User } from "@/types"
@@ -21,7 +22,7 @@ interface AuthContextValue {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string) => Promise<RegisterResult>
+  register: (payload: RegisterPayload) => Promise<RegisterResult>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -67,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await fetchCurrentUser())
   }, [])
 
-  const register = useCallback(async (email: string, password: string) => {
-    const result = await registerUser(email, password)
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const result = await registerUser(payload)
     // Only auto-resolve the user when registration logged us straight in;
     // with mandatory email verification we stay signed out until confirmed.
     if (result.status === "logged_in") {

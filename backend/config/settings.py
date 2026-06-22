@@ -272,3 +272,20 @@ RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
 # ---- Video / show suggestions (Phase 17) ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
 VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
+
+
+# ---- Cloudinary (profile picture uploads) ----
+# Server-side image hosting (the API secret never reaches the frontend). If
+# unset, the avatar-upload endpoint returns a graceful 503.
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+if CLOUDINARY_CLOUD_NAME:
+    import cloudinary
+
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )

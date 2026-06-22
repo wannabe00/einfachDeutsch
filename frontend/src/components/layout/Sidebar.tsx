@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -12,8 +12,7 @@ import {
   Mic,
   Tv,
   Landmark,
-  PanelLeftClose,
-  PanelLeft,
+  Menu,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -33,66 +32,57 @@ const navItems = [
   { to: "/ai", label: "AI Assistant", icon: Sparkles, end: false },
 ]
 
-const STORAGE_KEY = "sidebar-collapsed"
-
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored !== null) return stored === "true"
-    return typeof window !== "undefined" && window.innerWidth < 768
-  })
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, String(collapsed))
-  }, [collapsed])
+  // Desktop: expands on hover. Mobile: a button opens it as a drawer.
+  const [hover, setHover] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const expanded = hover || mobileOpen
+  const close = () => setMobileOpen(false)
 
   return (
-    <>
-      {!collapsed && (
+    // The outer element reserves the slim rail's width (64px); the inner panel
+    // expands over the content on hover (no layout shift).
+    <aside className="relative w-16 shrink-0">
+      {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={() => setCollapsed(true)}
+          className="fixed inset-x-0 bottom-0 top-14 z-40 bg-black/50 md:hidden"
+          onClick={close}
           aria-hidden="true"
         />
       )}
-      <aside
+
+      <div
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
         className={cn(
-          "sticky top-14 flex h-[calc(100dvh-3.5rem)] shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200",
-          collapsed ? "w-16" : "w-60",
-          !collapsed &&
-            "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:shadow-2xl",
+          "sticky top-14 z-50 flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden border-r border-border bg-surface transition-[width] duration-200",
+          expanded ? "w-60" : "w-16",
+          mobileOpen &&
+            "max-md:fixed max-md:left-0 max-md:top-14 max-md:bottom-0 max-md:h-auto max-md:shadow-2xl",
         )}
       >
-        <div
-          className={cn(
-            "flex items-center py-2",
-            collapsed ? "justify-center px-2" : "px-3",
-          )}
-        >
+        {/* Open/close — mobile only (desktop uses hover) */}
+        <div className="flex items-center px-3 py-2 md:hidden">
           <button
-            onClick={() => setCollapsed((v) => !v)}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
           >
-            {collapsed ? (
-              <PanelLeft className="size-5" />
-            ) : (
-              <PanelLeftClose className="size-5" />
-            )}
+            <Menu className="size-5" />
           </button>
         </div>
 
-        <nav className="flex flex-col gap-1 px-3">
+        <nav className="flex flex-col gap-1 px-3 pt-1">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              title={collapsed ? label : undefined}
+              onClick={close}
+              title={label}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
-                  collapsed ? "justify-center px-2" : "px-3",
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-background hover:text-foreground",
@@ -100,15 +90,22 @@ export function Sidebar() {
               }
             >
               <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {!collapsed && <span className="flex-1">{label}</span>}
+              <span
+                className={cn(
+                  "whitespace-nowrap transition-opacity",
+                  expanded ? "opacity-100" : "opacity-0",
+                )}
+              >
+                {label}
+              </span>
             </NavLink>
           ))}
         </nav>
 
-        <div className={cn("mt-auto pb-4", collapsed ? "px-2" : "px-3")}>
-          <ThemeToggle collapsed={collapsed} />
+        <div className="mt-auto px-3 pb-4">
+          <ThemeToggle collapsed={!expanded} />
         </div>
-      </aside>
-    </>
+      </div>
+    </aside>
   )
 }
