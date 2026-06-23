@@ -17,7 +17,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .leveling import evaluate_level, grade_placement, public_questions
+from .leveling import evaluate_level, local_level, public_test, score_objective
 from .models import CEFR_LEVELS
 from .scheduling import streak_status
 from .serializers import UserDetailsSerializer
@@ -44,13 +44,42 @@ def set_level(request):
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def placement_test(request):
-    """GET: the question set (no answers). POST {answers:{id:choice}}: grade it."""
+    """GET: the test (grammar + reading + writing, shuffled, no answers).
+    POST {answers:{id:choice}, writing:str}: score the MCQs locally, then ask
+    Gemini for the final CEFR level — falling back to local scoring if the AI
+    key/quota is unavailable."""
     if request.method == "GET":
-        return Response({"questions": public_questions()})
+        return Response(public_test())
+
     answers = request.data.get("answers")
     if not isinstance(answers, dict):
         return Response({"detail": "'answers' must be an object."}, status=400)
-    return Response(grade_placement(answers))
+    writing = str(request.data.get("writing") or "")
+
+    summary = score_objective(answers)
+    result = {
+        "suggested_level": local_level(summary),
+        "source": "local",
+        "rationale": "",
+        "correct": summary["correct"],
+        "total": summary["total"],
+        "per_level": summary["per_level"],
+    }
+
+    try:
+        from apps.ai_assistant.llm import AIConfigError, determine_level
+
+        ai = determine_level(summary, writing)
+        if ai.get("level") in VALID_LEVELS:
+            result["suggested_level"] = ai["level"]
+            result["source"] = "ai"
+            result["rationale"] = ai.get("rationale", "")
+    except AIConfigError:
+        pass  # no key configured — keep the local result
+    except Exception:  # noqa: BLE001 — any AI/parse failure falls back to local
+        pass
+
+    return Response(result)
 
 
 @api_view(["GET"])

@@ -3,15 +3,12 @@ import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery } from "@tanstack/react-query"
 
 import { useAuth } from "@/contexts/AuthContext"
-import {
-  fetchPlacementTest,
-  setLevel,
-  submitPlacementTest,
-} from "@/api/leveling"
+import { fetchPlacementTest, setLevel, submitPlacementTest } from "@/api/leveling"
 import type { CEFRLevel, PlacementResult } from "@/types"
 import { SITE_NAME } from "@/lib/site"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { PlacementTestForm } from "@/components/onboarding/PlacementTestForm"
 
 const LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -21,11 +18,10 @@ export default function OnboardingPage() {
   const { refreshUser } = useAuth()
   const navigate = useNavigate()
   const [phase, setPhase] = useState<Phase>("choose")
-  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<PlacementResult | null>(null)
   const [chosen, setChosen] = useState<CEFRLevel>("A1")
 
-  const { data: questions } = useQuery({
+  const { data: test } = useQuery({
     queryKey: ["placement-test"],
     queryFn: fetchPlacementTest,
     enabled: phase === "test",
@@ -40,7 +36,8 @@ export default function OnboardingPage() {
   })
 
   const grade = useMutation({
-    mutationFn: () => submitPlacementTest(answers),
+    mutationFn: (vars: { answers: Record<string, string>; writing: string }) =>
+      submitPlacementTest(vars.answers, vars.writing),
     onSuccess: (r) => {
       setResult(r)
       setChosen(r.suggested_level)
@@ -48,6 +45,7 @@ export default function OnboardingPage() {
     },
   })
 
+  // Suggested level ±1, so the user can nudge the AI's call.
   function adjustOptions(level: CEFRLevel): CEFRLevel[] {
     const i = LEVELS.indexOf(level)
     const out: CEFRLevel[] = []
@@ -57,15 +55,10 @@ export default function OnboardingPage() {
     return out
   }
 
-  const allAnswered =
-    !!questions && questions.every((q) => answers[q.id] !== undefined)
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-lg">
-        <h1 className="text-center text-2xl font-semibold tracking-tight">
-          {SITE_NAME}
-        </h1>
+        <h1 className="text-center text-2xl font-semibold tracking-tight">{SITE_NAME}</h1>
 
         {/* Step 1 — choose: start at A1, or take the test (no free level pick) */}
         {phase === "choose" && (
@@ -76,11 +69,7 @@ export default function OnboardingPage() {
               test and we'll set your level for you.
             </p>
             <div className="mt-5 flex flex-col gap-3">
-              <Button
-                size="lg"
-                disabled={save.isPending}
-                onClick={() => save.mutate("A1")}
-              >
+              <Button size="lg" disabled={save.isPending} onClick={() => save.mutate("A1")}>
                 {save.isPending ? "Starting…" : "Start at A1 — I'm a beginner"}
               </Button>
               <Button
@@ -96,52 +85,16 @@ export default function OnboardingPage() {
         )}
 
         {/* Step 2 — test */}
-        {phase === "test" && (
-          <div className="mt-8 rounded-xl border border-border bg-surface p-6">
-            <h2 className="text-lg font-semibold">Placement test</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Pick the best answer. Skip any you don't know.
-            </p>
-            {!questions ? (
-              <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
-            ) : (
-              <div className="mt-5 flex flex-col gap-5">
-                {questions.map((q, idx) => (
-                  <div key={q.id}>
-                    <p className="text-sm font-medium">
-                      {idx + 1}. {q.prompt}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {q.options.map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() =>
-                            setAnswers((a) => ({ ...a, [q.id]: opt }))
-                          }
-                          className={cn(
-                            "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-                            answers[q.id] === opt
-                              ? "border-accent bg-accent text-accent-foreground"
-                              : "border-border bg-background hover:border-accent",
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  className="mt-2"
-                  disabled={!allAnswered || grade.isPending}
-                  onClick={() => grade.mutate()}
-                >
-                  {grade.isPending ? "Scoring…" : "See my level"}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+        {phase === "test" &&
+          (test ? (
+            <PlacementTestForm
+              test={test}
+              submitting={grade.isPending}
+              onSubmit={(answers, writing) => grade.mutate({ answers, writing })}
+            />
+          ) : (
+            <p className="mt-8 text-center text-sm text-muted-foreground">Loading…</p>
+          ))}
 
         {/* Step 3 — result + adjust */}
         {phase === "result" && result && (
@@ -149,12 +102,13 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted-foreground">
               You got {result.correct} of {result.total} right. We suggest:
             </p>
-            <p className="mt-2 text-4xl font-bold text-accent">
-              {result.suggested_level}
-            </p>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Adjust if it feels off:
-            </p>
+            <p className="mt-2 text-4xl font-bold text-accent">{result.suggested_level}</p>
+            {result.source === "ai" && result.rationale && (
+              <p className="mx-auto mt-2 max-w-sm text-xs text-muted-foreground">
+                {result.rationale}
+              </p>
+            )}
+            <p className="mt-4 text-sm text-muted-foreground">Adjust if it feels off:</p>
             <div className="mt-2 flex justify-center gap-2">
               {adjustOptions(result.suggested_level).map((lvl) => (
                 <button
