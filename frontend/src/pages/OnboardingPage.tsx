@@ -14,14 +14,6 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
-const LEVEL_HINT: Record<CEFRLevel, string> = {
-  A1: "Just starting out",
-  A2: "Basic phrases",
-  B1: "Get by in most situations",
-  B2: "Comfortable & fluent-ish",
-  C1: "Advanced",
-  C2: "Near-native",
-}
 
 type Phase = "choose" | "test" | "result"
 
@@ -75,36 +67,29 @@ export default function OnboardingPage() {
           {SITE_NAME}
         </h1>
 
-        {/* Step 1 — choose */}
+        {/* Step 1 — choose: start at A1, or take the test (no free level pick) */}
         {phase === "choose" && (
           <div className="mt-8 rounded-xl border border-border bg-surface p-6">
             <h2 className="text-lg font-semibold">What's your German level?</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Pick one to get started — you can change it later in settings.
+              New to German? Start at A1. Already know some? Take the placement
+              test and we'll set your level for you.
             </p>
-            <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {LEVELS.map((lvl) => (
-                <button
-                  key={lvl}
-                  disabled={save.isPending}
-                  onClick={() => save.mutate(lvl)}
-                  className="flex flex-col items-start rounded-xl border border-border bg-background p-3 text-left transition-colors hover:border-accent disabled:opacity-50"
-                >
-                  <span className="text-base font-semibold">{lvl}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {LEVEL_HINT[lvl]}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="mt-6 border-t border-border pt-4 text-center">
-              <p className="text-sm text-muted-foreground">Not sure?</p>
+            <div className="mt-5 flex flex-col gap-3">
+              <Button
+                size="lg"
+                disabled={save.isPending}
+                onClick={() => save.mutate("A1")}
+              >
+                {save.isPending ? "Starting…" : "Start at A1 — I'm a beginner"}
+              </Button>
               <Button
                 variant="outline"
-                className="mt-2"
+                size="lg"
+                disabled={save.isPending}
                 onClick={() => setPhase("test")}
               >
-                Take a 2-minute placement test
+                Take the placement test
               </Button>
             </div>
           </div>

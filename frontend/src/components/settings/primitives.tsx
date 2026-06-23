@@ -37,7 +37,7 @@ export function Field({ label, children }: { label: string; children: ReactNode 
   )
 }
 
-/** A labelled checkbox row. */
+/** A labelled switch row (label left, toggle right). */
 export function Toggle({
   label,
   checked,
@@ -48,10 +48,27 @@ export function Toggle({
   onChange: (v: boolean) => void
 }) {
   return (
-    <label className="flex items-center gap-2 py-1 text-sm">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      {label}
-    </label>
+    <div className="flex items-center justify-between gap-3 py-1.5 text-sm">
+      <span>{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+          checked ? "bg-accent" : "bg-border",
+        )}
+      >
+        <span
+          className={cn(
+            "inline-block size-4 rounded-full bg-white shadow transition-transform",
+            checked ? "translate-x-6" : "translate-x-1",
+          )}
+        />
+      </button>
+    </div>
   )
 }
 

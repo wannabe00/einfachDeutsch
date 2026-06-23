@@ -1,5 +1,3 @@
-import { ThemeToggle } from "@/components/layout/ThemeToggle"
-import { Section } from "@/components/settings/primitives"
 import { ProfileSection } from "@/components/settings/ProfileSection"
 import { SecuritySection } from "@/components/settings/SecuritySection"
 import { PreferencesSection } from "@/components/settings/PreferencesSection"
@@ -20,9 +18,6 @@ export default function SettingsPage() {
 
       <ProfileSection />
       <SecuritySection />
-      <Section title="Appearance">
-        <ThemeToggle />
-      </Section>
       <PreferencesSection />
       <DataSection />
       <DangerZoneSection />
