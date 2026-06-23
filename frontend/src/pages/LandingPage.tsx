@@ -3,13 +3,10 @@ import { Link } from "react-router-dom"
 import {
   BookMarked,
   BrainCircuit,
-  CalendarCheck,
   ChevronDown,
-  Clapperboard,
   GraduationCap,
   Landmark,
   Mic,
-  Sparkles,
   Swords,
 } from "lucide-react"
 
@@ -17,16 +14,33 @@ import { SITE_NAME } from "@/lib/site"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-// Swap these for your own photos anytime (e.g. files in /public). A gradient
-// shows underneath if the image fails to load.
+// Swap these for your own photos anytime; a gradient shows if an image fails.
 const HERO_IMG =
   "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=2400&q=80"
+
+const CITY_PHOTOS = [
+  {
+    src: "https://images.unsplash.com/photo-1770983437965-a88b456f2305?auto=format&fit=crop&w=1100&q=80",
+    caption: "Die Isar",
+    city: "München",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1745878136928-d1b3c10afc35?auto=format&fit=crop&w=1100&q=80",
+    caption: "Brandenburger Tor",
+    city: "Berlin",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1780545311196-f8b507b08b94?auto=format&fit=crop&w=1100&q=80",
+    caption: "Marienplatz bei Nacht",
+    city: "München",
+  },
+]
 
 export default function LandingPage() {
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgOk, setImgOk] = useState(true)
 
-  // Parallax: drift the photo slower than the page as you scroll (no re-render).
+  // Parallax: drift the hero photo slower than the page (no re-render).
   useEffect(() => {
     function onScroll() {
       if (imgRef.current) {
@@ -40,13 +54,10 @@ export default function LandingPage() {
   return (
     <div className="bg-background text-foreground">
       <Hero imgRef={imgRef} imgOk={imgOk} onImgError={() => setImgOk(false)} />
-      <ValueProps />
-      <HowItWorks />
       <Teaser />
-      <FeatureShowcase />
+      <Features />
+      <CultureBand />
       <CefrPath />
-      <CultureHook />
-      <Stats />
       <FaqAndCta />
     </div>
   )
@@ -63,7 +74,7 @@ function TopBar() {
           <Link to="/login">Log in</Link>
         </Button>
         <Button asChild>
-          <Link to="/register">Sign up</Link>
+          <Link to="/login">Get started</Link>
         </Button>
       </div>
     </header>
@@ -81,13 +92,12 @@ function Hero({
 }) {
   return (
     <section className="relative flex h-screen min-h-[560px] items-center justify-center overflow-hidden">
-      {/* Gradient fallback (always present, behind the photo) */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1b2a4a] via-[#24304d] to-[#3a2a4d]" />
       {imgOk && (
         <img
           ref={imgRef}
           src={HERO_IMG}
-          alt="Munich — Marienplatz"
+          alt="München — Marienplatz"
           onError={onImgError}
           className="absolute inset-0 h-[130%] w-full object-cover"
         />
@@ -101,13 +111,12 @@ function Hero({
           Learn German that actually sticks.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-white/85">
-          Spaced-repetition flashcards, real grammar and exercises, drills, an AI
-          tutor, speaking practice, and German culture — all in one place, paced
-          to your level.
+          Spaced-repetition flashcards, drills, an AI tutor, speaking practice,
+          and German culture — paced to your level, from Berlin to München.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link to="/register">Start free</Link>
+            <Link to="/login">Start free</Link>
           </Button>
           <Button
             asChild
@@ -115,98 +124,13 @@ function Hero({
             variant="outline"
             className="w-full border-white/40 bg-white/10 text-white hover:bg-white/20 sm:w-auto"
           >
-            <Link to="/register">Take the 2-minute level test</Link>
+            <Link to="/login">Take the level test</Link>
           </Button>
         </div>
       </div>
 
       <ChevronDown className="absolute bottom-6 left-1/2 z-10 size-7 -translate-x-1/2 animate-bounce text-white/80" />
     </section>
-  )
-}
-
-const VALUES = [
-  {
-    icon: GraduationCap,
-    title: "Words that come back",
-    body: "An SM-2 spaced-repetition engine schedules each word so you review it right before you'd forget it.",
-  },
-  {
-    icon: Clapperboard,
-    title: "Learn from real German",
-    body: "Curated shows, channels, and podcasts matched to your level — unlocked as you progress.",
-  },
-  {
-    icon: Sparkles,
-    title: "An AI tutor on tap",
-    body: "Explanations, generated exercises, and instant feedback on your answers, whenever you're stuck.",
-  },
-  {
-    icon: CalendarCheck,
-    title: "Practice that fits your week",
-    body: "New lessons Mon/Wed/Fri, reviews any day, and streaks with freeze tokens to keep momentum.",
-  },
-]
-
-function ValueProps() {
-  return (
-    <Section>
-      <SectionHeading
-        eyebrow="Why it works"
-        title="Built for people who actually want to remember"
-      />
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {VALUES.map((v) => (
-          <div
-            key={v.title}
-            className="rounded-xl border border-border bg-surface p-5"
-          >
-            <div className="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <v.icon className="size-5" />
-            </div>
-            <h3 className="mt-3 font-semibold">{v.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{v.body}</p>
-          </div>
-        ))}
-      </div>
-    </Section>
-  )
-}
-
-const STEPS = [
-  {
-    n: "1",
-    title: "Find your level",
-    body: "Take a short placement test (or pick A1–C2). We tune everything to you.",
-  },
-  {
-    n: "2",
-    title: "Learn on a rhythm",
-    body: "Fresh lessons Mon/Wed/Fri, reviews and drills any day. Small, steady, sustainable.",
-  },
-  {
-    n: "3",
-    title: "Keep your streak",
-    body: "Build a habit with streaks and freeze tokens — and watch new content unlock as you climb.",
-  },
-]
-
-function HowItWorks() {
-  return (
-    <Section muted>
-      <SectionHeading eyebrow="How it works" title="Three steps to fluency" />
-      <div className="grid gap-5 sm:grid-cols-3">
-        {STEPS.map((s) => (
-          <div key={s.n} className="rounded-xl border border-border bg-background p-6">
-            <div className="flex size-9 items-center justify-center rounded-full bg-accent text-base font-bold text-accent-foreground">
-              {s.n}
-            </div>
-            <h3 className="mt-3 font-semibold">{s.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
-          </div>
-        ))}
-      </div>
-    </Section>
   )
 }
 
@@ -240,20 +164,18 @@ function Teaser() {
 
   return (
     <Section>
-      <SectionHeading
-        eyebrow="Try it now"
-        title="der, die, or das? Give it a go"
-      />
+      <SectionHeading eyebrow="Try it now" title="der, die, or das?" />
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-surface p-8 text-center">
         {done ? (
           <>
-            <p className="text-lg font-semibold">You got {score}/{TEASER.length}.</p>
+            <p className="text-lg font-semibold">
+              You got {score}/{TEASER.length}.
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Gender is hard — that's exactly what the drills train. Make a free
-              account to keep going.
+              Gender is hard — that's exactly what the drills train.
             </p>
             <Button asChild className="mt-5">
-              <Link to="/register">Create a free account</Link>
+              <Link to="/login">Create a free account</Link>
             </Button>
           </>
         ) : (
@@ -279,11 +201,7 @@ function Teaser() {
                           ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))]"
                           : "border-border hover:border-accent",
                     )}
-                    style={
-                      !picked
-                        ? { color: `hsl(var(${ARTICLE_VAR[a]}))` }
-                        : undefined
-                    }
+                    style={!picked ? { color: `hsl(var(${ARTICLE_VAR[a]}))` } : undefined}
                   >
                     {a}
                   </button>
@@ -298,22 +216,19 @@ function Teaser() {
 }
 
 const FEATURES = [
-  { icon: GraduationCap, title: "Review", body: "Flashcards that ask you to produce the German — with the right article." },
-  { icon: BookMarked, title: "Word Bank", body: "Build vocabulary chapter by chapter; import your own lists." },
-  { icon: Swords, title: "Drills", body: "Fast, focused games: gender triage, unscramble, recall, and more." },
-  { icon: Mic, title: "Recite", body: "Read a text, retell it aloud, get scored on coverage and grammar." },
-  { icon: BrainCircuit, title: "Exercises", body: "Interactive practice with instant, server-checked answers." },
-  { icon: Landmark, title: "History", body: "Bite-size German history — in English then German as you level up." },
+  { icon: GraduationCap, title: "Spaced review", body: "SM-2 flashcards timed to just before you'd forget." },
+  { icon: BookMarked, title: "Word Bank", body: "Vocabulary by chapter; import your own lists." },
+  { icon: Swords, title: "Drills", body: "Fast games: gender, unscramble, recall." },
+  { icon: Mic, title: "Recite", body: "Retell a text aloud, scored on coverage & grammar." },
+  { icon: BrainCircuit, title: "AI tutor", body: "Explanations, exercises, and instant feedback." },
+  { icon: Landmark, title: "History", body: "German history — English first, then German." },
 ]
 
-function FeatureShowcase() {
+function Features() {
   return (
     <Section muted>
-      <SectionHeading
-        eyebrow="What's inside"
-        title="Everything you need, in one app"
-      />
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <SectionHeading eyebrow="What's inside" title="Everything in one place" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
           <div key={f.title} className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-center gap-3">
@@ -330,6 +245,45 @@ function FeatureShowcase() {
   )
 }
 
+function CultureBand() {
+  return (
+    <Section>
+      <SectionHeading
+        eyebrow="More than vocabulary"
+        title="Learn the language and the country"
+        subtitle="From Marienplatz to the Brandenburg Gate — culture and context, not just a wordlist."
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
+        {CITY_PHOTOS.map((p) => (
+          <PhotoTile key={p.caption} {...p} />
+        ))}
+      </div>
+    </Section>
+  )
+}
+
+function PhotoTile({ src, caption, city }: { src: string; caption: string; city: string }) {
+  const [ok, setOk] = useState(true)
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#24304d] to-[#3a2a4d]" />
+      {ok && (
+        <img
+          src={src}
+          alt={`${caption}, ${city}`}
+          loading="lazy"
+          onError={() => setOk(false)}
+          className="absolute inset-0 size-full object-cover transition-transform duration-500 hover:scale-105"
+        />
+      )}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+        <p className="text-sm font-semibold">{caption}</p>
+        <p className="text-xs text-white/75">{city}</p>
+      </div>
+    </div>
+  )
+}
+
 const LEVELS = [
   { l: "A1", t: "Basics & greetings" },
   { l: "A2", t: "Everyday situations" },
@@ -341,17 +295,13 @@ const LEVELS = [
 
 function CefrPath() {
   return (
-    <Section>
-      <SectionHeading
-        eyebrow="Your path"
-        title="Climb from A1 to C2"
-        subtitle="Content unlocks as you progress — so you're always learning at the right level."
-      />
+    <Section muted>
+      <SectionHeading eyebrow="Your path" title="A1 to C2" />
       <div className="flex flex-wrap items-stretch justify-center gap-3">
         {LEVELS.map((lvl) => (
           <div
             key={lvl.l}
-            className="flex w-[140px] flex-col rounded-xl border border-border bg-surface p-4"
+            className="flex w-[140px] flex-col rounded-xl border border-border bg-background p-4"
           >
             <span className="text-2xl font-bold text-accent">{lvl.l}</span>
             <span className="mt-1 text-xs text-muted-foreground">{lvl.t}</span>
@@ -362,76 +312,15 @@ function CefrPath() {
   )
 }
 
-function CultureHook() {
-  return (
-    <Section muted>
-      <div className="grid items-center gap-8 lg:grid-cols-2">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-            More than vocabulary
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Learn the language and the country
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Short German-history lessons (shown in English, then German as you
-            level up) and curated shows give you real context — so the language
-            connects to a culture, not just a wordlist.
-          </p>
-          <Button asChild className="mt-5">
-            <Link to="/register">Explore the history track</Link>
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {["Holy Roman Empire", "The Reformation", "Unification 1871", "Reunification 1990"].map(
-            (t) => (
-              <div
-                key={t}
-                className="flex items-center gap-2 rounded-xl border border-border bg-background p-4 text-sm font-medium"
-              >
-                <Landmark className="size-4 shrink-0 text-accent" />
-                {t}
-              </div>
-            ),
-          )}
-        </div>
-      </div>
-    </Section>
-  )
-}
-
-const STAT_ITEMS = [
-  { n: "560+", l: "vocabulary words" },
-  { n: "18", l: "grammar topics" },
-  { n: "6", l: "drills & games" },
-  { n: "6", l: "history lessons" },
-]
-
-function Stats() {
-  return (
-    <Section>
-      <div className="grid grid-cols-2 gap-6 rounded-2xl border border-border bg-surface p-8 sm:grid-cols-4">
-        {STAT_ITEMS.map((s) => (
-          <div key={s.l} className="text-center">
-            <div className="text-3xl font-bold text-accent">{s.n}</div>
-            <div className="mt-1 text-sm text-muted-foreground">{s.l}</div>
-          </div>
-        ))}
-      </div>
-    </Section>
-  )
-}
-
 const FAQS = [
-  { q: "Is it free?", a: "Yes — you can use the core features for free. Some features (AI, speaking practice, drills) need a free account." },
-  { q: "Do I need an account?", a: "You can try grammar, exercises, and a taste of the drills as a guest. Sign up to save progress and unlock everything." },
-  { q: "What level is it for?", a: "A1 to C2. A short placement test (or a quick pick) sets your starting point, and content adapts as you grow." },
-  { q: "Do I need to know any German?", a: "No — start from absolute zero at A1. Lessons and history are shown in English early on." },
+  { q: "Is it free?", a: "Yes — the core features are free. Some (AI, speaking, drills) need a free account." },
+  { q: "Do I need an account?", a: "Try grammar, exercises, and a taste of the drills as a guest. Sign in to save progress and unlock everything." },
+  { q: "What level is it for?", a: "A1 to C2 — start at A1 or take a placement test, and content adapts as you grow." },
 ]
 
 function FaqAndCta() {
   return (
-    <Section muted>
+    <Section>
       <SectionHeading eyebrow="Questions" title="Good to know" />
       <div className="mx-auto max-w-2xl divide-y divide-border">
         {FAQS.map((f) => (
@@ -442,24 +331,25 @@ function FaqAndCta() {
         ))}
       </div>
 
-      <div className="mt-12 rounded-2xl border border-border bg-background p-10 text-center">
+      <div className="mt-12 rounded-2xl border border-border bg-surface p-10 text-center">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Ready to start learning German?
         </h2>
         <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-          Create a free account and find your level in two minutes.
+          Sign in with Google or GitHub and find your level in minutes.
         </p>
         <Button asChild size="lg" className="mt-6">
-          <Link to="/register">Start free</Link>
+          <Link to="/login">Start free</Link>
         </Button>
       </div>
 
       <footer className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
-        <span>© {new Date().getFullYear()} {SITE_NAME}</span>
+        <span>
+          © {new Date().getFullYear()} {SITE_NAME}
+        </span>
         <div className="flex gap-4">
           <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
           <Link to="/login" className="hover:text-foreground">Log in</Link>
-          <Link to="/register" className="hover:text-foreground">Sign up</Link>
         </div>
       </footer>
     </Section>
@@ -467,13 +357,7 @@ function FaqAndCta() {
 }
 
 /* ---- small layout helpers ---- */
-function Section({
-  children,
-  muted,
-}: {
-  children: React.ReactNode
-  muted?: boolean
-}) {
+function Section({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
   return (
     <section className={cn("px-6 py-16 sm:py-20", muted && "bg-surface/40")}>
       <div className="mx-auto max-w-5xl">{children}</div>
@@ -492,15 +376,9 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-10 text-center">
-      <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{subtitle}</p>
-      )}
+      <p className="text-xs font-semibold uppercase tracking-wide text-accent">{eyebrow}</p>
+      <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
+      {subtitle && <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{subtitle}</p>}
     </div>
   )
 }
