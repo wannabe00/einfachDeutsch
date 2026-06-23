@@ -51,12 +51,21 @@ export function AccountMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
-          <div className="px-3 py-2">
-            <p className="truncate text-sm font-medium" title={displayName}>
-              {displayName}
-            </p>
-            <p className="text-xs text-muted-foreground">Level {user.cefr_level}</p>
+        <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/15 text-sm font-bold text-accent">
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt={displayName} className="size-full object-cover" />
+              ) : (
+                initial
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium" title={displayName}>
+                {displayName}
+              </p>
+              <p className="text-xs text-muted-foreground">Level {user.cefr_level}</p>
+            </div>
           </div>
           <div className="my-1 h-px bg-border" />
           <MenuLink to="/settings" icon={Settings} label="Settings" onClick={() => setOpen(false)} />

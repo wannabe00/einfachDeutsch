@@ -8,7 +8,7 @@ import { deactivateAccount, deleteAccount, resetProgress } from "@/api/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { errorText } from "@/lib/apiError"
-import { Field, Msg, Section } from "./primitives"
+import { Msg, Section } from "./primitives"
 
 /** Reset progress, deactivate, or permanently delete the account. */
 export function DangerZoneSection() {
@@ -46,32 +46,36 @@ export function DangerZoneSection() {
 
   return (
     <Section title="Danger zone" danger>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col divide-y divide-border">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0">
           <span className="text-sm">Reset all learning progress</span>
           <Button variant="destructive" onClick={handleReset}>
             Reset progress
           </Button>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
           <span className="text-sm">Deactivate account (reversible by an admin)</span>
           <Button variant="destructive" onClick={handleDeactivate}>
             Deactivate
           </Button>
         </div>
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <Field label="Delete account permanently — confirm with your password">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3 last:pb-0">
+          <div>
+            <p className="text-sm">Delete account permanently</p>
+            <p className="text-xs text-muted-foreground">Confirm with your password.</p>
+          </div>
+          <div className="flex items-center gap-2">
             <Input
               type="password"
               value={deletePw}
               onChange={(e) => setDeletePw(e.target.value)}
               placeholder="Password"
-              className="max-w-xs"
+              className="w-40"
             />
-          </Field>
-          <Button variant="destructive" onClick={handleDelete}>
-            Delete account
-          </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete account
+            </Button>
+          </div>
         </div>
       </div>
       {error && <Msg tone="danger">{error}</Msg>}

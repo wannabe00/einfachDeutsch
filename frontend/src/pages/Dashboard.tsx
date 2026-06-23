@@ -60,7 +60,9 @@ export default function Dashboard() {
   }, [])
 
   const dueToday = stats?.due_today ?? 0
-  const name = user?.email ? user.email.split("@")[0] : null
+  // Use the live username (falls back to first name); updates after the user
+  // changes it in Settings, since useAuth refreshes the cached user.
+  const name = user?.username || user?.first_name || null
 
   return (
     <div className="flex flex-col gap-8">

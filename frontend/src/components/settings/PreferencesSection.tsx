@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import { useAuth } from "@/contexts/AuthContext"
 import { updateProfile } from "@/api/account"
+import { ThemeToggle } from "@/components/layout/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -90,7 +91,13 @@ export function PreferencesSection() {
         </p>
       </Section>
 
-      <Section title="Localization">
+      <Section title="Appearance & localization">
+        <div className="mb-3">
+          <p className="mb-1 text-xs text-muted-foreground">Theme</p>
+          <div className="rounded-md border border-border">
+            <ThemeToggle />
+          </div>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Interface language">
             <select
