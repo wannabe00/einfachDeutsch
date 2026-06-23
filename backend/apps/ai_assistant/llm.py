@@ -27,7 +27,12 @@ def _client() -> genai.Client:
     return genai.Client(api_key=key)
 
 
-def _complete(system: str, contents, max_tokens: int = MAX_TOKENS) -> str:
+def _complete(
+    system: str,
+    contents,
+    max_tokens: int = MAX_TOKENS,
+    response_mime_type: str | None = None,
+) -> str:
     # Bind the client to a local so it isn't garbage-collected mid-request
     # (that closes its underlying httpx client → "client has been closed").
     client = _client()
@@ -37,6 +42,7 @@ def _complete(system: str, contents, max_tokens: int = MAX_TOKENS) -> str:
         config=types.GenerateContentConfig(
             system_instruction=system,
             max_output_tokens=max_tokens,
+            response_mime_type=response_mime_type,
         ),
     )
     return (resp.text or "").strip()
@@ -47,6 +53,44 @@ TUTOR_SYSTEM = (
     "learner. Always capitalise German nouns and include their article "
     "(der/die/das). Keep answers focused and practical. Use Markdown."
 )
+
+
+LEVEL_SYSTEM = (
+    "You are a CEFR placement examiner for German. Given objective test results "
+    "and a short writing sample, you output the single best starting level. "
+    "Weigh the objective results most; use the writing only to refine. Be strict: "
+    "do not over-place a learner. Respond with ONLY compact JSON."
+)
+
+
+def determine_level(summary: dict, writing: str) -> dict:
+    """Decide a CEFR level from the locally-scored objective `summary`
+    (per-level correct/total) plus the free-write `writing` sample. Returns
+    {"level": "<A1-C1>", "rationale": "<one sentence>"}. Raises on AI/parse
+    failure so the caller can fall back to local scoring."""
+    import json
+
+    per = summary.get("per_level", {})
+    lines = "\n".join(
+        f"{lvl}: {per[lvl]['correct']}/{per[lvl]['total']} correct"
+        for lvl in per
+        if per[lvl]["total"]
+    )
+    prompt = (
+        "German placement test — objective (grammar + reading) results by CEFR level:\n"
+        f"{lines}\n\n"
+        "Free-write sample (the learner wrote this in German):\n"
+        f'"""{writing.strip() or "(left blank)"}"""\n\n'
+        "Assign the single best starting level: one of A1, A2, B1, B2, C1. "
+        'Respond with ONLY JSON: {"level":"<A1-C1>","rationale":"<one short sentence>"}'
+    )
+    raw = _complete(LEVEL_SYSTEM, prompt, response_mime_type="application/json")
+    text = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    data = json.loads(text)
+    return {
+        "level": str(data.get("level", "")).upper().strip(),
+        "rationale": str(data.get("rationale", "")).strip(),
+    }
 
 
 def suggest_words(chapter_title: str, chapter_description: str, count: int = 10) -> str:

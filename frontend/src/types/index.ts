@@ -12,8 +12,25 @@ export interface PlacementQuestion {
   options: string[]
 }
 
+export interface ReadingPassage {
+  id: string
+  level: CEFRLevel
+  title: string
+  text: string
+  questions: PlacementQuestion[]
+}
+
+export interface PlacementTest {
+  grammar: PlacementQuestion[]
+  reading: ReadingPassage[]
+  writing: { id: string; prompt: string }
+}
+
 export interface PlacementResult {
   suggested_level: CEFRLevel
+  /** "ai" when Gemini decided the level, "local" on fallback. */
+  source: "ai" | "local"
+  rationale: string
   correct: number
   total: number
   per_level: Record<string, { correct: number; total: number }>

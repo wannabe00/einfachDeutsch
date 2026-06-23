@@ -1,19 +1,25 @@
-"""CEFR placement test + level progression engine (Phase 14).
+"""CEFR placement test + level progression engine (Phase 14, rebuilt).
 
-The placement test is an authored multiple-choice set (original content, not from
-any copyrighted book), graded locally — reliable and free, no AI quota needed.
-Each question is tagged with the level it demonstrates; a user "passes" a level
-by getting most of its questions right, and we suggest the highest level they
-pass consecutively from A1 upward (capped at B2; C1/C2 are chosen manually).
+The test mixes authored grammar/vocab MCQs (A1→B2) with three short original
+German reading passages (Lesen, easy→hard) plus one free-write prompt. Options
+are shuffled before they reach the client (the correct answer is never in a
+fixed slot). Objective answers are scored locally; the final CEFR level is
+decided by Gemini from that picture + the writing sample (see ai_assistant.llm),
+with a graceful fallback to local scoring if AI is unavailable.
+
+All content is original (not from any copyrighted book).
 """
 
 from __future__ import annotations
 
-# Ordered levels the placement test can assign.
-PLACEMENT_LEVELS = ["A1", "A2", "B1", "B2"]
+import random
 
-# id, level, prompt, options, answer (must be one of options)
-PLACEMENT_QUESTIONS = [
+# Ordered levels the objective items are tagged with.
+PLACEMENT_LEVELS = ["A1", "A2", "B1", "B2"]
+PASS_RATIO = 0.6  # share of a level's questions needed to "pass" it (local grade)
+
+# --- Grammar / vocabulary MCQs: id, level, prompt, options, answer ---
+GRAMMAR_QUESTIONS = [
     {
         "id": "a1_1",
         "level": "A1",
@@ -34,6 +40,13 @@ PLACEMENT_QUESTIONS = [
         "prompt": "Ich ___ aus Italien.",
         "options": ["komme", "kommst", "kommen", "kommt"],
         "answer": "komme",
+    },
+    {
+        "id": "a1_4",
+        "level": "A1",
+        "prompt": "Ich ___ Student.",
+        "options": ["bin", "bist", "ist", "sind"],
+        "answer": "bin",
     },
     {
         "id": "a2_1",
@@ -57,6 +70,13 @@ PLACEMENT_QUESTIONS = [
         "answer": "am",
     },
     {
+        "id": "a2_4",
+        "level": "A2",
+        "prompt": "Ich interessiere mich ___ Musik.",
+        "options": ["für", "auf", "an", "über"],
+        "answer": "für",
+    },
+    {
         "id": "b1_1",
         "level": "B1",
         "prompt": "Ich weiß nicht, ob er heute ___.",
@@ -76,6 +96,13 @@ PLACEMENT_QUESTIONS = [
         "prompt": "Wenn ich Zeit hätte, ___ ich dir helfen.",
         "options": ["würde", "werde", "wurde", "habe"],
         "answer": "würde",
+    },
+    {
+        "id": "b1_4",
+        "level": "B1",
+        "prompt": "Der Film, ___ ich gesehen habe, war gut.",
+        "options": ["den", "der", "dem", "dessen"],
+        "answer": "den",
     },
     {
         "id": "b2_1",
@@ -100,46 +127,176 @@ PLACEMENT_QUESTIONS = [
     },
 ]
 
-PASS_RATIO = 0.6  # share of a level's questions needed to "pass" it
+# --- Reading passages (Lesen): original German, easy→hard, with MCQs ---
+READING_PASSAGES = [
+    {
+        "id": "r_a2",
+        "level": "A2",
+        "title": "Mein Tag",
+        "text": (
+            "Hallo! Ich heiße Lena und ich wohne in Hamburg. Morgens trinke ich "
+            "Kaffee und fahre mit dem Fahrrad zur Arbeit. Mittags esse ich oft mit "
+            "meiner Kollegin. Am Abend lese ich gern ein Buch."
+        ),
+        "questions": [
+            {
+                "id": "r_a2_1",
+                "prompt": "Wo wohnt Lena?",
+                "options": ["In Hamburg", "In Berlin", "In München", "In Köln"],
+                "answer": "In Hamburg",
+            },
+            {
+                "id": "r_a2_2",
+                "prompt": "Wie fährt Lena zur Arbeit?",
+                "options": ["Mit dem Fahrrad", "Mit dem Auto", "Mit dem Bus", "Zu Fuß"],
+                "answer": "Mit dem Fahrrad",
+            },
+            {
+                "id": "r_a2_3",
+                "prompt": "Was macht Lena am Abend?",
+                "options": ["Sie liest ein Buch", "Sie trinkt Kaffee", "Sie arbeitet", "Sie kocht"],
+                "answer": "Sie liest ein Buch",
+            },
+        ],
+    },
+    {
+        "id": "r_b1",
+        "level": "B1",
+        "title": "Ein Wochenende in den Bergen",
+        "text": (
+            "Letztes Wochenende sind meine Freunde und ich in die Berge gefahren. "
+            "Obwohl das Wetter am Samstag schlecht war, hatten wir viel Spaß. Wir "
+            "sind gewandert und haben abends zusammen gekocht. Am Sonntag schien "
+            "endlich die Sonne, und wir konnten den See sehen."
+        ),
+        "questions": [
+            {
+                "id": "r_b1_1",
+                "prompt": "Wann war das Wetter schlecht?",
+                "options": ["Am Samstag", "Am Sonntag", "Am Freitag", "Die ganze Zeit"],
+                "answer": "Am Samstag",
+            },
+            {
+                "id": "r_b1_2",
+                "prompt": "Was haben sie abends gemacht?",
+                "options": ["Zusammen gekocht", "Ferngesehen", "Gelesen", "Gearbeitet"],
+                "answer": "Zusammen gekocht",
+            },
+            {
+                "id": "r_b1_3",
+                "prompt": "Was passierte am Sonntag?",
+                "options": ["Die Sonne schien", "Es regnete", "Sie fuhren heim", "Es schneite"],
+                "answer": "Die Sonne schien",
+            },
+        ],
+    },
+    {
+        "id": "r_b2",
+        "level": "B2",
+        "title": "Sprachen lernen",
+        "text": (
+            "Viele Menschen glauben, dass man eine Sprache nur in einem Kurs lernen "
+            "kann. Tatsächlich spielt jedoch das tägliche Üben eine viel größere "
+            "Rolle. Wer regelmäßig liest, hört und spricht, macht oft schnellere "
+            "Fortschritte als jemand, der nur einmal pro Woche einen Kurs besucht."
+        ),
+        "questions": [
+            {
+                "id": "r_b2_1",
+                "prompt": "Was ist laut Text am wichtigsten?",
+                "options": ["Tägliches Üben", "Ein teurer Kurs", "Ein Lehrer", "Grammatikbücher"],
+                "answer": "Tägliches Üben",
+            },
+            {
+                "id": "r_b2_2",
+                "prompt": "Wer macht schnellere Fortschritte?",
+                "options": [
+                    "Wer regelmäßig übt",
+                    "Wer einen Kurs besucht",
+                    "Wer viel bezahlt",
+                    "Wer im Ausland lebt",
+                ],
+                "answer": "Wer regelmäßig übt",
+            },
+            {
+                "id": "r_b2_3",
+                "prompt": "Das Wort „Fortschritte“ bedeutet …",
+                "options": ["Verbesserungen", "Probleme", "Pausen", "Fehler"],
+                "answer": "Verbesserungen",
+            },
+        ],
+    },
+]
+
+WRITING_PROMPT = {
+    "id": "w_1",
+    "prompt": "Schreib 1–2 Sätze auf Deutsch: Warum lernst du Deutsch? "
+    "(Write 1–2 sentences in German — why are you learning German?)",
+}
 
 
-def public_questions() -> list[dict]:
-    """Questions without the answers (safe to send to the client)."""
-    return [
-        {"id": q["id"], "level": q["level"], "prompt": q["prompt"], "options": q["options"]}
-        for q in PLACEMENT_QUESTIONS
-    ]
+def _public_question(q: dict, level: str) -> dict:
+    """A question safe to send to the client: options shuffled, answer removed."""
+    options = list(q["options"])
+    random.shuffle(options)
+    return {"id": q["id"], "level": level, "prompt": q["prompt"], "options": options}
 
 
-def grade_placement(answers: dict) -> dict:
-    """`answers` maps question id -> chosen option. Returns the suggested level
-    plus the per-level breakdown."""
-    by_level: dict[str, list[bool]] = {lvl: [] for lvl in PLACEMENT_LEVELS}
-    correct_total = 0
-    for q in PLACEMENT_QUESTIONS:
-        chosen = str(answers.get(q["id"], "")).strip()
-        ok = chosen == q["answer"]
-        by_level[q["level"]].append(ok)
-        correct_total += 1 if ok else 0
+def public_test() -> dict:
+    """The full test payload for the client (shuffled options, no answers)."""
+    return {
+        "grammar": [_public_question(q, q["level"]) for q in GRAMMAR_QUESTIONS],
+        "reading": [
+            {
+                "id": p["id"],
+                "level": p["level"],
+                "title": p["title"],
+                "text": p["text"],
+                "questions": [_public_question(q, p["level"]) for q in p["questions"]],
+            }
+            for p in READING_PASSAGES
+        ],
+        "writing": WRITING_PROMPT,
+    }
 
+
+def _answer_key() -> dict[str, dict]:
+    """Flat {question_id: {level, answer}} across grammar + reading."""
+    key: dict[str, dict] = {}
+    for q in GRAMMAR_QUESTIONS:
+        key[q["id"]] = {"level": q["level"], "answer": q["answer"]}
+    for p in READING_PASSAGES:
+        for q in p["questions"]:
+            key[q["id"]] = {"level": p["level"], "answer": q["answer"]}
+    return key
+
+
+def score_objective(answers: dict) -> dict:
+    """`answers` maps question id -> chosen option. Returns the per-level
+    correct/total breakdown plus overall totals."""
+    key = _answer_key()
+    by_level = {lvl: {"correct": 0, "total": 0} for lvl in PLACEMENT_LEVELS}
+    correct = 0
+    for qid, meta in key.items():
+        bucket = by_level.setdefault(meta["level"], {"correct": 0, "total": 0})
+        bucket["total"] += 1
+        if str(answers.get(qid, "")).strip() == meta["answer"]:
+            bucket["correct"] += 1
+            correct += 1
+    return {"per_level": by_level, "correct": correct, "total": len(key)}
+
+
+def local_level(summary: dict) -> str:
+    """Fallback level: the highest level passed consecutively from A1 up."""
     suggested = "A1"
     for lvl in PLACEMENT_LEVELS:
-        results = by_level[lvl]
-        ratio = (sum(results) / len(results)) if results else 0
+        stats = summary["per_level"].get(lvl)
+        ratio = (stats["correct"] / stats["total"]) if stats and stats["total"] else 0
         if ratio >= PASS_RATIO:
             suggested = lvl
         else:
-            break  # stop at the first level they don't pass
-
-    return {
-        "suggested_level": suggested,
-        "correct": correct_total,
-        "total": len(PLACEMENT_QUESTIONS),
-        "per_level": {
-            lvl: {"correct": sum(by_level[lvl]), "total": len(by_level[lvl])}
-            for lvl in PLACEMENT_LEVELS
-        },
-    }
+            break
+    return suggested
 
 
 def evaluate_level(user) -> dict:
