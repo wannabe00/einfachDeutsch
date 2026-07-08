@@ -2,7 +2,7 @@
 
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
-> **Status (2026-06-23):** Phases **0–18 done and live** in production (Vercel + Render + Neon), plus a marketing **landing page** + **account menu / Settings / Privacy**. **Auth is now social-login only** (Google + GitHub) with a username/password fallback; no email/phone verification. **In progress:** a page-by-page **UI polish pass** (integrating hand-copied 21st.dev components, re-themed to our tokens) + a codebase/docs cleanup pass. **Left:** Phase 11 (more exercise content + paste-your-own importer + voice practice + drill variants), Phase 19 (generic readers), **password-reset / forgot-password flow** (SMTP already wired), SMS verification (deferred, paid), plus ops polish (rotate secrets).
+> **Status (2026-07-06):** Phases **0–18 done and live** in production (Vercel + Render + Neon). Auth is **social-login only** (Google + GitHub) + username/password fallback; the placement test is a 7-step AI-graded wizard. **Planned next (owner reviews docs, then implements brick-by-brick):** **Phase 20 — Hardening** (all findings in `AUDIT.md`: bugs, security, dead code, readability), **Phase 21 — Design v2 "Bauhaus"** (full redesign, spec in `DESIGN.md` v2 section; Settings v2 is the priority page), **Phase 22 — Content population** (curriculum A1.1 first — owner provides per-Lektion structure, original items authored to it; grammar library; videos/history; honest stats). Still open further out: Phase 11 leftovers, Phase 19 (readers), password-reset flow, SMS verification (paid, deferred).
 
 ---
 
@@ -339,7 +339,7 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 ## Post-18 — Landing page + UI polish (ongoing)
 - [x] **Landing page** — marketing `/` for guests (Munich parallax hero, value props, how-it-works, der/die/das teaser, feature showcase, CEFR path, culture hook, stats, FAQ + CTA + footer); signed-in users get the dashboard at `/`.
 - [x] **Account menu + pages** — Facebook-style dropdown in the sidebar footer; `SettingsPage` (account + level changer + theme) and a public standalone `PrivacyPage`.
-- [ ] **UI polish pass (page-by-page)** — go through each page (Dashboard, Review, Word Bank, Grammar, Exercises, Drills, Recite, Videos, History, Books, AI, Auth/Onboarding) improving layout/visual quality, integrating hand-copied **21st.dev** components re-themed to our DESIGN tokens (via the Magic MCP at dev time; components are copied into the repo, no runtime dependency).
+- [ ] ~~**UI polish pass (page-by-page)**~~ — superseded by **Phase 21 (Design v2)** below; individual 21st.dev component grabs may still happen inside Phase 21 bricks.
 
 ## Remaining open items (decide during build)
 - Exact CEFR threshold tuning for video unlock + history language switch (defaults set; revisit once real progression speed is seen).
@@ -349,3 +349,32 @@ These were added in collaboration after the original plan finished. See `KNOWLED
 - **Phone/SMS verification — DEFERRED (not free).** Phone is collected (optional) but never verified. Wiring it up needs a paid SMS gateway (e.g. Twilio Verify) behind a swappable provider interface. Leave as a plan until there's budget.
 - **Email (SMTP) is now optional** — wired (dj-rest-auth password endpoints + `EMAIL_*` env) but unused until the password-reset flow below ships.
 - [ ] **Password reset / forgot password (planned).** Backend endpoints exist via `dj_rest_auth.urls` (`/api/auth/password/reset/` + `/confirm/`). To finish: point the reset email link at the SPA (custom adapter or `PasswordResetSerializer` URL), add a "Forgot password?" link on the login page + a `/reset-password/:uid/:token` page that POSTs the new password, and configure a real SMTP sender. No new models needed.
+
+---
+
+## Phase 20 — Hardening (from `AUDIT.md`, 2026-07-06)
+Goal: every audit finding fixed. The canonical list with details/severities/file refs lives in **`AUDIT.md`** — tick both places. Suggested order: security first, then bugs, then dead code + readability.
+
+- [x] **20.1 Critical security** — S1 `complete_onboarding` locked after first run; S2 password required server-side for delete / reset-progress / deactivate (+ Settings UI collects it). ⚠️ **S5 (rotate Neon/Brevo/Gemini/Cloudinary keys) is an OWNER ops task — still pending in the dashboards.**
+- [x] **20.2 Abuse hardening** — S3 scoped login throttle; S4 avatar size/type validation; S7 preferences key whitelist + size cap; S9 phone validation.
+- [x] **20.3 Bug fixes** — B1 recitation multipart boundary (audio upload broken); B2 danger-zone error swallowing; B4 placement timer pause.
+- [x] **20.4 Token/session hardening** — S6: pick and implement token expiry/rotation strategy (also unblocks Settings v2 "active sessions"); S8 frontend security headers in `vercel.json`.
+- [x] **20.5 Dead code + readability** — D1 knip/vulture sweep; R1–R5 splits (ExerciseCard, ReviewPage, InteractiveInputs, HistoryPage, accounts/views.py); R6 size convention into CONTRIBUTING.md. (D2/B3 Menschen removal waits for Phase 22 content.)
+
+## Phase 21 — Design v2 "Bauhaus" (spec: `DESIGN.md` → Design v2 section)
+Goal: the whole app stops looking like a template. Direction locked with the owner: Bauhaus/German modernism, Space Grotesk everywhere, **der/die/das as the brand palette + gender = shape (● ▲ ■)**, dark-first with warm-paper light mode, geometric SVG + duotone photos, flat blocks/hard edges/2px borders.
+
+- [ ] **21.1 Foundation** — new tokens (colors/radius/borders) in `index.css`, Space Grotesk via fontsource, shape components (`ShapeMark`, `SectionLabel`, `GeoDivider`), restyled Button/Input/Card primitives, nav restyle (square icon tiles, filled active block, three-shape logo mark). Whole app changes feel in one brick.
+- [ ] **21.2 Settings v2 (priority)** — vertical tab nav + single panel; 7 tabs (Profile / Account & Security / Learning / Appearance / Language & Region / Data & Privacy / Danger zone); label-left control-right rows, no card pile. New preferences: learning tuning (new-words/day, session size, difficulty mix, hints, auto-advance), appearance+ (system theme, accent choice, font size, reduced motion), language & region (UI language EN/DE, du/Sie formality, umlaut bar toggle), sessions list (depends on 20.4). Prefs stored in whitelisted `preferences` JSON; wire each new pref to actual behaviour where it applies.
+- [ ] **21.3 Dashboard** — duotone hero, oversized due-count numeral, thick-rule stat blocks, shape-icon quick-launch tiles.
+- [ ] **21.4 Landing** — poster hero (duotone photo + giant grotesk headline), shape-based der/die/das teaser, geometric feature grid, duotone culture band.
+- [ ] **21.5 Study surfaces** — Review flashcard (flat block, 2px border, article shape watermark, color-block quality buttons), Exercises + Drills inputs restyled.
+- [ ] **21.6 Remaining pages** — Word Bank, Grammar, Books/Chapters, Videos, History, Recite, AI, Auth/Onboarding/Placement (oversized "Schritt 03/07" step numerals).
+
+## Phase 22 — Content population
+Goal: the site is actually full of level-tagged learning material. Copyright rule stands: books provide **facts/structure only** (topics, grammar points, type/count of exercises, wordlists); every stored item is authored original.
+
+- [ ] **22.1 Curriculum A1.1 (blocked on owner)** — owner supplies the per-Lektion structure (grammar points, exercise types + counts, Wortliste); original items are authored to exactly that spec and loaded via an idempotent seed command into local + Neon (= production). Then A1.2 → C1.2 the same way, level by level. Replaces the thin "Menschen" seed books (AUDIT B3/D2).
+- [ ] **22.2 Grammar reference library** — standalone, level-tagged grammar section covering the full A1–B1 topic canon (tables + examples, original text), browsable independent of lesson progress.
+- [ ] **22.3 Videos + History expansion** — grow curated video suggestions per level; add more original German-history lessons (each with quiz).
+- [ ] **22.4 Honest numbers** — landing/dashboard stats pulled from the real DB (word/lesson/exercise counts) instead of hardcoded marketing figures.

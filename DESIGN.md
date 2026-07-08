@@ -2,6 +2,131 @@
 
 > Read before building any UI brick. Every page must follow these rules. Tokens map to Tailwind v3 CSS variables in `src/index.css`. Keep this doc and the tokens in sync.
 
+---
+
+# Design v2 — Bauhaus (APPROVED DIRECTION, not yet implemented)
+
+> Decided 2026-07-06 with the owner. Everything in this section is the plan for the
+> redesign (PROJECT_PLAN Phase 21). Until the foundation brick lands, the v1 system
+> below this section remains the source of truth for any UI work.
+
+## Why / one line
+**German modernism for learning German.** Bauhaus: strong grid, flat geometric shapes,
+confident type, functional color. Distinctive and ownable — the opposite of a shadcn/AI
+template — and thematically *ours* (the movement is German). Keep v1's discipline (no
+gamification kitsch, whitespace, honest copy); replace its anonymous look.
+
+## Identity system: gender = shape + color
+The der/die/das colors become the **brand palette**, and each article also gets a
+**geometric shape** — the classic Bauhaus trio:
+
+| Article | Color | Shape |
+|---|---|---|
+| **der** (m.) | blue | ● circle |
+| **die** (f.) | rose | ▲ triangle |
+| **das** (n.) | amber | ■ square |
+
+- The shape+color pair appears on `ArticleBadge` (accessibility win: gender is no longer
+  color-only), flashcards, drills, and as the app's logo mark (three shapes in a row).
+- **Semantic rule:** inside vocabulary contexts the three colors always mean gender.
+  In *chrome* (decoration, section markers, charts, hero graphics) they may be used as
+  brand colors — but **interactive elements** (buttons, links, focus) use only the
+  primary accent (der-blue) plus the semantic green/red/amber, so no one ever confuses
+  "this is clickable" with "this is feminine".
+
+## Typography
+- **One geometric grotesk everywhere: Space Grotesk** (via `@fontsource`), weights
+  400/500/700. Fallback `system-ui`. (Body copy may fall back to Inter if long-form
+  readability suffers — decide in the foundation brick.)
+- Poster-scale headings: display `clamp(2.5rem → 4rem)/1.05`, weight 700, tracking
+  `-0.03em`. Section labels: **uppercase, small, letter-spaced** (`text-xs tracking-[0.15em]`).
+- Big numerals as design elements: section numbers ("01 — Grammatik"), stat values,
+  Lektion numbers rendered oversized in muted or article colors.
+- German study text keeps its v1 rule: always visually louder than surrounding UI chrome.
+
+## Color (dark-first)
+Both themes stay; **dark is the designed-first experience**, light is a warm "paper"
+variant (off-white, near-black ink) rather than a gray SaaS light mode. Exact HSL values
+are chosen in the foundation brick and written into `src/index.css` — direction:
+- Dark canvas: near-black with a *warm* tint (not blue-slate), flat (drop the indigo glow).
+- Light canvas: warm paper `~40 20% 96%`, ink text.
+- Primary accent = **der-blue**; die-rose and das-amber appear in geometry, badges,
+  charts, and highlights. Retire the separate indigo accent (one less color competing).
+- Semantic green/red/amber unchanged.
+
+## Surfaces, borders, shape language
+- **Flat blocks, hard edges.** Radius drops from `rounded-xl` to `rounded-sm` (cards)
+  and `rounded-none` where it feels right; pills only for small badges.
+- Borders become **visible and intentional**: 1.5–2px solid, often in `--foreground`,
+  instead of hairline gray. Structure over shadow — shadows only as an optional solid
+  **offset block** (`4px 4px 0` in border color) on hover/active, never blur.
+- Recurring decorations: thin **diagonal-stripe bands**, oversized outline shapes
+  cropped at section edges, thick horizontal rules between sections.
+
+## Imagery
+- **Geometric SVG compositions** (the three shapes, grids, arcs) are the default visual
+  for heroes, empty states, and feature cards — built in-repo, no stock.
+- Keep **2–3 real Munich/Berlin photos** (landing hero, dashboard hero, culture band) —
+  treated with a **duotone/overlay** in brand colors so photography and geometry feel
+  like one system.
+- No other stock photography, no illustrations-of-people packs, no 3D blobs.
+
+## Navigation shell (restyle, same skeleton)
+Keep the top bar + hover-expand sidebar behaviour. Restyle: square icon tiles in the
+rail; the active item is a **filled color block** (der-blue with white icon); wordmark
+`einfachDeutsch` set in Space Grotesk with the three-shape logo mark; top bar gets a
+2px bottom rule instead of a soft shadow.
+
+## Settings v2 (the priority page)
+Replace the stacked-cards pile with **vertical tab nav + one focused panel**
+(GitHub/Stripe pattern). Left rail lists tabs; right side shows exactly one panel.
+Rows inside a panel: label + description left, control right, thin rule between rows —
+no nested cards.
+
+**Tabs and contents:**
+1. **Profile** — avatar (shape-framed), name/surname, username (30-day note inline),
+   birthday, email (read-only), level (read-only + "set by test/admin" note).
+2. **Account & Security** — change password (button reveals form, confirm field),
+   connected accounts (Google/GitHub, read-only list), active sessions with per-device
+   logout *(needs backend token rework — see AUDIT S6)*, log out everywhere.
+3. **Learning** — daily goal, new words/day, review session size, exercise difficulty
+   mix, show/hide hints, auto-advance after correct answers, schedule weekdays.
+4. **Appearance** — theme (light/dark/**system**), accent color (der-blue / die-rose /
+   das-amber), font size (S/M/L), reduced motion.
+5. **Language & Region** — UI language (EN/DE), formality (du/Sie) used in prompts and
+   feedback, umlaut keyboard bar on/off, timezone.
+6. **Data & Privacy** — export my data, privacy policy, notification emails toggles.
+7. **Danger zone** — reset progress / deactivate / delete, each **password-confirmed**
+   (AUDIT S2), visually separated with the danger color.
+
+New preferences are stored in the existing `UserProfile.preferences` JSON (whitelisted
+keys — AUDIT S7); items marked *needs backend* get their own bricks.
+
+## Per-page redesign notes (Phase 21 order)
+1. **Foundation** — new tokens/typography/shape components (`ShapeMark`, `SectionLabel`,
+   `GeoDivider`), restyled Button/Input/Card primitives, nav restyle. The whole app
+   changes feel in one brick.
+2. **Settings v2** — as specced above.
+3. **Dashboard** — duotone hero, oversized due-count numeral, stat blocks with thick
+   rules, quick-launch tiles with shape icons.
+4. **Landing** — same sections as today, restyled: poster hero (duotone Marienplatz +
+   giant grotesk headline), der/die/das teaser becomes shape+color (it's the brand),
+   geometric feature grid, culture band photos duotoned.
+5. **Review + Exercises + Drills** — flashcard as flat block with 2px border and
+   article shape watermark; quality buttons as color blocks; exercise inputs restyled.
+6. **Remaining pages** — Word Bank, Grammar, Books, Videos, History, Recite, AI,
+   Auth/Onboarding/Placement (wizard steps get "Schritt 03 / 07" oversized numerals).
+
+## What carries over from v1 unchanged
+The cliché ban table, German conventions (noun capitalization, gender colors), token
+architecture (CSS vars + Tailwind mapping, never hardcode values), accessibility rules
+(AA contrast, focus rings, reduced motion, 44px targets), Lucide icons, desktop-first
+responsive behaviour.
+
+---
+
+# Design v1 (CURRENT — in production until Phase 21 foundation lands)
+
 ## Aesthetic in one line
 Clean, focused, scholarly. The UI should disappear so you can think about German, not about the interface. Think a well-designed language textbook that became digital — not a gamified app.
 

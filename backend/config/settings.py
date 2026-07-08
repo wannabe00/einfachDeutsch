@@ -155,7 +155,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # enforce auth at the view level.
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        # Expiring variant of TokenAuthentication: tokens older than
+        # TOKEN_TTL_DAYS are rejected + deleted (stolen tokens stop working).
+        "apps.accounts.authentication.ExpiringTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -174,8 +176,15 @@ REST_FRAMEWORK = {
         # Protect the (free, limited) Gemini quota — per signed-in user.
         "ai_burst": os.getenv("THROTTLE_AI_BURST", "12/min"),
         "ai_daily": os.getenv("THROTTLE_AI_DAILY", "120/day"),
+        # Brute-force guard on login + social code exchange (per IP).
+        "login": os.getenv("THROTTLE_LOGIN", "5/min"),
+        # One-shot onboarding endpoint (per user, defence in depth).
+        "onboarding": os.getenv("THROTTLE_ONBOARDING", "5/min"),
     },
 }
+
+# Auth tokens are rejected + deleted after this many days (forces re-login).
+TOKEN_TTL_DAYS = int(os.getenv("TOKEN_TTL_DAYS", "30"))
 
 # ---- Auth (allauth + dj-rest-auth), token-based ----
 # Accounts are created via Google/GitHub OAuth (see GoogleLogin/GitHubLogin).

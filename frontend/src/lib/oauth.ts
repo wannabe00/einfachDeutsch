@@ -16,7 +16,7 @@ export function isProviderConfigured(provider: SocialProvider): boolean {
   return provider === "google" ? !!GOOGLE_CLIENT_ID : !!GITHUB_CLIENT_ID
 }
 
-export function redirectUri(provider: SocialProvider): string {
+function redirectUri(provider: SocialProvider): string {
   return `${window.location.origin}/auth/callback/${provider}`
 }
 

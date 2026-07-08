@@ -32,12 +32,8 @@ function read(): GuestActionState {
   return { date: today(), count: 0 }
 }
 
-export function guestActionCount(): number {
+function guestActionCount(): number {
   return read().count
-}
-
-export function guestActionsRemaining(): number {
-  return Math.max(0, GUEST_DAILY_ACTION_LIMIT - guestActionCount())
 }
 
 export function guestLimitReached(): boolean {

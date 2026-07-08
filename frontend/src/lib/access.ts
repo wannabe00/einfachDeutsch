@@ -11,18 +11,6 @@
  */
 
 /**
- * Routes whose content is account-only. Guests reaching them see the content
- * blurred behind a "log in to use" overlay (see LockedFeature) rather than a
- * redirect. The Drills *hub* is public — individual drills gate themselves
- * (Gender Triage is free; the rest are members-only), so it's not listed here.
- */
-export const ACCOUNT_ONLY_PATHS = ["/ai", "/speak"] as const
-
-export function isAccountOnlyPath(path: string): boolean {
-  return ACCOUNT_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`))
-}
-
-/**
  * Max "actions" (a graded exercise, a reviewed card, etc.) a signed-out guest
  * may perform per calendar day before the sign-up wall appears. Signed-in users
  * are unlimited. This is UX only — the backend throttles independently.

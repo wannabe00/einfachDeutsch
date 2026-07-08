@@ -17,37 +17,6 @@ export async function aiChat(
   return data.content
 }
 
-export async function aiSuggestWords(
-  chapterTitle: string,
-  description = "",
-  count = 10,
-): Promise<string> {
-  const { data } = await apiClient.post<AIResponse>("/ai/suggest-words/", {
-    chapter_title: chapterTitle,
-    description,
-    count,
-  })
-  return data.content
-}
-
-export async function aiExplainGrammar(topic: string): Promise<string> {
-  const { data } = await apiClient.post<AIResponse>("/ai/explain-grammar/", {
-    topic,
-  })
-  return data.content
-}
-
-export async function aiGenerateExercises(
-  chapterTitle: string,
-  wordList = "",
-): Promise<string> {
-  const { data } = await apiClient.post<AIResponse>("/ai/generate-exercises/", {
-    chapter_title: chapterTitle,
-    word_list: wordList,
-  })
-  return data.content
-}
-
 export async function aiCheckAnswer(
   prompt: string,
   correctAnswer: string,

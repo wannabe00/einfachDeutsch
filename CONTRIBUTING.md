@@ -54,6 +54,12 @@ Working alone: you can commit directly to a working branch and merge to `main` y
 - Reference the brick number in the summary.
 - Small, focused commits. Don't commit secrets or generated files (see `.gitignore`).
 
+## Readability (keep code human-scannable)
+- **Soft size caps:** page components ≤ ~150 lines (layout only), other components/functions ≤ ~120. Past that, extract logic into a **hook** (`src/hooks/useX.ts`) and/or split JSX into sub-components (co-locate related ones in a folder, e.g. `components/exercises/inputs/`).
+- Backend view modules ≤ ~150 lines; group unrelated endpoints into a `views/` package by concern (see `apps/accounts/views/`), not one giant file.
+- No dense one-liners doing three things; name intermediate values. A reviewer should scan a function top-to-bottom without decoding it.
+- Delete dead code the moment a change orphans it (run `npx knip` / `vulture` before a cleanup PR).
+
 ## Before pushing / opening a PR
 A brick is **done** only when:
 
