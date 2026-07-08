@@ -50,10 +50,12 @@ export function PlacementTestForm({
   const [writing, setWriting] = useState("")
   const [elapsed, setElapsed] = useState(0)
 
+  // Count up while taking the test; pause once grading starts (B4).
   useEffect(() => {
+    if (submitting) return
     const id = window.setInterval(() => setElapsed((e) => e + 1), 1000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [submitting])
 
   const mcqIds = useMemo(
     () => [

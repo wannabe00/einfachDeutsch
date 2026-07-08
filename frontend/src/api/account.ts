@@ -44,16 +44,17 @@ export async function logoutAllDevices(): Promise<void> {
   await apiClient.post("/accounts/logout-all/")
 }
 
-export async function deactivateAccount(): Promise<void> {
-  await apiClient.post("/accounts/deactivate/")
+// Destructive actions require the account password server-side (AUDIT S2).
+export async function deactivateAccount(password: string): Promise<void> {
+  await apiClient.post("/accounts/deactivate/", { password })
 }
 
-export async function deleteAccount(password?: string): Promise<void> {
-  await apiClient.post("/accounts/delete/", password ? { password } : {})
+export async function deleteAccount(password: string): Promise<void> {
+  await apiClient.post("/accounts/delete/", { password })
 }
 
-export async function resetProgress(): Promise<void> {
-  await apiClient.post("/accounts/reset-progress/")
+export async function resetProgress(password: string): Promise<void> {
+  await apiClient.post("/accounts/reset-progress/", { password })
 }
 
 export async function exportMyData(): Promise<Record<string, unknown>> {
