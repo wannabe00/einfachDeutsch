@@ -1,6 +1,5 @@
 """Profile endpoints: update profile, avatar upload, onboarding, data export."""
 
-import re
 from datetime import timedelta
 
 from django.conf import settings
@@ -34,9 +33,6 @@ ALLOWED_PREFERENCE_KEYS = {
 }
 MAX_PREFERENCES_CHARS = 2000
 
-# Loose international format: optional +, then digits/spaces/()- (S9).
-PHONE_RE = re.compile(r"^\+?[0-9 ()\-]{5,20}$")
-
 MAX_AVATAR_MB = 5
 
 
@@ -57,7 +53,7 @@ def _validate_username_change(user, profile, new_username):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
-    """Update name/surname, birthday, phone, preferences, and (rate-limited)
+    """Update name/surname, birthday, preferences, and (rate-limited)
     username. Level is intentionally NOT editable here."""
     user = request.user
     profile = user.profile
@@ -78,11 +74,6 @@ def update_profile(request):
 
     if "birthday" in data:
         profile.birthday = data["birthday"] or None
-    if "phone" in data:
-        phone = str(data.get("phone") or "").strip()
-        if phone and not PHONE_RE.match(phone):
-            return Response({"detail": "Enter a valid phone number."}, status=400)
-        profile.phone = phone
     if isinstance(data.get("preferences"), dict):
         incoming = data["preferences"]
         unknown = set(incoming) - ALLOWED_PREFERENCE_KEYS
@@ -141,7 +132,7 @@ def upload_avatar(request):
 @throttle_classes([OnboardingThrottle])
 def complete_onboarding(request):
     """First-run profile setup after a social sign-in: set username + password
-    (so username/password login works) + name. Birthday/phone optional. The
+    (so username/password login works) + name. Birthday optional. The
     existing auth token stays valid after the password is set."""
     user = request.user
     profile = user.profile
@@ -176,7 +167,6 @@ def complete_onboarding(request):
     user.save()
 
     profile.birthday = data.get("birthday") or None
-    profile.phone = str(data.get("phone") or "").strip()
     profile.profile_complete = True
     if profile.username_changed_at is None:
         profile.username_changed_at = timezone.now()
@@ -198,7 +188,6 @@ def export_data(request):
             "first_name": u.first_name,
             "last_name": u.last_name,
             "birthday": p.birthday,
-            "phone": p.phone,
             "cefr_level": p.cefr_level,
             "role": p.role,
             "joined": u.date_joined,

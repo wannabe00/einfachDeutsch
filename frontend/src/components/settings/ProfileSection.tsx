@@ -7,14 +7,13 @@ import { Input } from "@/components/ui/input"
 import { errorText } from "@/lib/apiError"
 import { Field, Msg, Section } from "./primitives"
 
-/** Name/surname/username/birthday/phone + avatar upload. */
+/** Name/surname/username/birthday + avatar upload. */
 export function ProfileSection() {
   const { user, refreshUser } = useAuth()
   const [firstName, setFirstName] = useState(user?.first_name ?? "")
   const [lastName, setLastName] = useState(user?.last_name ?? "")
   const [username, setUsername] = useState(user?.username ?? "")
   const [birthday, setBirthday] = useState(user?.birthday ?? "")
-  const [phone, setPhone] = useState(user?.phone ?? "")
   const [msg, setMsg] = useState("")
   const [error, setError] = useState("")
   const avatarInput = useRef<HTMLInputElement>(null)
@@ -28,7 +27,6 @@ export function ProfileSection() {
         last_name: lastName,
         username,
         birthday: birthday || null,
-        phone,
       })
       await refreshUser()
       setMsg("Saved.")
@@ -87,9 +85,6 @@ export function ProfileSection() {
         </Field>
         <Field label="Birthday">
           <Input type="date" value={birthday ?? ""} onChange={(e) => setBirthday(e.target.value)} />
-        </Field>
-        <Field label="Phone">
-          <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </Field>
         <Field label="Email (not editable)">
           <Input value={user?.email ?? ""} disabled />

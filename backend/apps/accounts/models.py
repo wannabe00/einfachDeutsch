@@ -38,7 +38,6 @@ class UserProfile(models.Model):
     level_set = models.BooleanField(default=False)
     # Profile fields (name/surname live on the auth User as first_name/last_name).
     birthday = models.DateField(null=True, blank=True)
-    phone = models.CharField(max_length=32, blank=True)
     avatar_url = models.URLField(blank=True)
     # Throttles username changes (allowed once every 30 days).
     username_changed_at = models.DateTimeField(null=True, blank=True)

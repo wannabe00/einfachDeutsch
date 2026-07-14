@@ -47,6 +47,8 @@
     --input: 220 13% 88%;
     --ring: 243 75% 59%;
     --radius: 0.75rem;
+    /* Landing brand accent — German-flag red now; swap to der-blue later. */
+    --brand: 353 88% 47%;
   }
 
   .dark {
@@ -83,6 +85,7 @@
     --destructive-foreground: 0 0% 100%;
     --input: 222 16% 18%;
     --ring: 239 84% 67%;
+    --brand: 353 90% 55%;
   }
 }
 
