@@ -4,126 +4,108 @@
 
 ---
 
-# Design v2 — Bauhaus (APPROVED DIRECTION, not yet implemented)
+# Design v2 — Cinematic (APPROVED DIRECTION, not yet implemented)
 
-> Decided 2026-07-06 with the owner. Everything in this section is the plan for the
-> redesign (PROJECT_PLAN Phase 21). Until the foundation brick lands, the v1 system
-> below this section remains the source of truth for any UI work.
+> Decided 2026-07-06 with the owner. Direction: a **fusion** — the layout/motion
+> DNA of spaceship.com (cinematic, scroll-storytelling, dark-first, premium)
+> **plus our own der/die/das identity**. Adapted, NOT copied (our colours, our
+> photos, our animations, our brand). **Scope: landing/marketing page FIRST**;
+> in-app pages stay calmer/functional until the owner decides to extend it. This
+> supersedes the earlier Bauhaus draft. Until the landing brick ships, Design v1
+> (below) remains the source of truth.
 
 ## Why / one line
-**German modernism for learning German.** Bauhaus: strong grid, flat geometric shapes,
-confident type, functional color. Distinctive and ownable — the opposite of a shadcn/AI
-template — and thematically *ours* (the movement is German). Keep v1's discipline (no
-gamification kitsch, whitespace, honest copy); replace its anonymous look.
+**Cinematic, image-led, premium — Germany as the star.** Big Berlin/Munich
+photography, bold type, and scroll-driven "moments" make it feel like a launch
+film, not a template. Still ownable via the der/die/das colour+shape system.
 
-## Identity system: gender = shape + color
-The der/die/das colors become the **brand palette**, and each article also gets a
-**geometric shape** — the classic Bauhaus trio:
+## THE MAIN THING: imagery (owner's #1 priority)
+Real **Berlin + Munich photography is the hero of the identity** — full-bleed,
+edge-to-edge, dramatically lit (Brandenburger Tor, Marienplatz, the Isar, Berlin
+at night, U-Bahn, Reichstag). Patterns to use:
+- **Full-bleed hero photo** behind the headline; dark gradient/overlay so white
+  text stays legible.
+- **Photo "moments"** between sections — each a full-viewport image with one big
+  line of text over it (Spaceship-style scroll storytelling).
+- Optional **duotone treatment** (photo tinted toward the accent) so photography
+  and UI feel like one system.
+- Sourcing: free Unsplash (verified URLs, graceful gradient fallback on error)
+  or owner-provided files in `/public`. Never hotlink unverified URLs.
 
-| Article | Color | Shape |
-|---|---|---|
-| **der** (m.) | blue | ● circle |
-| **die** (f.) | rose | ▲ triangle |
-| **das** (n.) | amber | ■ square |
+## Motion (adapted from Spaceship)
+- **Scroll-reveal**: headings + text **fade up** (opacity 0→1 + translateY ~24px)
+  as they enter the viewport (IntersectionObserver). Stagger children slightly.
+- **Parallax** on hero photos (slow drift, already used on current landing).
+- Honour `prefers-reduced-motion` — disable all of it.
+- Keep it tasteful: one effect per section, fast (300–500ms ease-out).
 
-- The shape+color pair appears on `ArticleBadge` (accessibility win: gender is no longer
-  color-only), flashcards, drills, and as the app's logo mark (three shapes in a row).
-- **Semantic rule:** inside vocabulary contexts the three colors always mean gender.
-  In *chrome* (decoration, section markers, charts, hero graphics) they may be used as
-  brand colors — but **interactive elements** (buttons, links, focus) use only the
-  primary accent (der-blue) plus the semantic green/red/amber, so no one ever confuses
-  "this is clickable" with "this is feminine".
+## Colour (dark-first, German-flag accent — swappable)
+- **Near-black canvas** (warm or neutral), white text, muted-gray subtext, ONE
+  electric accent. Very high contrast.
+- **Accent = German-flag inspired for now**: black canvas + an electric **red**
+  (or **gold**) accent. Pick exact hex in the foundation brick. Keep it as the
+  `--accent` token so it can be **swapped to der-blue later** with one change
+  (owner may switch).
+- der/die/das stay their brand colours (blue/rose/amber) in vocab contexts +
+  charts; the single accent drives CTAs/links/focus so "clickable" ≠ "feminine".
+- Semantic green/red/amber for feedback unchanged.
+
+## Identity: der/die/das kept
+Gender still = **shape + colour** (der ● blue / die ▲ rose / das ■ amber) on
+ArticleBadge, flashcards, drills, and the logo mark (three shapes). This is what
+keeps the cinematic look from being a generic dark SaaS clone.
 
 ## Typography
-- **One geometric grotesk everywhere: Space Grotesk** (via `@fontsource`), weights
-  400/500/700. Fallback `system-ui`. (Body copy may fall back to Inter if long-form
-  readability suffers — decide in the foundation brick.)
-- Poster-scale headings: display `clamp(2.5rem → 4rem)/1.05`, weight 700, tracking
-  `-0.03em`. Section labels: **uppercase, small, letter-spaced** (`text-xs tracking-[0.15em]`).
-- Big numerals as design elements: section numbers ("01 — Grammatik"), stat values,
-  Lektion numbers rendered oversized in muted or article colors.
-- German study text keeps its v1 rule: always visually louder than surrounding UI chrome.
+- **Space Grotesk** (self-hosted via `@fontsource` — NOT Google Fonts; the prod
+  CSP `font-src 'self'` blocks external fonts). Big, bold headings (700),
+  ~clamp(2.5rem→4rem), tight tracking. Muted subtext. Never justify.
 
-## Color (dark-first)
-Both themes stay; **dark is the designed-first experience**, light is a warm "paper"
-variant (off-white, near-black ink) rather than a gray SaaS light mode. Exact HSL values
-are chosen in the foundation brick and written into `src/index.css` — direction:
-- Dark canvas: near-black with a *warm* tint (not blue-slate), flat (drop the indigo glow).
-- Light canvas: warm paper `~40 20% 96%`, ink text.
-- Primary accent = **der-blue**; die-rose and das-amber appear in geometry, badges,
-  charts, and highlights. Retire the separate indigo accent (one less color competing).
-- Semantic green/red/amber unchanged.
+## Layout: section "moments"
+Landing = a sequence of full-width sections, each one idea: **giant heading + one
+line + one CTA**, often over a photo. Generous vertical rhythm. Keep the existing
+sections but make them cinematic: hero, der/die/das tester (our interactive
+hook — keep it), feature strip, culture/photo band, CEFR path, FAQ + CTA + footer.
 
-## Surfaces, borders, shape language
-- **Flat blocks, hard edges.** Radius drops from `rounded-xl` to `rounded-sm` (cards)
-  and `rounded-none` where it feels right; pills only for small badges.
-- Borders become **visible and intentional**: 1.5–2px solid, often in `--foreground`,
-  instead of hairline gray. Structure over shadow — shadows only as an optional solid
-  **offset block** (`4px 4px 0` in border color) on hover/active, never blur.
-- Recurring decorations: thin **diagonal-stripe bands**, oversized outline shapes
-  cropped at section edges, thick horizontal rules between sections.
+## Components
+- **Pill CTAs** (rounded-full) — the one place we soften from flat/sharp; ghost +
+  filled variants (filled = accent). Matches the premium feel.
+- Cards: dark surfaces, subtle borders, hover lift.
+- Nav: keep the app's top-bar + hover-sidebar skeleton for in-app pages. On the
+  **landing**, a transparent cinematic top bar over the hero (logo left, Log in /
+  Get started right), turning solid on scroll.
 
-## Imagery
-- **Geometric SVG compositions** (the three shapes, grids, arcs) are the default visual
-  for heroes, empty states, and feature cards — built in-repo, no stock.
-- Keep **2–3 real Munich/Berlin photos** (landing hero, dashboard hero, culture band) —
-  treated with a **duotone/overlay** in brand colors so photography and geometry feel
-  like one system.
-- No other stock photography, no illustrations-of-people packs, no 3D blobs.
+## In-app extension (owner-locked 2026-07-14)
+The landing shipped (21.1); the owner then decided to extend the system inward.
+Locked decisions for **all in-app pages**:
+- **Dark-only.** The app drops the light/dark toggle and renders one dark
+  cinematic theme everywhere. `ThemeContext` pins `dark`; `ThemeToggle` retires.
+- **Minimal / functional imagery.** No marketing photography inside the app —
+  the full-bleed Berlin/Munich photos stay on the landing only. In-app = near-
+  black surfaces, the brand accent, and at most a *subtle* brand glow for depth.
+  Working pages must stay fast and legible.
+- **Navigation = spaceship-style top bar (desktop) + collapsible left drawer
+  (mobile).** Keep today's nav items unchanged; only the shell changes. Desktop
+  retires the left rail and moves primary nav into a restyled top bar (logo left,
+  nav, `AccountMenu` right). Mobile gets a cleaner collapsible left drawer. Both
+  collapsible. Active state uses the brand accent.
+- **Type + accent** carry over from the landing (Space Grotesk headings, the
+  swappable `--brand` accent) into the in-app token set.
+- **der/die/das** colour+shape identity is unchanged in vocab/charts.
+- **Build order:** Settings + Profile first, then dashboard, then study surfaces,
+  then auth pages. See PROJECT_PLAN 21.2–21.8. One page per brick/branch.
 
-## Navigation shell (restyle, same skeleton)
-Keep the top bar + hover-expand sidebar behaviour. Restyle: square icon tiles in the
-rail; the active item is a **filled color block** (der-blue with white icon); wordmark
-`einfachDeutsch` set in Space Grotesk with the three-shape logo mark; top bar gets a
-2px bottom rule instead of a soft shadow.
-
-## Settings v2 (the priority page)
-Replace the stacked-cards pile with **vertical tab nav + one focused panel**
-(GitHub/Stripe pattern). Left rail lists tabs; right side shows exactly one panel.
-Rows inside a panel: label + description left, control right, thin rule between rows —
-no nested cards.
-
-**Tabs and contents:**
-1. **Profile** — avatar (shape-framed), name/surname, username (30-day note inline),
-   birthday, email (read-only), level (read-only + "set by test/admin" note).
-2. **Account & Security** — change password (button reveals form, confirm field),
-   connected accounts (Google/GitHub, read-only list), active sessions with per-device
-   logout *(needs backend token rework — see AUDIT S6)*, log out everywhere.
-3. **Learning** — daily goal, new words/day, review session size, exercise difficulty
-   mix, show/hide hints, auto-advance after correct answers, schedule weekdays.
-4. **Appearance** — theme (light/dark/**system**), accent color (der-blue / die-rose /
-   das-amber), font size (S/M/L), reduced motion.
-5. **Language & Region** — UI language (EN/DE), formality (du/Sie) used in prompts and
-   feedback, umlaut keyboard bar on/off, timezone.
-6. **Data & Privacy** — export my data, privacy policy, notification emails toggles.
-7. **Danger zone** — reset progress / deactivate / delete, each **password-confirmed**
-   (AUDIT S2), visually separated with the danger color.
-
-New preferences are stored in the existing `UserProfile.preferences` JSON (whitelisted
-keys — AUDIT S7); items marked *needs backend* get their own bricks.
-
-## Per-page redesign notes (Phase 21 order)
-1. **Foundation** — new tokens/typography/shape components (`ShapeMark`, `SectionLabel`,
-   `GeoDivider`), restyled Button/Input/Card primitives, nav restyle. The whole app
-   changes feel in one brick.
-2. **Settings v2** — as specced above.
-3. **Dashboard** — duotone hero, oversized due-count numeral, stat blocks with thick
-   rules, quick-launch tiles with shape icons.
-4. **Landing** — same sections as today, restyled: poster hero (duotone Marienplatz +
-   giant grotesk headline), der/die/das teaser becomes shape+color (it's the brand),
-   geometric feature grid, culture band photos duotoned.
-5. **Review + Exercises + Drills** — flashcard as flat block with 2px border and
-   article shape watermark; quality buttons as color blocks; exercise inputs restyled.
-6. **Remaining pages** — Word Bank, Grammar, Books, Videos, History, Recite, AI,
-   Auth/Onboarding/Placement (wizard steps get "Schritt 03 / 07" oversized numerals).
+## Phase 21 order (revised — landing first, then inward)
+1. **21.1 Landing redesign** *(done)* — cinematic hero, section moments,
+   der/die/das tester, interactive sightseeing backdrop, pill CTAs, `--brand`.
+2. **21.2 Dark-only foundation** → **21.3 nav shell** → **21.4 Settings v2** →
+   **21.5 Profile v2** → **21.6 Dashboard v2** → **21.7 study surfaces** →
+   **21.8 auth pages**. (Details in PROJECT_PLAN.md.)
 
 ## What carries over from v1 unchanged
-The cliché ban table, German conventions (noun capitalization, gender colors), token
-architecture (CSS vars + Tailwind mapping, never hardcode values), accessibility rules
-(AA contrast, focus rings, reduced motion, 44px targets), Lucide icons, desktop-first
-responsive behaviour.
-
----
+The cliché ban (no mascots/confetti/rainbow XP), German conventions (noun
+capitalisation, der/die/das colours), token architecture (CSS vars + Tailwind,
+never hardcode values), accessibility (AA contrast, focus rings, reduced motion,
+44px targets), Lucide icons, self-hosted fonts.
 
 # Design v1 (CURRENT — in production until Phase 21 foundation lands)
 

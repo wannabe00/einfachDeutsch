@@ -31,7 +31,6 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
     level_set = serializers.BooleanField(source="profile.level_set", read_only=True)
     profile_complete = serializers.BooleanField(source="profile.profile_complete", read_only=True)
     birthday = serializers.DateField(source="profile.birthday", read_only=True)
-    phone = serializers.CharField(source="profile.phone", read_only=True)
     avatar_url = serializers.URLField(source="profile.avatar_url", read_only=True)
     preferences = serializers.JSONField(source="profile.preferences", read_only=True)
 
@@ -43,7 +42,6 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "level_set",
             "profile_complete",
             "birthday",
-            "phone",
             "avatar_url",
             "preferences",
         )

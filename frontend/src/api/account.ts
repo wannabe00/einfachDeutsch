@@ -6,7 +6,6 @@ export interface ProfileUpdate {
   last_name?: string
   username?: string
   birthday?: string | null
-  phone?: string
   preferences?: Record<string, unknown>
 }
 

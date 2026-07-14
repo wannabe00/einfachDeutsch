@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 /** First-run profile setup shown after a social sign-in (profile_complete=false).
-    Sets username + password (so username login works) + name; birthday/phone
+    Sets username + password (so username login works) + name; birthday
     optional. Afterwards the level onboarding takes over. */
 export default function WelcomePage() {
   const { user, completeProfile } = useAuth()
@@ -18,7 +18,6 @@ export default function WelcomePage() {
   const [firstName, setFirstName] = useState(user?.first_name ?? "")
   const [lastName, setLastName] = useState(user?.last_name ?? "")
   const [birthday, setBirthday] = useState("")
-  const [phone, setPhone] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
 
@@ -37,7 +36,6 @@ export default function WelcomePage() {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         birthday: birthday || undefined,
-        phone: phone || undefined,
       })
       // Level onboarding (and the rest of the app) is gated downstream.
       navigate("/", { replace: true })
@@ -115,14 +113,6 @@ export default function WelcomePage() {
               className="mt-1"
             />
           </label>
-          <Input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Phone (optional)"
-            aria-label="Phone"
-            autoComplete="tel"
-          />
           {error && <p className="text-sm text-[hsl(var(--danger))]">{error}</p>}
           <Button type="submit" disabled={pending} className="mt-1">
             {pending ? "Saving…" : "Continue"}

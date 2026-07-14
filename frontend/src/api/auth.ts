@@ -13,7 +13,6 @@ export interface OnboardingPayload {
   first_name: string
   last_name: string
   birthday?: string
-  phone?: string
 }
 
 /** Exchange an OAuth `code` (from the provider callback) for a DRF token. */
@@ -55,7 +54,6 @@ export async function completeOnboarding(
       first_name: payload.first_name,
       last_name: payload.last_name,
       birthday: payload.birthday || null,
-      phone: payload.phone || "",
     },
   )
   return data

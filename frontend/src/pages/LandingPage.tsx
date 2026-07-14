@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Link } from "react-router-dom"
 import {
   BookMarked,
@@ -11,129 +11,143 @@ import {
 } from "lucide-react"
 
 import { SITE_NAME } from "@/lib/site"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Reveal } from "@/components/landing/Reveal"
 
-// Swap these for your own photos anytime; a gradient shows if an image fails.
+/*
+ * Cinematic landing (Design v2). Always-dark marketing page built as a sequence
+ * of full-viewport "moments" — you focus on one at a time. Sections blend into
+ * each other (photo backdrops fade to the page canvas top & bottom, so there's
+ * no hard seam), and each has depth (a full-bleed Berlin/Munich photo or a soft
+ * brand glow), never a plain block on flat black. Big Space Grotesk type, one
+ * swappable brand accent (`--brand`, German-flag red now), pill CTAs,
+ * scroll-reveal. This is the guest `/`; signed-in users get the dashboard.
+ * Verified free Unsplash URLs; a gradient shows if an image fails.
+ */
 const HERO_IMG =
   "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=2400&q=80"
+const PHOTO_ISAR =
+  "https://images.unsplash.com/photo-1770983437965-a88b456f2305?auto=format&fit=crop&w=2000&q=80"
+const PHOTO_BERLIN =
+  "https://images.unsplash.com/photo-1745878136928-d1b3c10afc35?auto=format&fit=crop&w=2000&q=80"
+const PHOTO_MARIEN =
+  "https://images.unsplash.com/photo-1780545311196-f8b507b08b94?auto=format&fit=crop&w=1400&q=80"
 
-const CITY_PHOTOS = [
-  {
-    src: "https://images.unsplash.com/photo-1770983437965-a88b456f2305?auto=format&fit=crop&w=1100&q=80",
-    caption: "Die Isar",
-    city: "München",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1745878136928-d1b3c10afc35?auto=format&fit=crop&w=1100&q=80",
-    caption: "Brandenburger Tor",
-    city: "Berlin",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1780545311196-f8b507b08b94?auto=format&fit=crop&w=1100&q=80",
-    caption: "Marienplatz bei Nacht",
-    city: "München",
-  },
-]
+const brand = "hsl(var(--brand))"
 
 export default function LandingPage() {
-  const imgRef = useRef<HTMLImageElement>(null)
-  const [imgOk, setImgOk] = useState(true)
-
-  // Parallax: drift the hero photo slower than the page (no re-render).
-  useEffect(() => {
-    function onScroll() {
-      if (imgRef.current) {
-        imgRef.current.style.transform = `translateY(${window.scrollY * 0.4}px)`
-      }
-    }
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
   return (
-    <div className="bg-background text-foreground">
-      <Hero imgRef={imgRef} imgOk={imgOk} onImgError={() => setImgOk(false)} />
+    <div className="min-h-screen bg-[#0a0a0b] font-grotesk text-white">
+      <Nav />
+      <Hero />
       <Teaser />
       <Features />
-      <CultureBand />
-      <CefrPath />
-      <FaqAndCta />
+      <CultureMoment />
+      <FaqCta />
     </div>
   )
 }
 
-function TopBar() {
+/* ---- Nav: transparent over the hero, solid after scroll ---- */
+function Nav() {
+  const [solid, setSolid] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setSolid(window.scrollY > 40)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
   return (
-    <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-5">
-      <span className="text-lg font-semibold tracking-tight text-white drop-shadow">
-        {SITE_NAME}
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-30 flex items-center justify-between px-6 py-4 transition-colors duration-300",
+        solid ? "border-b border-white/10 bg-[#0a0a0b]/90 backdrop-blur" : "bg-transparent",
+      )}
+    >
+      <span className="flex items-center gap-2 text-lg font-bold tracking-tight">
+        <span className="inline-flex gap-1" aria-hidden="true">
+          <span className="size-2.5 rounded-full" style={{ background: "hsl(var(--article-der))" }} />
+          <span className="size-2.5" style={{ background: "hsl(var(--article-die))", clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }} />
+          <span className="size-2.5" style={{ background: "hsl(var(--article-das))" }} />
+        </span>
+        {SITE_NAME === "German Learning Platform" ? "einfachDeutsch" : SITE_NAME}
       </span>
-      <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" className="text-white hover:bg-white/15">
-          <Link to="/login">Log in</Link>
-        </Button>
-        <Button asChild>
-          <Link to="/login">Get started</Link>
-        </Button>
+      <div className="flex items-center gap-2 text-sm font-semibold">
+        <Link to="/login" className="rounded-full px-4 py-2 text-white/80 transition-colors hover:text-white">
+          Log in
+        </Link>
+        <Link
+          to="/login"
+          className="rounded-full px-5 py-2 text-white transition-transform hover:scale-105"
+          style={{ background: brand }}
+        >
+          Get started
+        </Link>
       </div>
     </header>
   )
 }
 
-function Hero({
-  imgRef,
-  imgOk,
-  onImgError,
-}: {
-  imgRef: React.RefObject<HTMLImageElement | null>
-  imgOk: boolean
-  onImgError: () => void
-}) {
+/* ---- Hero: full-bleed photo + parallax + big headline ---- */
+function Hero() {
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [ok, setOk] = useState(true)
+  useEffect(() => {
+    const onScroll = () => {
+      if (imgRef.current) imgRef.current.style.transform = `translateY(${window.scrollY * 0.35}px)`
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
   return (
-    <section className="relative flex h-screen min-h-[560px] items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1b2a4a] via-[#24304d] to-[#3a2a4d]" />
-      {imgOk && (
+    <section className="relative flex h-screen min-h-[620px] items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#12131a] to-[#0a0a0b]" />
+      {ok && (
         <img
           ref={imgRef}
           src={HERO_IMG}
-          alt="München — Marienplatz"
-          onError={onImgError}
-          className="absolute inset-0 h-[130%] w-full object-cover"
+          alt="München"
+          onError={() => setOk(false)}
+          className="absolute inset-0 h-[135%] w-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-black/55" />
-
-      <TopBar />
-
-      <div className="relative z-10 mx-auto max-w-3xl px-6 text-center text-white">
-        <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-          Learn German that actually sticks.
-        </h1>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-white/85">
-          Spaced-repetition flashcards, drills, an AI tutor, speaking practice,
-          and German culture — paced to your level, from Berlin to München.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link to="/login">Start free</Link>
-          </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="w-full border-white/40 bg-white/10 text-white hover:bg-white/20 sm:w-auto"
-          >
-            <Link to="/login">Take the level test</Link>
-          </Button>
-        </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/40 to-[#0a0a0b]/70" />
+      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
+        <Reveal>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
+            Deutsch lernen · A1 → C1
+          </p>
+          <h1 className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
+            Learn German
+            <br />
+            that <span style={{ color: brand }}>actually sticks.</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-white/75">
+            Spaced-repetition flashcards, drills, an AI tutor, and speaking
+            practice — paced to your level, from Berlin to München.
+          </p>
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="w-full rounded-full px-8 py-3.5 text-base font-semibold text-white transition-transform hover:scale-105 sm:w-auto"
+              style={{ background: brand }}
+            >
+              Start free
+            </Link>
+            <Link
+              to="/login"
+              className="w-full rounded-full border border-white/30 bg-white/5 px-8 py-3.5 text-base font-semibold text-white backdrop-blur transition-colors hover:bg-white/10 sm:w-auto"
+            >
+              Take the level test
+            </Link>
+          </div>
+        </Reveal>
       </div>
-
-      <ChevronDown className="absolute bottom-6 left-1/2 z-10 size-7 -translate-x-1/2 animate-bounce text-white/80" />
+      <ChevronDown className="absolute bottom-6 left-1/2 z-10 size-7 -translate-x-1/2 animate-bounce text-white/60" />
     </section>
   )
 }
 
+/* ---- der/die/das interactive tester (kept — owner likes it) ---- */
 const TEASER = [
   { noun: "Hund", en: "dog", article: "der" },
   { noun: "Katze", en: "cat", article: "die" },
@@ -163,222 +177,296 @@ function Teaser() {
   }
 
   return (
-    <Section>
-      <SectionHeading eyebrow="Try it now" title="der, die, or das?" />
-      <div className="mx-auto max-w-md rounded-2xl border border-border bg-surface p-8 text-center">
-        {done ? (
-          <>
-            <p className="text-lg font-semibold">
-              You got {score}/{TEASER.length}.
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Gender is hard — that's exactly what the drills train.
-            </p>
-            <Button asChild className="mt-5">
-              <Link to="/login">Create a free account</Link>
-            </Button>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground">
-              Which article? ({current.en})
-            </p>
-            <p className="mt-2 text-3xl font-bold">{current.noun}</p>
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {(["der", "die", "das"] as const).map((a) => {
-                const isCorrect = picked && a === current.article
-                const isWrong = picked === a && a !== current.article
-                return (
-                  <button
-                    key={a}
-                    onClick={() => choose(a)}
-                    disabled={!!picked}
-                    className={cn(
-                      "rounded-xl border-2 py-4 text-lg font-bold transition-colors",
-                      isCorrect
-                        ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
-                        : isWrong
-                          ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))]"
-                          : "border-border hover:border-accent",
-                    )}
-                    style={!picked ? { color: `hsl(var(${ARTICLE_VAR[a]}))` } : undefined}
-                  >
-                    {a}
-                  </button>
-                )
-              })}
-            </div>
-          </>
-        )}
-      </div>
-    </Section>
+    <Moment bg={<PhotoBg src={PHOTO_MARIEN} />}>
+      <Reveal>
+        <MomentHeader label="Try it now" title="der, die, or das?" />
+        <div className="mx-auto mt-10 max-w-md rounded-2xl border border-white/10 bg-[#0a0a0b]/55 p-8 text-center backdrop-blur-md">
+          {done ? (
+            <>
+              <p className="text-lg font-semibold">
+                You got {score}/{TEASER.length}.
+              </p>
+              <p className="mt-1 text-sm text-white/70">
+                Gender is hard — that's exactly what the drills train.
+              </p>
+              <Link
+                to="/login"
+                className="mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-white"
+                style={{ background: brand }}
+              >
+                Create a free account
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-white/70">Which article? ({current.en})</p>
+              <p className="mt-2 text-4xl font-bold">{current.noun}</p>
+              <div className="mt-7 grid grid-cols-3 gap-3">
+                {(["der", "die", "das"] as const).map((a) => {
+                  const isCorrect = picked && a === current.article
+                  const isWrong = picked === a && a !== current.article
+                  return (
+                    <button
+                      key={a}
+                      onClick={() => choose(a)}
+                      disabled={!!picked}
+                      className={cn(
+                        "rounded-xl border-2 py-4 text-lg font-bold transition-colors",
+                        isCorrect
+                          ? "border-[hsl(var(--success))] bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))]"
+                          : isWrong
+                            ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger)/0.15)] text-[hsl(var(--danger))]"
+                            : "border-white/15 hover:border-white/40",
+                      )}
+                      style={!picked ? { color: `hsl(var(${ARTICLE_VAR[a]}))` } : undefined}
+                    >
+                      {a}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </Reveal>
+    </Moment>
   )
 }
 
+/* ---- Feature strip ---- */
 const FEATURES = [
   { icon: GraduationCap, title: "Spaced review", body: "SM-2 flashcards timed to just before you'd forget." },
   { icon: BookMarked, title: "Word Bank", body: "Vocabulary by chapter; import your own lists." },
   { icon: Swords, title: "Drills", body: "Fast games: gender, unscramble, recall." },
   { icon: Mic, title: "Recite", body: "Retell a text aloud, scored on coverage & grammar." },
-  { icon: BrainCircuit, title: "AI tutor", body: "Explanations, exercises, and instant feedback." },
+  { icon: BrainCircuit, title: "AI tutor", body: "Explanations, exercises, instant feedback." },
   { icon: Landmark, title: "History", body: "German history — English first, then German." },
 ]
 
 function Features() {
   return (
-    <Section muted>
-      <SectionHeading eyebrow="What's inside" title="Everything in one place" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="rounded-xl border border-border bg-background p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-accent/10 text-accent">
+    <Moment>
+      <Reveal>
+        <MomentHeader label="What's inside" title="Everything in one place" />
+      </Reveal>
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((f, i) => (
+          <Reveal key={f.title} delay={i * 60}>
+            <div className="h-full rounded-xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-white/25">
+              <div
+                className="flex size-10 items-center justify-center rounded-lg"
+                style={{ background: "hsl(var(--brand)/0.15)", color: brand }}
+              >
                 <f.icon className="size-5" />
               </div>
-              <h3 className="font-semibold">{f.title}</h3>
+              <h3 className="mt-4 font-bold">{f.title}</h3>
+              <p className="mt-1 text-sm text-white/60">{f.body}</p>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
-          </div>
+          </Reveal>
         ))}
       </div>
-    </Section>
+    </Moment>
   )
 }
 
-function CultureBand() {
-  return (
-    <Section>
-      <SectionHeading
-        eyebrow="More than vocabulary"
-        title="Learn the language and the country"
-        subtitle="From Marienplatz to the Brandenburg Gate — culture and context, not just a wordlist."
-      />
-      <div className="grid gap-4 sm:grid-cols-3">
-        {CITY_PHOTOS.map((p) => (
-          <PhotoTile key={p.caption} {...p} />
-        ))}
-      </div>
-    </Section>
-  )
-}
+/* ---- Culture moment: interactive sightseeing backdrop ---- */
+const SIGHTS = [
+  { src: PHOTO_BERLIN, name: "Brandenburger Tor", city: "Berlin" },
+  { src: PHOTO_ISAR, name: "Die Isar", city: "München" },
+  { src: PHOTO_MARIEN, name: "Marienplatz", city: "München" },
+]
 
-function PhotoTile({ src, caption, city }: { src: string; caption: string; city: string }) {
-  const [ok, setOk] = useState(true)
+function CultureMoment() {
+  const [active, setActive] = useState(0)
+
+  // Auto-rotate the backdrop; clicking a sight jumps to it. Reduced-motion
+  // users stay on whatever they pick (no automatic movement).
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const id = window.setInterval(() => setActive((n) => (n + 1) % SIGHTS.length), 5000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const current = SIGHTS[active]
+
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#24304d] to-[#3a2a4d]" />
-      {ok && (
+    <section className="relative flex min-h-screen items-center overflow-hidden">
+      {SIGHTS.map((s, i) => (
         <img
-          src={src}
-          alt={`${caption}, ${city}`}
-          loading="lazy"
-          onError={() => setOk(false)}
-          className="absolute inset-0 size-full object-cover transition-transform duration-500 hover:scale-105"
+          key={s.name}
+          src={s.src}
+          alt={`${s.name}, ${s.city}`}
+          className={cn(
+            "absolute inset-0 size-full object-cover transition-opacity duration-1000 motion-reduce:transition-none",
+            i === active ? "opacity-100" : "opacity-0",
+          )}
         />
-      )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
-        <p className="text-sm font-semibold">{caption}</p>
-        <p className="text-xs text-white/75">{city}</p>
-      </div>
-    </div>
-  )
-}
+      ))}
+      {/* Readability wash on the left + top/bottom fades so the section blends
+          seamlessly into the ones above and below. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0b] via-[#0a0a0b]/55 to-[#0a0a0b]/10" />
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0a0a0b] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0a0a0b] to-transparent" />
 
-const LEVELS = [
-  { l: "A1", t: "Basics & greetings" },
-  { l: "A2", t: "Everyday situations" },
-  { l: "B1", t: "Videos & shows unlock" },
-  { l: "B2", t: "Fluent, spontaneous" },
-  { l: "C1", t: "Advanced & idiomatic" },
-  { l: "C2", t: "Mastery" },
-]
-
-function CefrPath() {
-  return (
-    <Section muted>
-      <SectionHeading eyebrow="Your path" title="A1 to C2" />
-      <div className="flex flex-wrap items-stretch justify-center gap-3">
-        {LEVELS.map((lvl) => (
-          <div
-            key={lvl.l}
-            className="flex w-[140px] flex-col rounded-xl border border-border bg-background p-4"
-          >
-            <span className="text-2xl font-bold text-accent">{lvl.l}</span>
-            <span className="mt-1 text-xs text-muted-foreground">{lvl.t}</span>
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
+        <Reveal className="max-w-xl">
+          <SectionLabel>Mehr als Vokabeln</SectionLabel>
+          <h2 className="mt-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+            Learn the language and the country
+          </h2>
+          <p className="mt-4 text-lg text-white/75">
+            From the Brandenburger Tor to the Isar — culture and context, not just
+            a wordlist.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {SIGHTS.map((s, i) => (
+              <button
+                key={s.name}
+                onClick={() => setActive(i)}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                  i === active
+                    ? "border-transparent text-white"
+                    : "border-white/25 text-white/70 hover:text-white",
+                )}
+                style={i === active ? { background: brand } : undefined}
+              >
+                {s.name}
+              </button>
+            ))}
           </div>
-        ))}
+          <p className="mt-3 text-sm text-white/50">{current.city}</p>
+        </Reveal>
       </div>
-    </Section>
-  )
-}
-
-const FAQS = [
-  { q: "Is it free?", a: "Yes — the core features are free. Some (AI, speaking, drills) need a free account." },
-  { q: "Do I need an account?", a: "Try grammar, exercises, and a taste of the drills as a guest. Sign in to save progress and unlock everything." },
-  { q: "What level is it for?", a: "A1 to C2 — start at A1 or take a placement test, and content adapts as you grow." },
-]
-
-function FaqAndCta() {
-  return (
-    <Section>
-      <SectionHeading eyebrow="Questions" title="Good to know" />
-      <div className="mx-auto max-w-2xl divide-y divide-border">
-        {FAQS.map((f) => (
-          <div key={f.q} className="py-4">
-            <p className="font-medium">{f.q}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{f.a}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-12 rounded-2xl border border-border bg-surface p-10 text-center">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Ready to start learning German?
-        </h2>
-        <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-          Sign in with Google or GitHub and find your level in minutes.
-        </p>
-        <Button asChild size="lg" className="mt-6">
-          <Link to="/login">Start free</Link>
-        </Button>
-      </div>
-
-      <footer className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
-        <span>
-          © {new Date().getFullYear()} {SITE_NAME}
-        </span>
-        <div className="flex gap-4">
-          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-          <Link to="/login" className="hover:text-foreground">Log in</Link>
-        </div>
-      </footer>
-    </Section>
-  )
-}
-
-/* ---- small layout helpers ---- */
-function Section({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
-  return (
-    <section className={cn("px-6 py-16 sm:py-20", muted && "bg-surface/40")}>
-      <div className="mx-auto max-w-5xl">{children}</div>
     </section>
   )
 }
 
-function SectionHeading({
-  eyebrow,
-  title,
-  subtitle,
+/* ---- FAQ + final CTA + footer ---- */
+const FAQS = [
+  { q: "Is it free?", a: "Yes — the core features are free. Some (AI, speaking, drills) need a free account." },
+  { q: "Do I need an account?", a: "Try grammar, exercises, and a taste of the drills as a guest. Sign in to save progress." },
+  { q: "What level is it for?", a: "A1 to C1 — start at A1 or take a placement test, and content adapts as you grow." },
+]
+
+function FaqCta() {
+  return (
+    <Moment>
+      <Reveal>
+        <MomentHeader label="Questions" title="Good to know" />
+      </Reveal>
+      <div className="mx-auto mt-10 max-w-2xl divide-y divide-white/10">
+        {FAQS.map((f) => (
+          <Reveal key={f.q}>
+            <div className="py-5">
+              <p className="font-semibold">{f.q}</p>
+              <p className="mt-1 text-sm text-white/60">{f.a}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+
+      <Reveal>
+        <div className="mx-auto mt-14 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Ready to start learning German?
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-white/70">
+            Sign in with Google or GitHub and find your level in minutes.
+          </p>
+          <Link
+            to="/login"
+            className="mt-7 inline-block rounded-full px-8 py-3.5 text-base font-semibold text-white transition-transform hover:scale-105"
+            style={{ background: brand }}
+          >
+            Start free
+          </Link>
+        </div>
+      </Reveal>
+
+      <footer className="mx-auto mt-14 flex w-full max-w-2xl flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-sm text-white/50 sm:flex-row">
+        <span>© {new Date().getFullYear()} einfachDeutsch</span>
+        <div className="flex gap-4">
+          <Link to="/privacy" className="hover:text-white">Privacy</Link>
+          <Link to="/login" className="hover:text-white">Log in</Link>
+        </div>
+      </footer>
+    </Moment>
+  )
+}
+
+/* ---- building blocks ---- */
+
+/** A full-viewport section so the reader focuses on one thing at a time.
+    Defaults to a soft brand glow backdrop; pass `bg` for a photo backdrop. */
+function Moment({
+  children,
+  className,
+  bg,
 }: {
-  eyebrow: string
-  title: string
-  subtitle?: string
+  children: ReactNode
+  className?: string
+  bg?: ReactNode
 }) {
   return (
-    <div className="mb-10 text-center">
-      <p className="text-xs font-semibold uppercase tracking-wide text-accent">{eyebrow}</p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
-      {subtitle && <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{subtitle}</p>}
+    <section
+      className={cn(
+        "relative flex min-h-screen flex-col justify-center overflow-hidden px-6 py-24",
+        className,
+      )}
+    >
+      {bg ?? <GlowBg />}
+      <div className="relative z-10 mx-auto w-full max-w-5xl">{children}</div>
+    </section>
+  )
+}
+
+/** Near-black canvas with a single soft brand-colored glow for depth. */
+function GlowBg() {
+  return (
+    <>
+      <div className="absolute inset-0 bg-[#0a0a0b]" />
+      <div
+        className="absolute left-1/2 top-1/2 size-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.14] blur-[130px]"
+        style={{ background: brand }}
+      />
+    </>
+  )
+}
+
+/** Full-bleed photo kept bright enough to hold the mood, with top/bottom fades
+    to the page canvas so the section melts into its neighbours (no hard seam). */
+function PhotoBg({ src }: { src: string }) {
+  const [ok, setOk] = useState(true)
+  return (
+    <>
+      <div className="absolute inset-0 bg-[#0a0a0b]" />
+      {ok && (
+        <img
+          src={src}
+          alt=""
+          onError={() => setOk(false)}
+          className="absolute inset-0 size-full object-cover opacity-[0.6]"
+        />
+      )}
+      <div className="absolute inset-0 bg-[#0a0a0b]/45" />
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0a0a0b] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0a0a0b] to-transparent" />
+    </>
+  )
+}
+
+function MomentHeader({ label, title }: { label: string; title: string }) {
+  return (
+    <div className="mx-auto max-w-2xl text-center">
+      <SectionLabel>{label}</SectionLabel>
+      <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
     </div>
+  )
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">{children}</p>
   )
 }

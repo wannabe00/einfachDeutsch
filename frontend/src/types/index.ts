@@ -125,7 +125,6 @@ export interface User {
   /** False right after a social signup; true once username/password/name set. */
   profile_complete: boolean
   birthday: string | null
-  phone: string
   avatar_url: string
   preferences: Record<string, unknown>
 }
