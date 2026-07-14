@@ -1,50 +1,19 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react"
+import { useEffect, type ReactNode } from "react"
 
-type Theme = "light" | "dark"
-
-interface ThemeContextValue {
-  theme: Theme
-  toggleTheme: () => void
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null)
-const STORAGE_KEY = "theme"
-
-function initialTheme(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored === "light" || stored === "dark") return stored
-  // Dark-first: default to dark unless the user has explicitly chosen light.
-  return "dark"
-}
-
+/*
+ * The app is dark-only (Design v2 — Cinematic). There is no light theme and no
+ * toggle: this provider simply pins the `dark` class on <html> so the design
+ * tokens in index.css resolve to the cinematic palette. Kept as a provider (not
+ * inlined) so the single place that owns "the app is dark" is obvious, and so a
+ * future theme system has a home to slot back into.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(initialTheme)
-
   useEffect(() => {
     const root = document.documentElement
-    root.classList.toggle("dark", theme === "dark")
-    localStorage.setItem(STORAGE_KEY, theme)
-  }, [theme])
+    root.classList.add("dark")
+    // Clear any theme preference persisted by the old light/dark toggle.
+    localStorage.removeItem("theme")
+  }, [])
 
-  const toggleTheme = () =>
-    setTheme((t) => (t === "dark" ? "light" : "dark"))
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useTheme() {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider")
-  return ctx
+  return <>{children}</>
 }
