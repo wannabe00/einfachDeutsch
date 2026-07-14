@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "apps.recitation",
     "apps.videos",
     "apps.history",
+    "apps.curriculum",
 ]
 
 SITE_ID = 1
@@ -301,6 +302,14 @@ RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
 # ---- Video / show suggestions (Phase 17) ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
 VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
+
+
+# ---- Learning path: energy + premium (Phase 23, Spec v3) ----
+# Free tier energy: bar size, and hours to regenerate +1. Premium = unlimited.
+ENERGY_MAX = int(os.getenv("ENERGY_MAX", "3"))
+ENERGY_REFILL_HOURS = int(os.getenv("ENERGY_REFILL_HOURS", "4"))
+# Length of the premium free trial, in days.
+PREMIUM_TRIAL_DAYS = int(os.getenv("PREMIUM_TRIAL_DAYS", "7"))
 
 
 # ---- Cloudinary (profile picture uploads) ----
