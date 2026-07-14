@@ -10,6 +10,7 @@ import { CSVImportButton } from "@/components/vocabulary/CSVImportButton"
 import { PasteWordsButton } from "@/components/vocabulary/PasteWordsButton"
 import { WordOverview } from "@/components/vocabulary/WordOverview"
 import { ChapterButtons } from "@/components/layout/ChapterButtons"
+import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { useAIPanel } from "@/contexts/AIPanelContext"
 import { Sparkles, ChevronLeft, ChevronRight, Plus } from "lucide-react"
@@ -50,33 +51,35 @@ export default function WordBankPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Word Bank</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <PageHeader
+        title="Word Bank"
+        subtitle={
+          <>
             {words?.length ?? 0} words
             {selection !== "all" && ` · ${chapterTitle(selection)}`}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() =>
-              openPanel(
-                "AI · Generate words",
-                `Suggest 10 vocabulary words for chapter: ${
-                  selection === "all" ? "beginner German" : chapterTitle(selection)
-                }. Give German (with article) and English.`,
-              )
-            }
-          >
-            <Sparkles className="mr-2 size-4" /> Generate with AI
-          </Button>
-          <Button variant="default" onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : <><Plus className="mr-2 size-4" /> Add Words</>}
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                openPanel(
+                  "AI · Generate words",
+                  `Suggest 10 vocabulary words for chapter: ${
+                    selection === "all" ? "beginner German" : chapterTitle(selection)
+                  }. Give German (with article) and English.`,
+                )
+              }
+            >
+              <Sparkles className="mr-2 size-4" /> Generate with AI
+            </Button>
+            <Button variant="default" onClick={() => setShowForm((v) => !v)}>
+              {showForm ? "Cancel" : <><Plus className="mr-2 size-4" /> Add Words</>}
+            </Button>
+          </>
+        }
+      />
 
       {/* Add Words popup — single form + paste list + CSV together */}
       {showForm && allChapters.length > 0 && (

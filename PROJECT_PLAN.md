@@ -371,7 +371,11 @@ Goal: a premium, **image-led cinematic** look adapted from spaceship.com's struc
 - [x] **21.4 Settings v2** — rebuilt `SettingsPage` in the dark cinematic language: spaceship-style **vertical tab rail** (desktop, sticky) that becomes a **horizontal scrolling tab strip** on mobile, with a single panel showing the active section. Tabs: Profile / Security / Preferences / Data / Danger zone (the last tinted with the danger token). The existing section components drop in unchanged and adopt the dark palette via tokens; only the active tab mounts. tsc + eslint + build clean. **Deferred (owner's call — own later brick):** the **active-sessions** list (needs a new backend list/revoke-tokens endpoint) and any richer new preference rows.
 - [ ] **21.5 Profile v2** — the account/profile surface in the new language (identity header, avatar, stats), consistent with Settings v2.
 - [ ] **21.6 Dashboard v2** — restyle `Dashboard` (cards, stats, next-actions) dark cinematic + brand accent.
-- [ ] **21.7 Study surfaces v2** — Review, Word Bank, Grammar, Exercises, Drills, Recite, Videos, History, Books, AI Assistant restyled to the system, page by page (each its own brick/branch).
+- [ ] **21.7 Study surfaces v2** — restyle each study page to the system, in groups (each its own branch). Progress:
+  - [x] **Core group (branch `redesign/study-core`)** — Review, Word Bank, Grammar. All three were already fully tokenized (adopt the dark palette automatically); the cohesion pass added a shared `components/layout/PageHeader` (bold Space Grotesk title + subtitle + actions) used across them, and aligned card hovers to the brand accent (`hover:border-primary/50`, dropped dead light-mode shadows). tsc + eslint + build clean.
+  - [ ] Exercises · Drills · Recite (practice group)
+  - [ ] Videos · History · Books (content group)
+  - [ ] AI Assistant
 - [ ] **21.8 Auth pages v2** — `AuthPage`/`OnboardingPage`/`WelcomePage` aligned to the cinematic language (they bridge the landing and the app).
 
 ## Phase 22 — Content population

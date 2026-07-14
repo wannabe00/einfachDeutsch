@@ -8,6 +8,7 @@ import type { Chapter, GrammarRule } from "@/types"
 import { grammarCategoryLabel } from "@/lib/labels"
 import { GrammarCard } from "@/components/grammar/GrammarCard"
 import { GrammarForm } from "@/components/grammar/GrammarForm"
+import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 
 export default function GrammarPage() {
@@ -96,17 +97,15 @@ export default function GrammarPage() {
   // ---- Gallery view ------------------------------------------------------
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Grammar</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {rules?.length ?? 0} topics
-          </p>
-        </div>
-        <Button variant="secondary" onClick={() => setShowForm((v) => !v)}>
-          {showForm ? "Cancel" : "Add topic"}
-        </Button>
-      </div>
+      <PageHeader
+        title="Grammar"
+        subtitle={`${rules?.length ?? 0} topics`}
+        actions={
+          <Button variant="secondary" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? "Cancel" : "Add topic"}
+          </Button>
+        }
+      />
 
       {showForm && allChapters.length > 0 && (
         <div className="mt-4 rounded-xl border border-border bg-surface p-4">
@@ -142,7 +141,7 @@ export default function GrammarPage() {
                   <button
                     key={rule.id}
                     onClick={() => setOpenId(rule.id)}
-                    className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-4 text-left shadow-sm transition-all hover:border-accent hover:shadow-md"
+                    className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-4 text-left transition-colors hover:border-primary/50"
                   >
                     <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                       {grammarCategoryLabel(rule.category)}
