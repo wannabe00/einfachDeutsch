@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 CEFR_LEVELS = [
     ("A1", "A1"),
@@ -44,7 +45,21 @@ class UserProfile(models.Model):
     # Free-form prefs: notifications, daily_goal, reminder_time, language,
     # timezone, etc. Stored as JSON so new toggles don't need migrations.
     preferences = models.JSONField(default=dict, blank=True)
+    # Premium (Spec v3 — Phase 23). Until Stripe (23.16), `is_premium` is a manual
+    # admin flag; `premium_until` also covers the 7-day trial and (later) a paid
+    # subscription's end. `trial_started_at` marks that the trial was granted.
+    is_premium = models.BooleanField(default=False)
+    premium_until = models.DateTimeField(null=True, blank=True)
+    trial_started_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def has_premium(self) -> bool:
+        """True if the user currently has premium access (timed subscription/
+        trial still active, or a manual no-expiry admin flag)."""
+        if self.premium_until and self.premium_until > timezone.now():
+            return True
+        return self.is_premium and self.premium_until is None
 
     def __str__(self):
         return f"{self.user} ({self.cefr_level})"
