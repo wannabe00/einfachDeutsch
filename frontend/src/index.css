@@ -52,15 +52,18 @@
   }
 
   .dark {
-    /* Editorial palette — dark (slate canvas + indigo accent) */
-    --background: 224 24% 6%;
-    --surface: 224 20% 11%;
-    --foreground: 220 20% 94%;
-    --muted-foreground: 218 11% 62%;
-    --border: 222 16% 18%;
-    --accent: 239 84% 67%;
+    /* Cinematic palette (Design v2) — near-black canvas + German-flag-red accent.
+       The single accent (`--brand`) drives primary actions, links, focus, and
+       active nav; der/die/das keep their gender colours for vocab/charts. This
+       is the only theme (the app is dark-only). */
+    --background: 240 6% 4%;
+    --surface: 240 6% 8%;
+    --foreground: 220 16% 95%;
+    --muted-foreground: 240 6% 60%;
+    --border: 240 5% 15%;
+    --accent: 353 90% 55%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 234 89% 74%;
+    --accent-hover: 353 85% 48%;
     --success: 160 64% 52%;
     --success-bg: 160 50% 11%;
     --danger: 0 91% 71%;
@@ -71,20 +74,20 @@
     --article-die: 336 74% 70%;
     --article-das: 43 96% 56%;
 
-    /* shadcn primitives (dark) */
-    --card: 224 20% 11%;
-    --card-foreground: 220 20% 94%;
-    --popover: 224 20% 11%;
-    --popover-foreground: 220 20% 94%;
-    --primary: 239 84% 67%;
+    /* shadcn primitives (dark) — primary/ring map to the brand accent */
+    --card: 240 6% 8%;
+    --card-foreground: 220 16% 95%;
+    --popover: 240 6% 8%;
+    --popover-foreground: 220 16% 95%;
+    --primary: 353 90% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 222 18% 16%;
-    --secondary-foreground: 220 20% 94%;
-    --muted: 222 18% 16%;
+    --secondary: 240 5% 13%;
+    --secondary-foreground: 220 16% 95%;
+    --muted: 240 5% 13%;
     --destructive: 0 91% 71%;
     --destructive-foreground: 0 0% 100%;
-    --input: 222 16% 18%;
-    --ring: 239 84% 67%;
+    --input: 240 5% 15%;
+    --ring: 353 90% 55%;
     --brand: 353 90% 55%;
   }
 }
@@ -98,12 +101,18 @@
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     min-height: 100vh;
-    /* Subtle depth: a faint indigo glow in the top-left, fading to canvas. */
+    /* Subtle depth: a faint brand-red glow in the top-left, fading to canvas. */
     background-image: radial-gradient(
       1200px 600px at 0% 0%,
-      hsl(var(--accent) / 0.06),
+      hsl(var(--brand) / 0.06),
       transparent 60%
     );
     background-attachment: fixed;
+  }
+  /* Cinematic headings — Space Grotesk (self-hosted) with tight tracking; body
+     copy stays Inter. Pages can still opt a heading out with `font-sans`. */
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
