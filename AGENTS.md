@@ -21,6 +21,19 @@ A German vocabulary + grammar study app built with **Django 5 + DRF** (backend) 
 - **Auth:** account creation is **social-login only** (Google + GitHub OAuth via allauth + dj-rest-auth). Onboarding then sets username + password + name (`UserProfile.profile_complete` gate); username/password is a login fallback. **No email/phone verification.** OAuth client IDs/secrets come from env. SMTP is wired only for a future password-reset flow.
 - **Copyright:** never reproduce the Menschen workbooks (or other non-public-domain books) verbatim — author original lesson-matched content instead.
 
+### Spec v3 — Learning Path (locked 2026-07-15 — see PROJECT_PLAN.md "Phase 23")
+The app is being rebuilt into a **Duolingo-style guided path**. These decisions are locked; build to them.
+- **Structure:** Level (A1…C1) → **Unit** (theme) → **Lesson** ("day", ~6 mixed items: exercises + a drill + a few review cards). Progression is **strictly linear within the current level**; ahead is **locked + blurred**.
+- **Level-gating (everywhere, consistent):** a user only sees content **≤ their level**. Below = optional review (fully unlocked), current = linear, future = fully locked. Applies to path, Word Bank, Grammar, Videos, History. **Never show forward-level content.**
+- **Level-up:** completing (at/near 100%) a level's path unlocks a **Goethe-style checkpoint exam**; **pass → promote**, **fail → back to review**. Placement test sets the *starting* level only; no free skipping.
+- **Energy:** free users start **3**, each **new** lesson costs 1, refill **+1 every ~4h (cap 3)**, spent **on completion** (quitting is free). Redoing lessons / Review / Word Bank / Grammar / Drills never cost energy. **Premium = unlimited energy.** Keep energy logic swappable/tunable via settings.
+- **Tiers:** **Free** = full path (energy-limited) + Review + Word Bank + Grammar + Videos + History + Books. **Premium** = **unlimited energy + AI Assistant + AI explanations + Recite (speech)**. Price **$2.99/mo or ~$24/yr, 7-day trial**. Free users see AI/Recite **locked with upsell**. Until Stripe ships (last brick), premium is a **manual admin flag**; gate features on `is_premium`, never on a hardcoded user list.
+- **Grading:** exercise grading is **deterministic/local** (not AI) so free users are graded. AI is only for chat/explanations/speech (all premium).
+- **Content:** **pre-generated once, admin-approved**, shared/global (no per-user content). **Books = structure only** (owner provides A1 books); all stored items **authored original**. Grammar topics map to the **specific lessons that teach them** (grammar lives only on some chapters). MVP = **A1 only** first.
+- **Data:** **additive** — new path/energy/premium/conversation models sit alongside existing SRS/streak/level models; **retire the thin Menschen seed** as real curriculum lands. Money stored as integer cents.
+- **AI history:** ChatGPT-style per-user `Conversation` + `Message` models (resume/new/rename/delete, auto-titled). Premium-gated.
+- **Visual:** friendlier **"dark + depth"** (gradients/glow/imagery, rounder cards, per-unit section colors) — see `DESIGN.md` → "Design v3". **Keep der/die/das color+shape + German-flag-red accent.** Gamification = **XP + per-lesson crowns + streak** (leagues later).
+
 ### Backend (Django)
 - DB/secrets stay in the backend only — never touch them from the frontend directly.
 - Always register new apps in `INSTALLED_APPS` and wire their URLs in `config/urls.py`.
