@@ -7,6 +7,7 @@ import { useReviewSession } from "@/hooks/useReviewSession"
 import type { Book, Chapter } from "@/types"
 import { FlashCard } from "@/components/vocabulary/FlashCard"
 import { ChapterButtons } from "@/components/layout/ChapterButtons"
+import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 
 export default function ReviewPage() {
@@ -48,19 +49,23 @@ export default function ReviewPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
-          <button
-            onClick={session.restart}
-            className="mt-0.5 text-sm text-muted-foreground hover:text-accent"
-          >
-            {sessionLabel} · change
-          </button>
-        </div>
-        <span className="text-sm text-muted-foreground">
-          {session.stats.answered} / {session.total}
-        </span>
+      <div className="mb-6">
+        <PageHeader
+          title="Review"
+          subtitle={
+            <button
+              onClick={session.restart}
+              className="text-muted-foreground transition-colors hover:text-accent"
+            >
+              {sessionLabel} · change
+            </button>
+          }
+          actions={
+            <span className="self-center text-sm text-muted-foreground">
+              {session.stats.answered} / {session.total}
+            </span>
+          }
+        />
       </div>
 
       {/* Progress by answered, not position (skips don't advance it) */}
@@ -110,8 +115,7 @@ function StartScreen({
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Choose what to review.</p>
+      <PageHeader title="Review" subtitle="Choose what to review." />
 
       {total === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-4 py-16 text-center">
