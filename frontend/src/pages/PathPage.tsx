@@ -8,7 +8,6 @@ import { resolveAccent } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { SectionCard } from "@/components/ui/SectionCard"
 import { NextUp } from "@/components/path/NextUp"
-import { EnergyMeter } from "@/components/path/EnergyMeter"
 
 /*
  * The learning path (Phase 23.4) — an overview of the units for your level,
@@ -22,21 +21,15 @@ export default function PathPage() {
   if (isLoading) return <Centered>Loading your path…</Centered>
   if (isError || !data) return <Centered>Couldn’t load your path. Try again.</Centered>
 
-  const { level, energy, next_up, units } = data
+  const { level, next_up, units } = data
 
   return (
     <div className="flex flex-col gap-6">
+      {/* The energy meter lives in the top bar now (global + live), so it isn't
+          repeated here. */}
       <PageHeader
         title="Your path"
         subtitle={`Level ${level} · ${units.length} ${units.length === 1 ? "unit" : "units"}`}
-        actions={
-          <EnergyMeter
-            energy={energy.current}
-            max={energy.max}
-            premium={energy.premium}
-            secondsUntilNext={energy.seconds_until_next}
-          />
-        }
       />
 
       {next_up && (

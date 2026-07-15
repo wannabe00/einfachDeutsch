@@ -3,9 +3,16 @@ import type {
   AnswerResult,
   CompleteResult,
   LessonDetail,
+  PathEnergy,
   PathResponse,
   PathUnitDetail,
 } from "@/types"
+
+/** Live energy for the global meter. Regen is computed server-side on read. */
+export async function fetchEnergy(): Promise<PathEnergy> {
+  const { data } = await apiClient.get<PathEnergy>("/curriculum/energy/")
+  return data
+}
 
 /** The signed-in user's learning path: units ≤ their level, each lesson's
     state (completed/current/available/locked), energy, and what's next. */

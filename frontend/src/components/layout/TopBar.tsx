@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { SITE_NAME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useEnergy } from "@/hooks/useEnergy"
+import { EnergyMeter } from "@/components/path/EnergyMeter"
 import { AccountMenu } from "./AccountMenu"
 import { MobileNav } from "./MobileNav"
 import { dashboardItem, pathItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
@@ -68,9 +70,12 @@ export function TopBar() {
           <BarLink item={aiItem} />
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {user ? (
-            <AccountMenu />
+            <>
+              <GlobalEnergy />
+              <AccountMenu />
+            </>
           ) : (
             <>
               {/* Hide the ghost "Log in" on the smallest screens so the guest bar
@@ -88,6 +93,21 @@ export function TopBar() {
 
       <MobileNav open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>
+  )
+}
+
+/** The always-visible energy meter, ticking down to the next refill. */
+function GlobalEnergy() {
+  const { energy, secondsUntilNext } = useEnergy()
+  if (!energy) return null
+  return (
+    <EnergyMeter
+      energy={energy.current}
+      max={energy.max}
+      premium={energy.premium}
+      secondsUntilNext={secondsUntilNext}
+      className="max-sm:hidden"
+    />
   )
 }
 

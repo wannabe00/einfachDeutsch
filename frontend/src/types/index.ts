@@ -290,7 +290,9 @@ export interface PathEnergy {
   current: number
   max: number
   premium: boolean
+  /** null when full or premium. */
   seconds_until_next: number | null
+  refill_hours: number
 }
 
 export interface PathNextUp {
