@@ -170,6 +170,8 @@ export interface WordProgress {
   lapses: number
 }
 
+export type PartOfSpeech = "noun" | "verb" | "adjective" | "adverb" | "phrase" | "other"
+
 export interface Word {
   id: number
   chapter: number
@@ -178,6 +180,11 @@ export interface Word {
   notes: string
   /** Per-user SM-2 state; null for new (unreviewed) words and for guests. */
   progress: WordProgress | null
+  /** From the word's chapter — the Word Bank groups by Level → part of speech. */
+  cefr_level: CEFRLevel
+  part_of_speech: PartOfSpeech
+  /** True for a Lektion at your own level you haven't reached yet (Phase 23.9). */
+  locked: boolean
 }
 
 /** Quality scale sent to the review endpoint: Again | Hard | Good | Easy. */

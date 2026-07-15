@@ -29,3 +29,17 @@ export function grammarCategoryLabel(v: string): string {
 export function exerciseTypeLabel(v: string): string {
   return EXERCISE_TYPES.find((t) => t.value === v)?.label ?? v
 }
+
+/** Word Bank groups (Phase 23.9). Order defines how the groups are listed. */
+export const PARTS_OF_SPEECH = [
+  { value: "noun", label: "Nouns" },
+  { value: "verb", label: "Verbs" },
+  { value: "adjective", label: "Adjectives" },
+  { value: "adverb", label: "Adverbs" },
+  { value: "phrase", label: "Phrases" },
+  { value: "other", label: "Other" },
+]
+
+export function partOfSpeechLabel(v: string): string {
+  return PARTS_OF_SPEECH.find((p) => p.value === v)?.label ?? v
+}
