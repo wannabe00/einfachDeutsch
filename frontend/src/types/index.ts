@@ -325,3 +325,66 @@ export interface PathUnitDetail extends PathUnit {
   words: UnitWord[]
   grammar: UnitGrammar[]
 }
+
+/* ---- Lesson player (Phase 23.5). Answers are never sent to the client. ---- */
+
+export type LessonItemKind = "exercise" | "drill" | "review" | "grammar"
+
+export interface ExerciseContent {
+  exercise_id: number
+  type: string
+  prompt: string
+  hint: string
+  /** Solution keys are stripped server-side; holds e.g. options / tokens. */
+  payload: { options?: string[]; tokens?: string[]; text?: string; bank?: string[] }
+}
+
+export interface ReviewContent {
+  word_id: number
+  german: string
+  english: string
+}
+
+export interface GrammarContent {
+  grammar_id: number
+  title: string
+  category: string
+  content: string
+  example_sentences: string
+}
+
+export interface LessonItemDTO {
+  id: number
+  order: number
+  kind: LessonItemKind
+  content: ExerciseContent | ReviewContent | GrammarContent | null
+}
+
+export interface LessonDetail {
+  id: number
+  order: number
+  title: string
+  xp_reward: number
+  unit_id: number
+  unit_title: string
+  accent_color: string
+  items: LessonItemDTO[]
+  is_new: boolean
+}
+
+export interface AnswerResult {
+  correct: boolean
+  solution: string | string[]
+  explanation: string
+}
+
+export interface CompleteResult {
+  passed: boolean
+  score: number
+  correct: number
+  total: number
+  xp_earned: number
+  crown: number
+  spent_energy: boolean
+  energy: PathEnergy
+}
