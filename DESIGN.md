@@ -107,6 +107,57 @@ capitalisation, der/die/das colours), token architecture (CSS vars + Tailwind,
 never hardcode values), accessibility (AA contrast, focus rings, reduced motion,
 44px targets), Lucide icons, self-hosted fonts.
 
+# Design v3 — Learning Path "dark + depth" (Phase 23, APPROVED)
+
+> Decided 2026-07-15 with the owner (Learning-Path pivot, PROJECT_PLAN Phase 23).
+> The app becomes a **Duolingo-style guided path**. The Design v2 dark shell
+> stays, but the flat near-black + thin-outline card look was too plain — v3 adds
+> **depth and warmth** while keeping our identity. Marketing landing (v2) is
+> unchanged. Applies to all in-app pages.
+
+## Direction: "dark + depth" (not flat black)
+- Keep a **dark base** but give it life: **layered gradients**, soft **glows**,
+  subtle **imagery/illustration**, and **rounder, chunkier cards** with a hint of
+  elevation — not hairline outlines on flat black.
+- **Per-unit section colours:** each path unit gets its own accent (a small
+  curated palette) so the path reads as colourful, Duolingo-like sections — while
+  the global brand accent (**German-flag red `--brand`**) still drives primary
+  CTAs/focus. der/die/das colours stay reserved for **gender** (grammar/vocab).
+- Still premium and legible; playful, not childish. No rainbow-XP clutter.
+
+## Core new components (build in 23.2, reuse everywhere)
+- **Lesson node** — circular/rounded path step with 4 states: **completed**
+  (crown/check, section colour), **current** ("Start" pulse), **available**,
+  **locked** (greyed, lock icon, **label blurred**).
+- **Lock/Blur overlay** — the one consistent "not unlocked yet" treatment across
+  path, Word Bank, Grammar, Videos, History (blur the content + small lock +
+  optional "unlock by finishing X").
+- **"Next up" indicator** — a persistent banner/CTA showing the next lesson /
+  grammar topic / section, on the path top, Dashboard, and each gated page.
+- **Energy meter** — bolt/heart-style counter with a refill countdown; an
+  out-of-energy state that offers "wait / go premium".
+- **Premium lock + upsell** — the treatment for AI Assistant / Recite when free.
+- **XP + crown** chips; keep the existing streak banner, restyled.
+
+## Page-specific notes
+- **Path (Practice):** Duolingo-style **vertical winding node path** grouped into
+  unit sections (vertical-list variant kept for later). Header = "Continue" CTA.
+- **Lesson player:** focused, one-item-at-a-time, progress bar, immediate
+  correct/incorrect feedback (semantic green/red), end-of-lesson XP/crown summary.
+- **Word Bank:** grouped **Level → part of speech**; unreached words lock/blurred.
+- **Grammar:** grouped **Level → topic** (no lesson numbers); locked until the
+  linked lesson is done; "next topic" indicator.
+- **Videos:** cards with a **source image/logo**; ≤-level only.
+- **History:** **news-article cards** — hero image + excerpt → full read; ≤-level.
+- **AI Assistant:** ChatGPT-style two-pane — conversation list + thread.
+- **Level exam:** distinct, more formal "checkpoint" styling (Goethe-like).
+
+## Kept from v2 / v1
+Space Grotesk headings + Inter body (self-hosted), der/die/das colour+shape,
+token architecture (never hardcode), accessibility (AA, focus, reduced motion,
+44px), Lucide icons. Gamification = XP + per-lesson crowns + streak (no leagues
+yet). The v2 cinematic **landing** is untouched.
+
 # Design v1 (CURRENT — in production until Phase 21 foundation lands)
 
 ## Aesthetic in one line
