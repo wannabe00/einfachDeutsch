@@ -11,14 +11,3 @@ export async function fetchGrammarRules(
   const { data } = await apiClient.get<GrammarRule[]>("/grammar/rules/", { params })
   return data
 }
-
-export async function createGrammarRule(payload: {
-  chapter: number
-  title: string
-  category: GrammarCategory
-  content: string
-  example_sentences: string
-}): Promise<GrammarRule> {
-  const { data } = await apiClient.post<GrammarRule>("/grammar/rules/", payload)
-  return data
-}
