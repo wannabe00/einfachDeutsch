@@ -33,6 +33,11 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
     birthday = serializers.DateField(source="profile.birthday", read_only=True)
     avatar_url = serializers.URLField(source="profile.avatar_url", read_only=True)
     preferences = serializers.JSONField(source="profile.preferences", read_only=True)
+    # Premium (Phase 23.7). `has_premium` is the one the UI should gate on — it
+    # folds together the paid flag, an active trial, and expiry.
+    has_premium = serializers.BooleanField(source="profile.has_premium", read_only=True)
+    premium_until = serializers.DateTimeField(source="profile.premium_until", read_only=True)
+    trial_started_at = serializers.DateTimeField(source="profile.trial_started_at", read_only=True)
 
     class Meta(BaseUserDetailsSerializer.Meta):
         fields = (
@@ -44,4 +49,7 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "birthday",
             "avatar_url",
             "preferences",
+            "has_premium",
+            "premium_until",
+            "trial_started_at",
         )

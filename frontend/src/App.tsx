@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { Layout } from "@/components/layout/Layout"
 import { LockedFeature } from "@/components/auth/LockedFeature"
+import { PremiumLock } from "@/components/premium/PremiumLock"
 import AuthPage from "@/pages/AuthPage"
 import OAuthCallbackPage from "@/pages/OAuthCallbackPage"
 import WelcomePage from "@/pages/WelcomePage"
@@ -42,6 +43,14 @@ function RequireAuth({ children }: { children: ReactNode }) {
   // Guests see the section blurred behind a sign-up/login overlay rather than
   // being redirected away.
   if (!user) return <LockedFeature />
+  return <>{children}</>
+}
+
+/** Premium-only sections (AI, Recite — Spec v3). The backend is the real gate
+    (`IsPremium` → 403); this just shows the upsell instead of a broken page. */
+function RequirePremium({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  if (!user?.has_premium) return <PremiumLock />
   return <>{children}</>
 }
 
@@ -172,7 +181,9 @@ function App() {
           path="/speak"
           element={
             <RequireAuth>
-              <RecitePage />
+              <RequirePremium>
+                <RecitePage />
+              </RequirePremium>
             </RequireAuth>
           }
         />
@@ -180,7 +191,9 @@ function App() {
           path="/ai"
           element={
             <RequireAuth>
-              <AIAssistantPage />
+              <RequirePremium>
+                <AIAssistantPage />
+              </RequirePremium>
             </RequireAuth>
           }
         />

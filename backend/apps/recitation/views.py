@@ -12,6 +12,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.permissions import IsPremium
 from apps.ai_assistant.llm import AIConfigError
 from apps.ai_assistant.throttles import AIBurstThrottle, AIDailyThrottle
 
@@ -21,7 +22,7 @@ from .transcribe import get_transcriber
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 @throttle_classes([AIBurstThrottle, AIDailyThrottle])
 @parser_classes([MultiPartParser, FormParser])
 def recite(request):
