@@ -24,6 +24,7 @@ import LandingPage from "@/pages/LandingPage"
 import SettingsPage from "@/pages/SettingsPage"
 import PathPage from "@/pages/PathPage"
 import UnitPage from "@/pages/UnitPage"
+import LessonPlayerPage from "@/pages/LessonPlayerPage"
 import UiKitPage from "@/pages/UiKitPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
@@ -156,6 +157,14 @@ function App() {
           element={
             <RequireAuth>
               <UnitPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/path/:unitId/lesson/:lessonId"
+          element={
+            <RequireAuth>
+              <LessonPlayerPage />
             </RequireAuth>
           }
         />

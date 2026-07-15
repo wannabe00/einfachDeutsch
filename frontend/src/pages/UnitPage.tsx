@@ -46,7 +46,7 @@ export default function UnitPage() {
       />
 
       <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-        <LessonTrail lessons={data.lessons} accent={accent} />
+        <LessonTrail lessons={data.lessons} accent={accent} unitId={data.id} />
 
         <div className="flex min-w-0 flex-col gap-4">
           {data.grammar.map((rule) => (
@@ -56,9 +56,6 @@ export default function UnitPage() {
         </div>
       </div>
 
-      <p className="pb-4 text-center text-xs text-muted-foreground">
-        Tapping a lesson opens the player — arriving in the next brick (23.5).
-      </p>
     </div>
   )
 }

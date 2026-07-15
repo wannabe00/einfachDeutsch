@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
-from .models import Lesson, Unit
+from .models import Lesson, LessonItem, Unit
 
 
 class PathLessonSerializer(serializers.ModelSerializer):
@@ -38,3 +38,69 @@ class UnitGrammarSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrammarRule
         fields = ["id", "title", "category", "content", "example_sentences"]
+
+
+class LessonItemSerializer(serializers.ModelSerializer):
+    """One playable step. **Answers are stripped** — grading happens server-side
+    and the solution is only revealed after an attempt."""
+
+    content = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LessonItem
+        fields = ["id", "order", "kind", "content"]
+
+    def get_content(self, item: LessonItem):
+        if item.exercise_id and item.kind in {LessonItem.Kind.EXERCISE, LessonItem.Kind.DRILL}:
+            ex = item.exercise
+            payload = dict(ex.payload or {})
+            # Never ship the solution.
+            payload.pop("answer", None)
+            payload.pop("answers", None)
+            if ex.exercise_type == "matching":
+                pairs = payload.pop("pairs", [])
+                payload["left"] = [p[0] for p in pairs]
+                payload["right"] = sorted({p[1] for p in pairs})
+            return {
+                "exercise_id": ex.id,
+                "type": ex.exercise_type,
+                "prompt": ex.prompt,
+                "hint": ex.hint,
+                "payload": payload,
+            }
+        if item.word_id and item.kind == LessonItem.Kind.REVIEW:
+            return {
+                "word_id": item.word.id,
+                "german": item.word.german,
+                "english": item.word.english,
+            }
+        if item.grammar_rule_id and item.kind == LessonItem.Kind.GRAMMAR:
+            rule = item.grammar_rule
+            return {
+                "grammar_id": rule.id,
+                "title": rule.title,
+                "category": rule.category,
+                "content": rule.content,
+                "example_sentences": rule.example_sentences,
+            }
+        return None
+
+
+class LessonDetailSerializer(serializers.ModelSerializer):
+    items = LessonItemSerializer(many=True, read_only=True)
+    unit_id = serializers.IntegerField(source="unit.id", read_only=True)
+    unit_title = serializers.CharField(source="unit.title", read_only=True)
+    accent_color = serializers.CharField(source="unit.accent_color", read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = [
+            "id",
+            "order",
+            "title",
+            "xp_reward",
+            "unit_id",
+            "unit_title",
+            "accent_color",
+            "items",
+        ]

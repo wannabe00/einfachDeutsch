@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom"
+
 import type { PathLesson } from "@/types"
 import { PathNode } from "./PathNode"
 
@@ -27,7 +29,17 @@ function roadPath(count: number): string {
   return `M${steps.join(" L")}`
 }
 
-export function LessonTrail({ lessons, accent }: { lessons: PathLesson[]; accent: string }) {
+export function LessonTrail({
+  lessons,
+  accent,
+  unitId,
+}: {
+  lessons: PathLesson[]
+  accent: string
+  /** When given, unlocked nodes open the lesson player. */
+  unitId?: number
+}) {
+  const navigate = useNavigate()
   const height = TOP + Math.max(0, lessons.length - 1) * SPACING + 96
   const d = roadPath(lessons.length)
 
@@ -71,6 +83,11 @@ export function LessonTrail({ lessons, accent }: { lessons: PathLesson[]; accent
               label={lesson.title}
               accent={accent}
               crownLevel={lesson.crown}
+              onClick={
+                unitId !== undefined && lesson.state !== "locked"
+                  ? () => navigate(`/path/${unitId}/lesson/${lesson.id}`)
+                  : undefined
+              }
             />
           </div>
         )

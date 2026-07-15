@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -8,9 +10,10 @@ from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
 from . import energy as energy_lib
-from . import gating
-from .models import LessonItem, PathLessonProgress, Unit
+from . import gating, grading
+from .models import Lesson, LessonItem, PathLessonProgress, Unit
 from .serializers import (
+    LessonDetailSerializer,
     PathUnitSerializer,
     UnitGrammarSerializer,
     UnitWordSerializer,
@@ -109,3 +112,128 @@ def unit_detail(request, unit_id: int):
     data["words"] = UnitWordSerializer(words.order_by("id"), many=True).data
     data["grammar"] = UnitGrammarSerializer(rules.order_by("id"), many=True).data
     return Response(data)
+
+
+# A lesson counts as passed at 60% of its gradable items.
+PASS_THRESHOLD = 0.6
+
+
+def _get_playable_lesson(user, lesson_id: int) -> Lesson:
+    """Fetch a lesson the user is actually allowed to play."""
+    lesson = get_object_or_404(
+        Lesson.objects.select_related("unit").prefetch_related("items"), pk=lesson_id
+    )
+    if not gating.is_lesson_unlocked(user, lesson):
+        raise PermissionDenied("This lesson is locked.")
+    return lesson
+
+
+def _already_completed(user, lesson: Lesson) -> bool:
+    return PathLessonProgress.objects.filter(
+        user=user, lesson=lesson, completed_at__isnull=False
+    ).exists()
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def lesson_detail(request, lesson_id: int):
+    """A lesson's playable items (Phase 23.5), answers stripped.
+
+    Free users need energy to start a **new** lesson; redoing a completed one is
+    always free (Spec v3), as is Review/Word Bank/Grammar.
+    """
+    user = request.user
+    lesson = _get_playable_lesson(user, lesson_id)
+
+    is_new = not _already_completed(user, lesson)
+    if is_new and not user.profile.has_premium and energy_lib.current_energy(user) < 1:
+        return Response(
+            {
+                "detail": "Out of energy.",
+                "seconds_until_next": energy_lib.seconds_until_next(user),
+            },
+            status=status.HTTP_402_PAYMENT_REQUIRED,
+        )
+
+    data = LessonDetailSerializer(lesson).data
+    data["is_new"] = is_new
+    return Response(data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def lesson_answer(request, lesson_id: int):
+    """Grade a single item for immediate feedback. Records nothing — the
+    authoritative scoring happens in `lesson_complete`."""
+    user = request.user
+    lesson = _get_playable_lesson(user, lesson_id)
+
+    item = get_object_or_404(LessonItem, pk=request.data.get("item_id"), lesson=lesson)
+    if not item.exercise_id:
+        return Response({"detail": "This item isn't gradable."}, status=status.HTTP_400_BAD_REQUEST)
+
+    correct = grading.grade(item.exercise, request.data.get("answer"))
+    return Response(
+        {
+            "correct": correct,
+            "solution": grading.solution_of(item.exercise),
+            "explanation": item.exercise.explanation,
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def lesson_complete(request, lesson_id: int):
+    """Finish a lesson: re-grade every answer server-side, then award.
+
+    Energy is spent **on a successful first completion** only — quitting costs
+    nothing and a failed attempt doesn't advance the path (Spec v3).
+    """
+    user = request.user
+    lesson = _get_playable_lesson(user, lesson_id)
+
+    submitted = {a.get("item_id"): a.get("answer") for a in request.data.get("answers", [])}
+    gradable = [i for i in lesson.items.all() if i.exercise_id]
+    correct_count = sum(1 for i in gradable if grading.grade(i.exercise, submitted.get(i.id)))
+    score = (correct_count / len(gradable)) if gradable else 1.0
+    passed = score >= PASS_THRESHOLD
+
+    was_completed = _already_completed(user, lesson)
+    progress, _ = PathLessonProgress.objects.get_or_create(user=user, lesson=lesson)
+    progress.best_score = max(progress.best_score or 0.0, score)
+
+    spent_energy = False
+    if passed and not was_completed:
+        # First real completion: this is what costs energy.
+        if not energy_lib.consume(user):
+            return Response(
+                {
+                    "detail": "Out of energy.",
+                    "seconds_until_next": energy_lib.seconds_until_next(user),
+                },
+                status=status.HTTP_402_PAYMENT_REQUIRED,
+            )
+        spent_energy = not user.profile.has_premium
+        progress.completed_at = timezone.now()
+        progress.crown = max(progress.crown, 1)
+        progress.xp_earned = lesson.xp_reward
+    progress.save()
+
+    return Response(
+        {
+            "passed": passed,
+            "score": round(score, 3),
+            "correct": correct_count,
+            "total": len(gradable),
+            "xp_earned": lesson.xp_reward if (passed and not was_completed) else 0,
+            "crown": progress.crown,
+            "spent_energy": spent_energy,
+            "energy": {
+                "current": energy_lib.current_energy(user),
+                "max": energy_lib.ENERGY_MAX,
+                "premium": user.profile.has_premium,
+                "seconds_until_next": energy_lib.seconds_until_next(user),
+            },
+        }
+    )
