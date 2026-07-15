@@ -24,6 +24,12 @@ class WordSerializer(serializers.ModelSerializer):
     # user has never reviewed. The viewset prefetches it into `user_progress`
     # (a list with 0 or 1 item) to avoid an N+1 query.
     progress = serializers.SerializerMethodField()
+    # The Word Bank groups by Level → part of speech (Phase 23.9). The level
+    # comes from the word's chapter (a chapter is one Lektion).
+    cefr_level = serializers.CharField(source="chapter.cefr_level", read_only=True)
+    # True for words from a Lektion at the user's own level that they haven't
+    # reached yet — shown blurred. The viewset supplies `locked_chapter_ids`.
+    locked = serializers.SerializerMethodField()
 
     class Meta:
         model = Word
@@ -35,6 +41,9 @@ class WordSerializer(serializers.ModelSerializer):
             "notes",
             "created_at",
             "progress",
+            "cefr_level",
+            "part_of_speech",
+            "locked",
         ]
 
     def get_progress(self, obj):
@@ -42,3 +51,6 @@ class WordSerializer(serializers.ModelSerializer):
         if records:
             return WordProgressSerializer(records[0]).data
         return None
+
+    def get_locked(self, obj) -> bool:
+        return obj.chapter_id in self.context.get("locked_chapter_ids", set())

@@ -48,9 +48,11 @@ class Command(BaseCommand):
                 )
 
                 words = {}
-                for english, german in u["words"]:
+                for english, german, part_of_speech in u["words"]:
                     word, _ = Word.objects.update_or_create(
-                        chapter=chapter, german=german, defaults={"english": english}
+                        chapter=chapter,
+                        german=german,
+                        defaults={"english": english, "part_of_speech": part_of_speech},
                     )
                     words[german] = word
                     counts["words"] += 1
