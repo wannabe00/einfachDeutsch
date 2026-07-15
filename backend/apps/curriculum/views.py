@@ -20,6 +20,27 @@ from .serializers import (
 )
 
 
+def _energy_payload(user) -> dict:
+    """The shared energy shape (Spec v3). Premium users are unlimited, so the
+    client shows ∞ and never a countdown."""
+    return {
+        "current": energy_lib.current_energy(user),
+        "max": energy_lib.ENERGY_MAX,
+        "premium": user.profile.has_premium,
+        "seconds_until_next": energy_lib.seconds_until_next(user),
+        "refill_hours": energy_lib.ENERGY_REFILL_HOURS,
+    }
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def energy(request):
+    """Live energy (Phase 23.6) — polled by the global meter so it can tick and
+    refill without loading the whole path. Regen is computed on read, so there's
+    no background job."""
+    return Response(_energy_payload(request.user))
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def path(request):
@@ -48,16 +69,10 @@ def path(request):
             lesson.state = states.get(lesson.id, "locked")
             lesson.crown = crowns.get(lesson.id, 0)
 
-    premium = user.profile.has_premium
     return Response(
         {
             "level": level,
-            "energy": {
-                "current": energy_lib.current_energy(user),
-                "max": energy_lib.ENERGY_MAX,
-                "premium": premium,
-                "seconds_until_next": energy_lib.seconds_until_next(user),
-            },
+            "energy": _energy_payload(user),
             "next_up": (
                 {
                     "lesson_id": next_lesson.id,
@@ -229,11 +244,6 @@ def lesson_complete(request, lesson_id: int):
             "xp_earned": lesson.xp_reward if (passed and not was_completed) else 0,
             "crown": progress.crown,
             "spent_energy": spent_energy,
-            "energy": {
-                "current": energy_lib.current_energy(user),
-                "max": energy_lib.ENERGY_MAX,
-                "premium": user.profile.has_premium,
-                "seconds_until_next": energy_lib.seconds_until_next(user),
-            },
+            "energy": _energy_payload(user),
         }
     )

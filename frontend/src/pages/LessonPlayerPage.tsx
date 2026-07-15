@@ -71,6 +71,7 @@ export default function LessonPlayerPage() {
     // The path/unit pages now show new states, energy, crowns.
     qc.invalidateQueries({ queryKey: ["path"] })
     qc.invalidateQueries({ queryKey: ["unit"] })
+    qc.invalidateQueries({ queryKey: ["energy"] })
   }
 
   return (
