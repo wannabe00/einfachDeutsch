@@ -72,6 +72,7 @@ class Command(BaseCommand):
                         "title": u["title"],
                         "theme": u.get("theme", ""),
                         "accent_color": u.get("accent_color", ""),
+                        "chapter": chapter,
                     },
                 )
                 counts["units"] += 1

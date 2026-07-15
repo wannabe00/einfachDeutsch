@@ -22,6 +22,8 @@ import VideosPage from "@/pages/VideosPage"
 import HistoryPage from "@/pages/HistoryPage"
 import LandingPage from "@/pages/LandingPage"
 import SettingsPage from "@/pages/SettingsPage"
+import PathPage from "@/pages/PathPage"
+import UnitPage from "@/pages/UnitPage"
 import UiKitPage from "@/pages/UiKitPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
@@ -140,6 +142,23 @@ function App() {
         <Route path="/ui-kit" element={<UiKitPage />} />
 
         {/* Account-only (cost the owner / abusable / speech) */}
+        {/* The path is inherently per-user (level + progress + energy). */}
+        <Route
+          path="/path"
+          element={
+            <RequireAuth>
+              <PathPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/path/:unitId"
+          element={
+            <RequireAuth>
+              <UnitPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/speak"
           element={

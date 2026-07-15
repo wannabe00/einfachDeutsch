@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { AccountMenu } from "./AccountMenu"
 import { MobileNav } from "./MobileNav"
-import { dashboardItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
+import { dashboardItem, pathItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
 
 /*
  * Primary app navigation (Design v2 — Cinematic). Desktop = a spaceship-style
@@ -61,6 +61,7 @@ export function TopBar() {
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">
           <BarLink item={dashboardItem} />
+          <BarLink item={pathItem} />
           {navGroups.map((group) => (
             <NavDropdown key={group.label} group={group} />
           ))}

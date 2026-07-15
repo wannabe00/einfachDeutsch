@@ -25,6 +25,13 @@ class Unit(models.Model):
     title = models.CharField(max_length=200)
     theme = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
+    # One Lektion = one Unit = one Chapter (Spec v3 mapping). The chapter is the
+    # content container holding this unit's full Wortschatz / grammar, so the
+    # unit page can show them for review. Nullable: units may exist before their
+    # content is seeded.
+    chapter = models.ForeignKey(
+        "books.Chapter", null=True, blank=True, on_delete=models.SET_NULL, related_name="units"
+    )
     # Per-unit accent for the Duolingo-style colourful sections (token name or
     # hex). Blank falls back to the global brand accent.
     accent_color = models.CharField(max_length=32, blank=True)
