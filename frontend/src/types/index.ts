@@ -194,6 +194,16 @@ export interface ReviewResult {
   quality: ReviewQuality
 }
 
+/** The lesson that teaches a grammar topic — powers the "next topic" hint. */
+export interface GrammarUnlockLesson {
+  id: number
+  title: string
+  unit_id: number
+  unit_title: string
+  unit_order: number
+  lesson_order: number
+}
+
 export interface GrammarRule {
   id: number
   chapter: number
@@ -201,6 +211,12 @@ export interface GrammarRule {
   category: string
   content: string
   example_sentences: string
+  /** From the rule's chapter — Grammar groups by Level → topic (Phase 23.10). */
+  cefr_level: CEFRLevel
+  /** Locked until the lesson that teaches it is done. */
+  locked: boolean
+  /** Non-null only while locked. */
+  unlock_lesson: GrammarUnlockLesson | null
 }
 
 export type ExerciseType =
