@@ -40,6 +40,55 @@ def _level_lesson_ids(level: str) -> list[int]:
     )
 
 
+def path_states(user, units) -> tuple[dict[int, str], Lesson | None]:
+    """Bulk state for a whole path render — the same rules as `is_lesson_unlocked`,
+    but in one pass (that helper is per-lesson and would be N queries here).
+
+    Returns ({lesson_id: "completed"|"current"|"available"|"locked"}, next_lesson).
+    `next_lesson` (and the single "current" state) is the first open, incomplete
+    lesson **at the user's own level** — lessons below their level are optional
+    review, so they never claim "current".
+
+    `units` must be prefetched with their lessons.
+    """
+    user_level = user.profile.cefr_level
+    completed = set(
+        PathLessonProgress.objects.filter(user=user, completed_at__isnull=False).values_list(
+            "lesson_id", flat=True
+        )
+    )
+
+    by_level: dict[str, list[tuple[int, int, Lesson]]] = {}
+    for unit in units:
+        for lesson in unit.lessons.all():
+            by_level.setdefault(unit.cefr_level, []).append((unit.order, lesson.order, lesson))
+
+    states: dict[int, str] = {}
+    next_lesson: Lesson | None = None
+
+    for level, rows in by_level.items():
+        rows.sort(key=lambda r: (r[0], r[1]))
+        is_review = level_rank(level) < level_rank(user_level)
+        # Sentinel: the first lesson of a level is always unlocked.
+        prev_completed = True
+        for _, _, lesson in rows:
+            if lesson.id in completed:
+                states[lesson.id] = "completed"
+                prev_completed = True
+                continue
+            unlocked = is_review or prev_completed
+            if not unlocked:
+                states[lesson.id] = "locked"
+            elif level == user_level and next_lesson is None:
+                states[lesson.id] = "current"
+                next_lesson = lesson
+            else:
+                states[lesson.id] = "available"
+            prev_completed = False
+
+    return states, next_lesson
+
+
 def is_lesson_unlocked(user, lesson: Lesson) -> bool:
     """Whether `user` may start `lesson` given their level + linear progress."""
     user_level = user.profile.cefr_level

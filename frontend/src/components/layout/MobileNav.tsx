@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { NavLink } from "react-router-dom"
 
 import { cn } from "@/lib/utils"
-import { dashboardItem, aiItem, navGroups, type NavLeaf } from "./navItems"
+import { dashboardItem, pathItem, aiItem, navGroups, type NavLeaf } from "./navItems"
 
 /*
  * Mobile navigation drawer — slides in from the left under the top bar. On phones
@@ -45,6 +45,7 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
         )}
       >
         <DrawerLink item={dashboardItem} onClose={onClose} />
+        <DrawerLink item={pathItem} onClose={onClose} />
 
         {navGroups.map((group) => (
           <div key={group.label} className="mt-4">

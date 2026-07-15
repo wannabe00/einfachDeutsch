@@ -262,3 +262,66 @@ export interface ImportResult {
   created: number
   skipped: number
 }
+
+/* ---- Learning path (Phase 23) — mirrors apps/curriculum/serializers.py ---- */
+
+export type PathLessonState = "completed" | "current" | "available" | "locked"
+
+export interface PathLesson {
+  id: number
+  order: number
+  title: string
+  xp_reward: number
+  state: PathLessonState
+  crown: number
+}
+
+export interface PathUnit {
+  id: number
+  cefr_level: string
+  order: number
+  title: string
+  theme: string
+  accent_color: string
+  lessons: PathLesson[]
+}
+
+export interface PathEnergy {
+  current: number
+  max: number
+  premium: boolean
+  seconds_until_next: number | null
+}
+
+export interface PathNextUp {
+  lesson_id: number
+  lesson_title: string
+  unit_title: string
+}
+
+export interface PathResponse {
+  level: string
+  energy: PathEnergy
+  next_up: PathNextUp | null
+  units: PathUnit[]
+}
+
+export interface UnitWord {
+  id: number
+  german: string
+  english: string
+}
+
+export interface UnitGrammar {
+  id: number
+  title: string
+  category: string
+  content: string
+  example_sentences: string
+}
+
+/** One unit's page: its lessons plus the whole Lektion's review material. */
+export interface PathUnitDetail extends PathUnit {
+  words: UnitWord[]
+  grammar: UnitGrammar[]
+}

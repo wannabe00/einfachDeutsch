@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Route as RouteIcon,
   GraduationCap,
   NotebookPen,
   Swords,
@@ -37,6 +38,8 @@ export const dashboardItem: NavLeaf = {
   icon: LayoutDashboard,
   end: true,
 }
+/** The learning path — the spine of the app (Phase 23), so it sits top-level. */
+export const pathItem: NavLeaf = { to: "/path", label: "Path", icon: RouteIcon }
 export const aiItem: NavLeaf = { to: "/ai", label: "AI Assistant", icon: Sparkles }
 
 /** The grouped menus between Dashboard and AI Assistant. */
