@@ -127,6 +127,20 @@ export interface User {
   birthday: string | null
   avatar_url: string
   preferences: Record<string, unknown>
+  /** Gate premium UI on this — it folds together the paid flag, an active
+      trial, and expiry (Phase 23.7). */
+  has_premium: boolean
+  premium_until: string | null
+  trial_started_at: string | null
+}
+
+/** Premium status for the upsell (GET /accounts/premium/). */
+export interface PremiumStatus {
+  has_premium: boolean
+  premium_until: string | null
+  trial_started_at: string | null
+  trial_available: boolean
+  trial_days: number
 }
 
 export interface Book {

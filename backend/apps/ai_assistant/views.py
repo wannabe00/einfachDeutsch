@@ -12,12 +12,16 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.permissions import IsPremium
+
 from . import llm
 from .throttles import AIBurstThrottle, AIDailyThrottle
 
-# AI is account-only (it spends the owner's Gemini quota) and rate-limited
-# per user. Applied to every endpoint below via these decorator stacks.
-_AI_PERMISSIONS = [IsAuthenticated]
+# AI is premium-only (Spec v3) — it spends the owner's Gemini quota and is the
+# paid tier's promise — and rate-limited per user. Applied to every endpoint
+# below via these decorator stacks. Exercise grading stays deterministic/local,
+# so free users are still graded.
+_AI_PERMISSIONS = [IsAuthenticated, IsPremium]
 _AI_THROTTLES = [AIBurstThrottle, AIDailyThrottle]
 
 
