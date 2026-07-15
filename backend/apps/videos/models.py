@@ -15,6 +15,14 @@ class ShowSuggestion(models.Model):
     url = models.URLField()
     platform = models.CharField(max_length=60, blank=True)  # e.g. YouTube, DW, ARD
     cefr_level = models.CharField(max_length=2, choices=CEFR_CHOICES)
+    # Optional artwork for the card (Phase 23.11). Leave blank and the UI draws a
+    # platform tile instead — that's the default on purpose:
+    #   * the prod CSP allows images only from 'self', data:, images.unsplash.com
+    #     and res.cloudinary.com, so hotlinked channel logos are BLOCKED in prod;
+    #   * third-party logos/thumbnails are theirs, not ours, and their URLs rot.
+    # So point this at a Cloudinary (or Unsplash) asset you control, or leave it
+    # empty.
+    image_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

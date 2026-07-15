@@ -70,6 +70,9 @@ export interface ShowSuggestion {
   url: string
   platform: string
   cefr_level: CEFRLevel
+  /** Optional artwork. Blank → the UI draws a platform tile instead. Must be a
+      CSP-allowed host (Cloudinary/Unsplash) — see SourceArt. */
+  image_url: string
 }
 
 export interface VideoSuggestionsResponse {
