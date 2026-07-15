@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from apps.accounts.models import CEFR_LEVELS
+
 
 class HistoryLesson(models.Model):
     """A German-history lesson (Phase 18). Always-available (no Mon/Wed/Fri
@@ -9,6 +11,9 @@ class HistoryLesson(models.Model):
     strips answers before sending, and the complete endpoint grades against it.
     """
 
+    # CEFR level for the ≤-level rule (Phase 23.8) — a B1 user never sees C1
+    # history. Defaults to A1 so existing lessons stay visible to everyone.
+    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, default="A1")
     title = models.CharField(max_length=200)
     era = models.CharField(max_length=80, blank=True)  # grouping label
     order = models.PositiveIntegerField(default=0)

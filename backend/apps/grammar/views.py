@@ -1,5 +1,7 @@
 from rest_framework import viewsets
 
+from apps.accounts.levels import visible_levels_for
+
 from .models import GrammarRule
 from .serializers import GrammarRuleSerializer
 
@@ -10,6 +12,9 @@ class GrammarRuleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        # ≤-level rule (Spec v3): never expose grammar above the user's level.
+        # Guests see the lowest level only.
+        qs = qs.filter(chapter__cefr_level__in=visible_levels_for(self.request.user))
         chapter = self.request.query_params.get("chapter")
         category = self.request.query_params.get("category")
         if chapter:

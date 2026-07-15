@@ -9,26 +9,15 @@ Rules:
 Pure-ish functions used by serializers/views in later bricks (23.4, 23.8).
 """
 
-from apps.accounts.models import CEFR_LEVELS
+# The ≤-level rule lives in accounts.levels so every app can gate without
+# importing curriculum; re-exported here since callers already use gating.*.
+from apps.accounts.levels import (  # noqa: F401
+    is_level_visible,
+    level_rank,
+    visible_levels,
+)
 
 from .models import Lesson, PathLessonProgress
-
-# A1=0, A2=1, … C2=5 — CEFR codes also sort lexicographically, but rank by this.
-LEVEL_RANK = {code: i for i, (code, _) in enumerate(CEFR_LEVELS)}
-
-
-def level_rank(code: str) -> int:
-    return LEVEL_RANK.get(code, 0)
-
-
-def visible_levels(user_level: str) -> list[str]:
-    """Every level at or below the user's, in order (what they may browse)."""
-    ceiling = level_rank(user_level)
-    return [code for code, _ in CEFR_LEVELS if level_rank(code) <= ceiling]
-
-
-def is_level_visible(user_level: str, content_level: str) -> bool:
-    return level_rank(content_level) <= level_rank(user_level)
 
 
 def _level_lesson_ids(level: str) -> list[int]:

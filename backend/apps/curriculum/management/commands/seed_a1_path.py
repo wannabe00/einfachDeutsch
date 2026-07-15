@@ -40,7 +40,11 @@ class Command(BaseCommand):
                 chapter, _ = Chapter.objects.update_or_create(
                     book=book,
                     number=u["order"],
-                    defaults={"title": u["title"], "description": u.get("theme", "")},
+                    defaults={
+                        "title": u["title"],
+                        "description": u.get("theme", ""),
+                        "cefr_level": A1_LEVEL,
+                    },
                 )
 
                 words = {}
