@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.levels import visible_levels_for
 from apps.exercises.models import Exercise, ExerciseAttempt
 from apps.grammar.models import GrammarRule
 
@@ -37,9 +38,13 @@ def due_words_for(user, chapter_id=None):
     A word is due if the user has a progress row scheduled on/before today, OR
     the user has never reviewed it (new words are due). For a guest (user=None)
     every word is new, so all words are due.
+
+    Level-gated (Spec v3): review never surfaces words above the user's level —
+    otherwise forward content would leak in through the back door.
     """
     today = date.today()
     qs = Word.objects.select_related("chapter")
+    qs = qs.filter(chapter__cefr_level__in=visible_levels_for(user))
     if chapter_id:
         qs = qs.filter(chapter_id=chapter_id)
     if user is None:
@@ -82,6 +87,9 @@ class WordViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Word.objects.select_related("chapter")
+        # ≤-level rule (Spec v3): never expose vocabulary above the user's level.
+        # Guests see the lowest level only.
+        qs = qs.filter(chapter__cefr_level__in=visible_levels_for(self.request.user))
         chapter = self.request.query_params.get("chapter")
         if chapter:
             qs = qs.filter(chapter_id=chapter)

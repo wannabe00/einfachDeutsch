@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.levels import visible_levels_for
+
 from .models import HistoryLesson, UserHistoryProgress
 from .serializers import HistoryLessonDetailSerializer, HistoryLessonListSerializer
 
@@ -13,6 +15,10 @@ class HistoryLessonViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = HistoryLesson.objects.all()
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # ≤-level rule (Spec v3): a B1 user never sees C1 history.
+        return super().get_queryset().filter(cefr_level__in=visible_levels_for(self.request.user))
 
     def get_serializer_class(self):
         if self.action == "list":
