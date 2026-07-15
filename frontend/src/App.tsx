@@ -22,6 +22,7 @@ import VideosPage from "@/pages/VideosPage"
 import HistoryPage from "@/pages/HistoryPage"
 import LandingPage from "@/pages/LandingPage"
 import SettingsPage from "@/pages/SettingsPage"
+import UiKitPage from "@/pages/UiKitPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
 function Loading() {
@@ -135,6 +136,8 @@ function App() {
         <Route path="/chapters/:chapterId" element={<ChapterDetailPage />} />
         {/* Drills hub is public; individual drills gate themselves. */}
         <Route path="/drills" element={<DrillsPage />} />
+        {/* Design v3 living style guide (Phase 23.2 reference). */}
+        <Route path="/ui-kit" element={<UiKitPage />} />
 
         {/* Account-only (cost the owner / abusable / speech) */}
         <Route

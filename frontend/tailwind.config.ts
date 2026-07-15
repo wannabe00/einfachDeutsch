@@ -23,6 +23,15 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         surface: "hsl(var(--surface))",
+        "surface-2": "hsl(var(--surface-2))",
+        section: {
+          "1": "hsl(var(--section-1))",
+          "2": "hsl(var(--section-2))",
+          "3": "hsl(var(--section-3))",
+          "4": "hsl(var(--section-4))",
+          "5": "hsl(var(--section-5))",
+          "6": "hsl(var(--section-6))",
+        },
         "accent-hover": "hsl(var(--accent-hover))",
         success: {
           DEFAULT: "hsl(var(--success))",

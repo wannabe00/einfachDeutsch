@@ -3,6 +3,8 @@
 Work proceeds one brick at a time. Say **"do the next brick"** to drive progress. Tick boxes as bricks complete. Full context: `KNOWLEDGE_BASE.md` (current state) and `DESIGN.md` (UI rules).
 
 > **Status (2026-07-06):** Phases **0–18 done and live** in production (Vercel + Render + Neon). Auth is **social-login only** (Google + GitHub) + username/password fallback; the placement test is a 7-step AI-graded wizard. **Planned next (owner reviews docs, then implements brick-by-brick):** **Phase 20 — Hardening** (all findings in `AUDIT.md`: bugs, security, dead code, readability), **Phase 21 — Design v2 "Cinematic"** (image-led, spaceship.com-inspired; **landing page first**, spec in `DESIGN.md` v2 section), **Phase 22 — Content population** (curriculum A1.1 first — owner provides per-Lektion structure, original items authored to it; grammar library; videos/history; honest stats). Still open further out: Phase 11 leftovers, Phase 19 (readers), password-reset flow.
+>
+> **Big pivot (2026-07-15):** after the Phase 21 design work, the app is being rebuilt into a **Duolingo-style Learning Path** with energy limits, a free/premium tier, and strict level-gating — see **Phase 23** below (the major current effort) and the locked decisions in `AGENTS.md` → "Spec v3". Phase 23 supersedes most of Phase 22. Payments (Stripe) come last; MVP is **A1 only** first.
 
 ---
 
@@ -385,3 +387,36 @@ Goal: the site is actually full of level-tagged learning material. Copyright rul
 - [ ] **22.2 Grammar reference library** — standalone, level-tagged grammar section covering the full A1–B1 topic canon (tables + examples, original text), browsable independent of lesson progress.
 - [ ] **22.3 Videos + History expansion** — grow curated video suggestions per level; add more original German-history lessons (each with quiz).
 - [ ] **22.4 Honest numbers** — landing/dashboard stats pulled from the real DB (word/lesson/exercise counts) instead of hardcoded marketing figures.
+
+> **Note:** Phase 23 (below) supersedes/absorbs most of Phase 22 — the curriculum seed becomes the path content pipeline (23.3), the grammar library becomes gated Grammar (23.10), videos/history expansion happens in 23.11/23.12. Finish the remaining Phase 21.7 page-cohesion branches (merge them), then pivot to Phase 23; the leftover 21.7 pages are redesigned inside Phase 23 anyway.
+
+## Phase 23 — Learning Path (Duolingo model) — the big pivot
+Goal: turn the app into a **Duolingo-style guided path** with **energy limits**, a **free/premium tier**, and **strict level-gating**, wrapped in a friendlier **"dark + depth"** visual system. Owner-locked decisions live in `AGENTS.md` → "Spec v3" and the visual spec in `DESIGN.md` → "Design v3". Built brick-by-brick; **Stripe payments come last** (premium is a manual admin flag until then). MVP scope = **A1 only** first, then expand level by level.
+
+**Locked model (2026-07-15, owner Q&A):**
+- **Hierarchy:** Level (A1…C1) → **Unit** (theme) → **Lesson** ("day"). A lesson bundles **~6 mixed items** (exercises + a drill + a few review cards). Progression is **strictly linear within your current level** (finish lesson N to unlock N+1; ahead is locked + blurred).
+- **Level-up:** finish (at/near 100%) your level's path → unlock a **Goethe-style checkpoint exam**; **pass → promoted**, **fail → sent back to review** and retry. Placement test still sets the *starting* level; no free level-skipping.
+- **Level-gating everywhere (consistent):** you only ever see content **≤ your level** (below = optional review, fully unlocked; current = linear; future = locked). Applies to path, Word Bank, Grammar, Videos, History.
+- **Energy (free users):** start **3**, each **new** lesson costs 1, refill **+1 every ~4h (cap 3)**. Spent **on completion** (quitting is free). Redoing lessons, Review, Word Bank, Grammar, Drills are **always free**. **Premium = unlimited energy.**
+- **Tiers:** Free = full path (energy-limited) + Review + Word Bank + Grammar + Videos + History + Books. **Premium ($2.99/mo or ~$24/yr, 7-day trial) = unlimited energy + AI Assistant + AI explanations + Recite (speech).** Free users see AI/Recite **locked with an upsell**.
+- **Content:** **pre-generated once, admin-approved**, shared (cheap). **Books = structure only** (owner provides **A1 books**); all stored items **authored original**. Grammar topics map to the **specific lessons that teach them** (grammar only lives on some book chapters), unlocking with that lesson.
+- **Gamification:** **XP + per-lesson crowns + streak** (leagues/leaderboards later, not now).
+- **Data:** **additive** — new path/energy/premium/conversation models alongside existing SRS/streak/level models; **retire the thin Menschen seed**.
+
+Bricks (dependency order):
+- [x] **23.1 Data model foundation** — DONE. New `apps/curriculum` with `Unit` → `Lesson` → `LessonItem` (typed content refs), per-user `PathLessonProgress` (+ XP/crown) and `EnergyState`; `gating.py` (level-visibility + strict-linear unlock) and `energy.py` (time-based regen + consume, premium bypass); premium fields (`is_premium`/`premium_until`/`trial_started_at` + `has_premium`) on `UserProfile`; tunable `ENERGY_MAX`/`ENERGY_REFILL_HOURS`/`PREMIUM_TRIAL_DAYS` settings; admin. Migrations applied; helpers shell-verified; ruff + check clean.
+- [x] **23.2 Visual system "dark + depth"** — DONE. Design v3 tokens (`--surface-2` + 6-colour `--section-*` accent palette, in `index.css` + Tailwind) + `lib/sections.ts` helper; core components `SectionCard` (depth card), `LockOverlay` (locked/blur), `PathNode` (4-state node), `NextUp` (continue indicator), `EnergyMeter` (bolts + refill/premium); `/ui-kit` living style guide. der/die/das + German-flag-red kept. tsc + eslint + build clean.
+- [ ] **23.3 Content pipeline + A1 seed** — an AI-assisted, idempotent seed command that authors **original A1** units/lessons/exercises/vocab from the owner-provided A1 book *structure*, wires grammar-topic→lesson mappings, and gates on admin approval. (Blocked on owner providing A1 books.)
+- [ ] **23.4 Path page** — Duolingo-style **vertical winding node path** grouped into unit sections; completed (crown), current (highlighted "Start"), locked (greyed + lock, blurred label); persistent **"Continue: Unit X · Lesson Y"** CTA (echoed on Dashboard). (Vertical-list variant kept in mind for later.)
+- [ ] **23.5 Lesson player** — runs a lesson's ~6 mixed items (exercise/drill/review), local/deterministic grading, completion → progress + XP + crown; **spends energy on completion**, quitting is free; failed lesson counts as an attempt but doesn't advance.
+- [ ] **23.6 Energy system** — model + **+1/4h (cap 3)** regen, bar + refill timer UI, out-of-energy state/modal; premium = unlimited. Only new lessons consume it.
+- [ ] **23.7 Premium tier (flag, no payments)** — `is_premium` + **7-day trial** state, admin toggle; gate **AI Assistant + Recite + unlimited energy**; upsell/paywall UI. Everything testable before Stripe.
+- [ ] **23.8 Level-gating everywhere** — apply the ≤-level visibility + lock/blur + "next up" across path, Word Bank, Grammar, Videos, History.
+- [ ] **23.9 Word Bank v2** — group by **Level → part of speech** (noun/verb/adj…); words from unreached lessons locked/blurred; keep "add your own words" (AI-generate stays premium).
+- [ ] **23.10 Grammar v2** — group by **Level → topic** (no lesson numbers); each topic **unlocks with its linked lesson**; locked/blurred otherwise; "next topic" indicator.
+- [ ] **23.11 Videos v2** — add **source image** (`image_url`, platform icon/representative thumbnail) per suggestion; level-gate ≤ your level.
+- [ ] **23.12 History v2** — **news-article cards** (hero image + excerpt → full read) using royalty-free/public-domain images; level-gate.
+- [ ] **23.13 AI chat history** — ChatGPT-style: new per-user `Conversation` + `Message` models, sidebar list, resume/new/rename/delete, auto-titled from first message; premium-gated.
+- [ ] **23.14 Level exam** — Goethe-style checkpoint per level, unlocked at level-path completion; **pass → promote**, **fail → review + retry**.
+- [ ] **23.15 Gamification polish** — surface XP totals + crowns + streak on Dashboard/profile; per-lesson crown states. (Leagues/leaderboards deferred.)
+- [ ] **23.16 Stripe payments (last)** — real checkout + webhook + subscription state, monthly + annual, 7-day trial → paid; replaces the manual premium flag.

@@ -49,6 +49,17 @@
     --radius: 0.75rem;
     /* Landing brand accent — German-flag red now; swap to der-blue later. */
     --brand: 353 88% 47%;
+
+    /* Design v3 "dark + depth" (Phase 23): a raised surface for elevated cards
+       and a per-unit "section" accent palette for the colourful path sections.
+       These cascade into `.dark` (the only in-app theme) unless overridden. */
+    --surface-2: 240 6% 13%;
+    --section-1: 210 90% 62%;
+    --section-2: 150 58% 50%;
+    --section-3: 264 82% 70%;
+    --section-4: 32 94% 56%;
+    --section-5: 174 62% 47%;
+    --section-6: 330 80% 65%;
   }
 
   .dark {
