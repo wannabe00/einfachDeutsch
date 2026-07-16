@@ -44,6 +44,44 @@ def energy(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def gamification(request):
+    """XP + crowns + progress for the Dashboard (Phase 23.15).
+
+    Read-only aggregation over data the lesson player already writes
+    (`PathLessonProgress.xp_earned`/`crown`) — nothing new is stored. Crowns and
+    lessons_completed count only *this level's* path (progress you can still make),
+    while total_xp is lifetime across every level.
+    """
+    from django.db.models import Count, Sum
+
+    user = request.user
+    level = user.profile.cefr_level
+
+    lifetime = PathLessonProgress.objects.filter(user=user, completed_at__isnull=False)
+    agg = lifetime.aggregate(xp=Sum("xp_earned"), crowns=Sum("crown"))
+
+    level_total = Lesson.objects.filter(unit__cefr_level=level).count()
+    level_done = (
+        lifetime.filter(lesson__unit__cefr_level=level).aggregate(n=Count("lesson", distinct=True))[
+            "n"
+        ]
+        or 0
+    )
+
+    return Response(
+        {
+            "total_xp": agg["xp"] or 0,
+            "crowns": agg["crowns"] or 0,
+            "lessons_completed": lifetime.count(),
+            "level": level,
+            "level_lessons_total": level_total,
+            "level_lessons_done": level_done,
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def path(request):
     """The user's learning path (Phase 23.4).
 

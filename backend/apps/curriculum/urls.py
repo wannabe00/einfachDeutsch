@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     url_path("curriculum/energy/", views.energy, name="curriculum-energy"),
+    url_path("curriculum/gamification/", views.gamification, name="curriculum-gamification"),
     # Level checkpoint exam (Phase 23.14).
     url_path("curriculum/exam/", views.exam_status, name="curriculum-exam"),
     url_path("curriculum/exam/start/", views.exam_start, name="curriculum-exam-start"),

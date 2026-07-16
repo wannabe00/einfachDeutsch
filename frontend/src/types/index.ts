@@ -394,6 +394,17 @@ export interface PathUnitDetail extends PathUnit {
   grammar: UnitGrammar[]
 }
 
+/* ---- Gamification (Phase 23.15) ---- */
+
+export interface Gamification {
+  total_xp: number
+  crowns: number
+  lessons_completed: number
+  level: CEFRLevel
+  level_lessons_total: number
+  level_lessons_done: number
+}
+
 /* ---- Level checkpoint exam (Phase 23.14) ---- */
 
 export interface ExamStatus {
