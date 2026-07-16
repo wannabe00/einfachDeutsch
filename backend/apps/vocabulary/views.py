@@ -288,6 +288,39 @@ class StatsView(APIView):
         )
 
 
+class PublicStatsView(APIView):
+    """Real content totals for the marketing landing (Phase 22.4).
+
+    Honest numbers, not hardcoded figures: every count is a live COUNT(*) of
+    admin-curated content, so the landing can never over-claim. Public (guests
+    see the landing) and lightly cached — the counts change rarely.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.core.cache import cache
+
+        cached = cache.get("public_stats")
+        if cached is not None:
+            return Response(cached)
+
+        from apps.exercises.models import Exercise
+        from apps.grammar.models import GrammarRule
+        from apps.history.models import HistoryLesson
+        from apps.videos.models import ShowSuggestion
+
+        data = {
+            "words": Word.objects.count(),
+            "exercises": Exercise.objects.count(),
+            "grammar_topics": GrammarRule.objects.count(),
+            "history_reads": HistoryLesson.objects.count(),
+            "video_picks": ShowSuggestion.objects.count(),
+        }
+        cache.set("public_stats", data, 60 * 15)  # 15 min is plenty
+        return Response(data)
+
+
 class ActivityView(APIView):
     """Review counts per day for the last 7 days: [{date, count}] for the
     requesting user. Guests get all-zero days."""
