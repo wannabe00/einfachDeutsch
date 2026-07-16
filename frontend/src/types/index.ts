@@ -88,6 +88,11 @@ export interface HistoryLessonSummary {
   era: string
   order: number
   completed: boolean
+  cefr_level: CEFRLevel
+  /** Teaser for the article card; derived from the body when not authored. */
+  excerpt: string
+  /** Optional hero image (CSP-allowed host). Blank → the card draws an era tile. */
+  image_url: string
 }
 
 export interface HistoryQuizQuestion {
