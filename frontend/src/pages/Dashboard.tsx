@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { ReviewActivityChart } from "@/components/charts/ReviewActivityChart"
 import { StreakBanner } from "@/components/dashboard/StreakBanner"
 import { GamificationRow } from "@/components/dashboard/GamificationRow"
+import { ContinuePath } from "@/components/dashboard/ContinuePath"
 
 // Swap for your own image in /public anytime; a gradient shows if it fails.
 const HERO_IMG =
@@ -102,6 +103,9 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* Continue where you left off on the path (Phase 23.4c). */}
+      <ContinuePath />
 
       {/* Progress */}
       <section>
