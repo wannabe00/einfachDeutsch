@@ -22,6 +22,7 @@ import { StatCard } from "@/components/ui/StatCard"
 import { Button } from "@/components/ui/button"
 import { ReviewActivityChart } from "@/components/charts/ReviewActivityChart"
 import { StreakBanner } from "@/components/dashboard/StreakBanner"
+import { GamificationRow } from "@/components/dashboard/GamificationRow"
 
 // Swap for your own image in /public anytime; a gradient shows if it fails.
 const HERO_IMG =
@@ -108,6 +109,8 @@ export default function Dashboard() {
           Your progress
         </h2>
         <StreakBanner />
+        {/* Path gamification — XP / crowns / lessons (Phase 23.15). */}
+        <GamificationRow />
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard icon={CalendarClock} value={dueToday} label="Due today" accent={dueToday > 0} />
           <StatCard icon={GraduationCap} value={stats?.learned_total ?? 0} label="Words learned" />

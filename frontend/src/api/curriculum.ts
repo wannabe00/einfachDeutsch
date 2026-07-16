@@ -5,11 +5,18 @@ import type {
   ExamResult,
   ExamStart,
   ExamStatus,
+  Gamification,
   LessonDetail,
   PathEnergy,
   PathResponse,
   PathUnitDetail,
 } from "@/types"
+
+/** XP + crowns + level progress for the Dashboard. */
+export async function fetchGamification(): Promise<Gamification> {
+  const { data } = await apiClient.get<Gamification>("/curriculum/gamification/")
+  return data
+}
 
 /** Live energy for the global meter. Regen is computed server-side on read. */
 export async function fetchEnergy(): Promise<PathEnergy> {
