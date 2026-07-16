@@ -67,6 +67,28 @@ def grade(exercise: Exercise, answer) -> bool:
     return False
 
 
+def public_exercise(exercise: Exercise) -> dict:
+    """An exercise as the client may see it — **answers stripped**.
+
+    The single place that decides what's safe to ship, shared by the lesson
+    player and the level exam so neither can drift and leak a solution.
+    """
+    payload = dict(exercise.payload or {})
+    payload.pop("answer", None)
+    payload.pop("answers", None)
+    if exercise.exercise_type == "matching":
+        pairs = payload.pop("pairs", [])
+        payload["left"] = [p[0] for p in pairs]
+        payload["right"] = sorted({p[1] for p in pairs})
+    return {
+        "exercise_id": exercise.id,
+        "type": exercise.exercise_type,
+        "prompt": exercise.prompt,
+        "hint": exercise.hint,
+        "payload": payload,
+    }
+
+
 def solution_of(exercise: Exercise):
     """The answer to reveal *after* an attempt (never before)."""
     etype = exercise.exercise_type

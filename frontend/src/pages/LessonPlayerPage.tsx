@@ -16,8 +16,9 @@ import type {
 import { resolveAccent } from "@/lib/sections"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { SectionCard } from "@/components/ui/SectionCard"
+import { ExerciseInput } from "@/components/exercises/ExerciseInput"
+import { isAnswered } from "@/lib/exercises"
 
 /*
  * The lesson player (Phase 23.5) — one item at a time, immediate feedback.
@@ -184,17 +185,12 @@ function ExerciseStep({
   accent: string
   onNext: (answer: unknown) => void
 }) {
-  const [text, setText] = useState("")
-  const [picked, setPicked] = useState<string | null>(null)
-  const [order, setOrder] = useState<string[]>([])
+  const [answer, setAnswer] = useState<unknown>(content.type === "sentence_order" ? [] : "")
   const [feedback, setFeedback] = useState<AnswerResult | null>(null)
-
-  const isMC = content.type === "multiple_choice"
-  const isOrder = content.type === "sentence_order"
-  const answer: unknown = isMC ? picked : isOrder ? order : text
-  const ready = isMC ? !!picked : isOrder ? order.length === (content.payload.tokens?.length ?? 0) : text.trim().length > 0
+  const ready = isAnswered(content, answer)
 
   async function check() {
+    if (!ready || feedback) return
     setFeedback(await answerItem(lessonId, itemId, answer))
   }
 
@@ -202,75 +198,19 @@ function ExerciseStep({
     <SectionCard accent={accent}>
       <div className="p-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {isOrder ? "Build the sentence" : "Exercise"}
+          {content.type === "sentence_order" ? "Build the sentence" : "Exercise"}
         </p>
         <p className="mt-2 text-lg font-semibold">{content.prompt}</p>
 
-        {isMC && (
-          <div className="mt-5 grid gap-2">
-            {(content.payload.options ?? []).map((o) => (
-              <button
-                key={o}
-                disabled={!!feedback}
-                onClick={() => setPicked(o)}
-                className={cn(
-                  "rounded-xl border-2 px-4 py-3 text-left font-medium transition-colors",
-                  picked === o ? "border-transparent text-white" : "border-border hover:border-white/30",
-                )}
-                style={picked === o ? { background: accent } : undefined}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {isOrder && (
-          <div className="mt-5">
-            <div className="min-h-14 rounded-xl border-2 border-dashed border-border p-2">
-              <div className="flex flex-wrap gap-2">
-                {order.map((t, i) => (
-                  <button
-                    key={`${t}-${i}`}
-                    disabled={!!feedback}
-                    onClick={() => setOrder(order.filter((_, j) => j !== i))}
-                    className="rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium ring-1 ring-white/10"
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(content.payload.tokens ?? [])
-                .filter((t) => order.filter((o) => o === t).length < (content.payload.tokens ?? []).filter((x) => x === t).length)
-                .map((t, i) => (
-                  <button
-                    key={`${t}-pool-${i}`}
-                    disabled={!!feedback}
-                    onClick={() => setOrder([...order, t])}
-                    className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-white/30"
-                  >
-                    {t}
-                  </button>
-                ))}
-            </div>
-          </div>
-        )}
-
-        {!isMC && !isOrder && (
-          <Input
-            className="mt-5"
-            autoFocus
-            value={text}
-            disabled={!!feedback}
-            placeholder="Your answer…"
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && ready && !feedback) check()
-            }}
-          />
-        )}
+        <ExerciseInput
+          content={content}
+          value={answer}
+          onChange={setAnswer}
+          disabled={!!feedback}
+          accent={accent}
+          autoFocus
+          onSubmit={check}
+        />
 
         {content.hint && !feedback && (
           <p className="mt-3 text-xs text-muted-foreground">Hint: {content.hint}</p>

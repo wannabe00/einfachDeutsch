@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ChevronRight, Lock } from "lucide-react"
+import { ChevronRight, GraduationCap, Lock } from "lucide-react"
 
-import { fetchPath } from "@/api/curriculum"
+import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -17,6 +17,7 @@ import { NextUp } from "@/components/path/NextUp"
  */
 export default function PathPage() {
   const { data, isLoading, isError } = useQuery({ queryKey: ["path"], queryFn: fetchPath })
+  const { data: exam } = useQuery({ queryKey: ["exam"], queryFn: fetchExamStatus })
 
   if (isLoading) return <Centered>Loading your path…</Centered>
   if (isError || !data) return <Centered>Couldn’t load your path. Try again.</Centered>
@@ -41,6 +42,8 @@ export default function PathPage() {
         />
       )}
 
+      {exam?.unlocked && <ExamBanner level={exam.level} nextLevel={exam.next_level} />}
+
       {units.length === 0 ? (
         <Centered>No units for your level yet.</Centered>
       ) : (
@@ -51,6 +54,32 @@ export default function PathPage() {
         </div>
       )}
     </div>
+  )
+}
+
+/** The checkpoint exam, shown once the level's path is essentially done. */
+function ExamBanner({ level, nextLevel }: { level: string; nextLevel: string | null }) {
+  return (
+    <Link
+      to="/path/exam"
+      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-b from-surface-2 to-surface p-4 shadow-lg shadow-black/40 transition-transform hover:-translate-y-0.5"
+    >
+      <span
+        className="flex size-12 shrink-0 items-center justify-center rounded-xl text-white"
+        style={{ background: "hsl(var(--brand))", boxShadow: "0 8px 20px -6px hsl(var(--brand))" }}
+      >
+        <GraduationCap className="size-6" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Checkpoint unlocked
+        </p>
+        <p className="truncate font-bold">{level} exam</p>
+        <p className="truncate text-sm text-muted-foreground">
+          {nextLevel ? `Pass to advance to ${nextLevel}` : "Pass to complete this level"}
+        </p>
+      </div>
+    </Link>
   )
 }
 

@@ -2,6 +2,9 @@ import { apiClient } from "./client"
 import type {
   AnswerResult,
   CompleteResult,
+  ExamResult,
+  ExamStart,
+  ExamStatus,
   LessonDetail,
   PathEnergy,
   PathResponse,
@@ -56,5 +59,31 @@ export async function completeLesson(
     `/curriculum/lessons/${lessonId}/complete/`,
     { answers },
   )
+  return data
+}
+
+/* ---- Level checkpoint exam (Phase 23.14) ---- */
+
+/** Progress toward the exam + whether it's unlocked. */
+export async function fetchExamStatus(): Promise<ExamStatus> {
+  const { data } = await apiClient.get<ExamStatus>("/curriculum/exam/")
+  return data
+}
+
+/** Open an attempt. 403 while the level's path isn't finished. */
+export async function startExam(): Promise<ExamStart> {
+  const { data } = await apiClient.post<ExamStart>("/curriculum/exam/start/")
+  return data
+}
+
+/** Submit answers keyed by exercise_id; the server grades and may promote you. */
+export async function submitExam(
+  attemptId: number,
+  answers: Record<number, unknown>,
+): Promise<ExamResult> {
+  const { data } = await apiClient.post<ExamResult>("/curriculum/exam/submit/", {
+    attempt_id: attemptId,
+    answers,
+  })
   return data
 }

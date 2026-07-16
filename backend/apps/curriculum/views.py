@@ -10,6 +10,7 @@ from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
 from . import energy as energy_lib
+from . import exam as exam_lib
 from . import gating, grading
 from .models import Lesson, LessonItem, PathLessonProgress, Unit
 from .serializers import (
@@ -247,3 +248,36 @@ def lesson_complete(request, lesson_id: int):
             "energy": _energy_payload(user),
         }
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def exam_status(request):
+    """Progress toward the level checkpoint exam, and whether it's unlocked."""
+    return Response(exam_lib.exam_status(request.user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def exam_start(request):
+    """Open an attempt. The sampled questions are frozen on the attempt."""
+    try:
+        attempt, questions = exam_lib.start_attempt(request.user)
+    except exam_lib.ExamError as err:
+        return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
+    return Response({"attempt_id": attempt.id, "questions": questions})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def exam_submit(request):
+    """Grade the attempt and promote on a pass."""
+    try:
+        result = exam_lib.submit_attempt(
+            request.user,
+            request.data.get("attempt_id"),
+            request.data.get("answers") or {},
+        )
+    except exam_lib.ExamError as err:
+        return Response({"detail": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)

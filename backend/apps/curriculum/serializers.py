@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
+from . import grading
 from .models import Lesson, LessonItem, Unit
 
 
@@ -52,22 +53,8 @@ class LessonItemSerializer(serializers.ModelSerializer):
 
     def get_content(self, item: LessonItem):
         if item.exercise_id and item.kind in {LessonItem.Kind.EXERCISE, LessonItem.Kind.DRILL}:
-            ex = item.exercise
-            payload = dict(ex.payload or {})
-            # Never ship the solution.
-            payload.pop("answer", None)
-            payload.pop("answers", None)
-            if ex.exercise_type == "matching":
-                pairs = payload.pop("pairs", [])
-                payload["left"] = [p[0] for p in pairs]
-                payload["right"] = sorted({p[1] for p in pairs})
-            return {
-                "exercise_id": ex.id,
-                "type": ex.exercise_type,
-                "prompt": ex.prompt,
-                "hint": ex.hint,
-                "payload": payload,
-            }
+            # Shared with the level exam — one place strips answers.
+            return grading.public_exercise(item.exercise)
         if item.word_id and item.kind == LessonItem.Kind.REVIEW:
             return {
                 "word_id": item.word.id,

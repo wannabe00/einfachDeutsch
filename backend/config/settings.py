@@ -311,6 +311,13 @@ ENERGY_REFILL_HOURS = int(os.getenv("ENERGY_REFILL_HOURS", "4"))
 # Length of the premium free trial, in days.
 PREMIUM_TRIAL_DAYS = int(os.getenv("PREMIUM_TRIAL_DAYS", "7"))
 
+# ---- Level checkpoint exam (Phase 23.14) ----
+# Share of a level's lessons that must be completed before the exam unlocks,
+# the score needed to pass (and be promoted), and how many questions it samples.
+EXAM_UNLOCK_RATIO = float(os.getenv("EXAM_UNLOCK_RATIO", "0.9"))
+EXAM_PASS_THRESHOLD = float(os.getenv("EXAM_PASS_THRESHOLD", "0.8"))
+EXAM_QUESTION_COUNT = int(os.getenv("EXAM_QUESTION_COUNT", "12"))
+
 
 # ---- Cloudinary (profile picture uploads) ----
 # Server-side image hosting (the API secret never reaches the frontend). If
