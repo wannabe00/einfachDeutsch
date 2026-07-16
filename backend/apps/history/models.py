@@ -19,6 +19,15 @@ class HistoryLesson(models.Model):
     order = models.PositiveIntegerField(default=0)
     body_en = models.TextField(blank=True)
     body_de = models.TextField()
+    # Article-card fields (Phase 23.12). Both optional:
+    #   * `excerpt` blank → derived from the body, so old lessons need no edit;
+    #   * `image_url` blank → the UI draws an era tile instead. The prod CSP only
+    #     allows images from 'self', data:, images.unsplash.com and
+    #     res.cloudinary.com, so point this at a Cloudinary/Unsplash asset —
+    #     hotlinking elsewhere is blocked in production. Use public-domain or
+    #     royalty-free imagery only.
+    excerpt = models.CharField(max_length=300, blank=True)
+    image_url = models.URLField(blank=True)
     # [{"prompt": str, "options": [str, ...], "answer": str}]
     quiz = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
