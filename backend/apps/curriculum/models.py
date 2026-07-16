@@ -148,3 +148,32 @@ class EnergyState(models.Model):
 
     def __str__(self):
         return f"{self.user}: {self.balance}⚡ @ {self.last_refill_at:%Y-%m-%d %H:%M}"
+
+
+class LevelExamAttempt(models.Model):
+    """A Goethe-style checkpoint attempt (Phase 23.14).
+
+    Unlocked once the user has essentially finished their level's path; passing
+    promotes them to the next level, failing sends them back to review and they
+    may retry.
+
+    `question_ids` is fixed when the attempt starts and graded against on submit,
+    so the client can't swap in easier questions.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="exam_attempts"
+    )
+    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS)
+    question_ids = models.JSONField(default=list)
+    score = models.FloatField(null=True, blank=True)  # 0..1, null until submitted
+    passed = models.BooleanField(default=False)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+
+    def __str__(self):
+        state = "passed" if self.passed else ("failed" if self.completed_at else "in progress")
+        return f"{self.user} · {self.cefr_level} exam ({state})"

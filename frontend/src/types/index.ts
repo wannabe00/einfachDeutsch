@@ -394,6 +394,39 @@ export interface PathUnitDetail extends PathUnit {
   grammar: UnitGrammar[]
 }
 
+/* ---- Level checkpoint exam (Phase 23.14) ---- */
+
+export interface ExamStatus {
+  level: CEFRLevel
+  next_level: CEFRLevel | null
+  completed_lessons: number
+  total_lessons: number
+  /** 0..1 share of the level's lessons completed. */
+  progress: number
+  unlock_ratio: number
+  unlocked: boolean
+  pass_threshold: number
+  question_count: number
+  last_attempt: { score: number; passed: boolean; completed_at: string } | null
+}
+
+export interface ExamStart {
+  attempt_id: number
+  questions: ExerciseContent[]
+}
+
+export interface ExamResult {
+  passed: boolean
+  score: number
+  correct: number
+  total: number
+  pass_threshold: number
+  /** The level you were promoted to, or null if you didn't pass. */
+  promoted_to: CEFRLevel | null
+  level: CEFRLevel
+  visible_levels: CEFRLevel[]
+}
+
 /* ---- Lesson player (Phase 23.5). Answers are never sent to the client. ---- */
 
 export type LessonItemKind = "exercise" | "drill" | "review" | "grammar"

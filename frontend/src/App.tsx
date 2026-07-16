@@ -26,6 +26,7 @@ import SettingsPage from "@/pages/SettingsPage"
 import PathPage from "@/pages/PathPage"
 import UnitPage from "@/pages/UnitPage"
 import LessonPlayerPage from "@/pages/LessonPlayerPage"
+import ExamPage from "@/pages/ExamPage"
 import UiKitPage from "@/pages/UiKitPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
@@ -158,6 +159,14 @@ function App() {
           element={
             <RequireAuth>
               <PathPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/path/exam"
+          element={
+            <RequireAuth>
+              <ExamPage />
             </RequireAuth>
           }
         />
