@@ -10,6 +10,9 @@ import {
   Swords,
 } from "lucide-react"
 
+import { useQuery } from "@tanstack/react-query"
+
+import { fetchPublicStats } from "@/api/stats"
 import { SITE_NAME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { Reveal } from "@/components/landing/Reveal"
@@ -42,9 +45,48 @@ export default function LandingPage() {
       <Hero />
       <Teaser />
       <Features />
+      <Stats />
       <CultureMoment />
       <FaqCta />
     </div>
+  )
+}
+
+/* ---- Real content numbers (Phase 22.4) — honest counts, not marketing figures ---- */
+function Stats() {
+  const { data } = useQuery({ queryKey: ["public-stats"], queryFn: fetchPublicStats })
+  // The landing is guest-facing and may load with the API cold/down — if there's
+  // nothing to show, show nothing rather than a row of zeros.
+  if (!data) return null
+
+  const items = [
+    { value: data.words, label: "vocabulary words" },
+    { value: data.grammar_topics, label: "grammar topics" },
+    { value: data.exercises, label: "exercises" },
+    { value: data.history_reads, label: "history reads" },
+  ].filter((s) => s.value > 0)
+
+  if (items.length === 0) return null
+
+  return (
+    <Moment>
+      <Reveal>
+        <MomentHeader label="Real content, today" title="No filler numbers" />
+        <p className="mx-auto mt-3 max-w-md text-center text-white/60">
+          Everything below is a live count of what's actually in the app right now.
+        </p>
+        <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
+          {items.map((s) => (
+            <div key={s.label} className="text-center">
+              <p className="text-4xl font-bold sm:text-5xl" style={{ color: brand }}>
+                {s.value.toLocaleString()}
+              </p>
+              <p className="mt-1 text-sm text-white/60">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </Moment>
   )
 }
 

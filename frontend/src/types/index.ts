@@ -324,6 +324,15 @@ export interface ActivityDay {
   count: number
 }
 
+/** Real content totals for the marketing landing (Phase 22.4). */
+export interface PublicStats {
+  words: number
+  exercises: number
+  grammar_topics: number
+  history_reads: number
+  video_picks: number
+}
+
 export interface ImportResult {
   created: number
   skipped: number
