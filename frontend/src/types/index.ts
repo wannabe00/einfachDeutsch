@@ -95,6 +95,27 @@ export interface HistoryLessonSummary {
   image_url: string
 }
 
+/* ---- AI chat history (Phase 23.13) — mirrors ai_assistant/serializers.py ---- */
+
+export interface ConversationMessage {
+  id: number
+  role: "user" | "assistant"
+  content: string
+  created_at: string
+}
+
+/** Sidebar row. */
+export interface Conversation {
+  id: number
+  title: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ConversationDetail extends Conversation {
+  messages: ConversationMessage[]
+}
+
 export interface HistoryQuizQuestion {
   id: number
   prompt: string
