@@ -112,6 +112,39 @@ class Command(BaseCommand):
                         )
                         counts["items"] += 1
 
+                    # Enriching a lesson can shrink it below a previous seed;
+                    # drop items past the new end so no stale card lingers.
+                    LessonItem.objects.filter(
+                        lesson=lesson, order__gte=len(lspec["items"])
+                    ).delete()
+
+            # Prune exercises from earlier seeds that no lesson references anymore
+            # (positions that flipped from exercise → review/grammar, or vanished).
+            used_sources = set(
+                LessonItem.objects.filter(exercise__isnull=False).values_list(
+                    "exercise__source", flat=True
+                )
+            )
+            orphans = Exercise.objects.filter(source__startswith="seed-a1-").exclude(
+                source__in=used_sources
+            )
+            counts["pruned"] = orphans.count()
+            orphans.delete()
+
+            # Same for grammar rules renamed between seeds — scoped to THIS book so
+            # legacy Menschen grammar is never touched. A seed rule always has a
+            # lesson item; one without is a leftover from an old title.
+            used_rule_ids = set(
+                LessonItem.objects.filter(grammar_rule__isnull=False).values_list(
+                    "grammar_rule_id", flat=True
+                )
+            )
+            stale_rules = GrammarRule.objects.filter(chapter__book=book).exclude(
+                id__in=used_rule_ids
+            )
+            counts["pruned"] += stale_rules.count()
+            stale_rules.delete()
+
         self.stdout.write(self.style.SUCCESS("Seeded A1 learning path:"))
         for k, v in counts.items():
             self.stdout.write(f"  {k}: {v}")
