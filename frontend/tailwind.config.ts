@@ -2,7 +2,6 @@ import type { Config } from "tailwindcss"
 import animate from "tailwindcss-animate"
 
 export default {
-  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     container: {
@@ -14,6 +13,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
         grotesk: ["Space Grotesk", "system-ui", "sans-serif"],
       },
       colors: {

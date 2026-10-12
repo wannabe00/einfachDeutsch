@@ -9,7 +9,6 @@ urlpatterns = [
     path("accounts/complete-onboarding/", views.complete_onboarding, name="complete-onboarding"),
     path("accounts/set-level/", views.set_level, name="set-level"),
     path("accounts/placement-test/", views.placement_test, name="placement-test"),
-    path("accounts/level-status/", views.level_status, name="level-status"),
     path("accounts/streak/", views.streak, name="streak"),
     path("accounts/premium/", views.premium_status, name="premium-status"),
     path("accounts/premium/trial/", views.start_trial, name="premium-trial"),

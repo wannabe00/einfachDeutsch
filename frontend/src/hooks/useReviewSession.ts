@@ -6,7 +6,7 @@ import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { ReviewQuality, Word } from "@/types"
 
 // `null` = choosing; "all" = every chapter; number = a specific chapter id.
-export type Selection = number | "all" | null
+type Selection = number | "all" | null
 
 /**
  * The SRS review session state machine: fetches the due queue for the chosen

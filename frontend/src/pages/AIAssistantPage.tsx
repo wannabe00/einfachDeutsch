@@ -18,10 +18,10 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 /*
- * AI Assistant with ChatGPT-style history (Phase 23.13): a conversation list on
- * the left, the thread on the right. Both turns are persisted server-side, so a
- * chat survives a refresh and can be resumed, renamed or deleted. Premium-gated
- * (the route is wrapped in RequirePremium; the API enforces it too).
+ * AI Assistant: saved conversations on the left, the open chat on the right.
+ * Both sides of each chat are stored on the server, so chats survive a refresh
+ * and can be resumed, renamed or deleted. Premium only (checked by the route
+ * and by the API).
  */
 const SUGGESTIONS = [
   "Suggest words for greetings",
@@ -129,14 +129,14 @@ export default function AIAssistantPage() {
             <div className="flex flex-col gap-3 py-8">
               <h1 className="text-xl font-bold">AI Assistant</h1>
               <p className="text-sm text-muted-foreground">
-                Your German tutor. Chats are saved — pick one on the left or start a new one.
+                Ask anything about German. Your chats are saved on the left.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => send.mutate(s)}
-                    className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-primary/50"
+                    className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:bg-surface-2"
                   >
                     {s}
                   </button>

@@ -1,4 +1,4 @@
-"""WSGI config for the German Learning Platform."""
+"""WSGI config for einfachDeutsch."""
 
 import os
 

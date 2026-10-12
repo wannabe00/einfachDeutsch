@@ -14,9 +14,9 @@ from .serializers import ShowSuggestionSerializer
 def suggestions(request):
     """Curated watch suggestions.
 
-    Two independent gates: they **unlock** at `VIDEO_UNLOCK_MIN_LEVEL` (default
-    B1, i.e. after finishing A2), and once unlocked they still obey the ≤-level
-    rule (Spec v3) — you only see entries at or below your level.
+    Two separate rules: suggestions unlock at `VIDEO_UNLOCK_MIN_LEVEL` (B1 by
+    default, i.e. after finishing A2), and after that you still only see
+    entries at or below your level.
     """
     min_level = settings.VIDEO_UNLOCK_MIN_LEVEL
     user_level = request.user.profile.cefr_level

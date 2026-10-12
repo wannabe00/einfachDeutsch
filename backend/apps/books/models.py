@@ -20,10 +20,9 @@ class Chapter(models.Model):
     number = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    # The chapter's CEFR level (Phase 23.8). Everything a chapter holds — its
-    # Words and GrammarRules — inherits this for the ≤-level rule, so gating is
-    # a single join. A chapter is a Lektion (= one curriculum Unit), which is why
-    # the level sits here rather than being derived per word.
+    # The chapter's CEFR level. Its words and grammar rules inherit it, so the
+    # level rule is a single join. A chapter is one Lektion (one path Unit),
+    # which is why the level lives here and not on each word.
     cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, default="A1")
 
     class Meta:

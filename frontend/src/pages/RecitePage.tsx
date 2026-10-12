@@ -8,6 +8,7 @@ import { recorderSupported, useAudioRecorder } from "@/hooks/useAudioRecorder"
 import { EditStep } from "@/components/recite/EditStep"
 import { StudyRecordStep } from "@/components/recite/StudyRecordStep"
 import { ResultCard } from "@/components/recite/ResultCard"
+import { PageHeader } from "@/components/layout/PageHeader"
 
 const MAX_SECONDS = 120
 
@@ -54,15 +55,14 @@ export default function RecitePage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight">Recite</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Read a short German text, then retell it from memory in your own words.
-        We transcribe and grade your retelling (your audio is discarded after).
-      </p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Recite"
+        subtitle="Read a short German text, then retell it from memory in your own words. We transcribe and grade your retelling (your audio is discarded after)."
+      />
 
       {!recorderSupported && (
-        <p className="mt-6 rounded-lg border border-border bg-surface p-4 text-sm text-[hsl(var(--danger))]">
+        <p className="rounded-xl border border-danger/40 bg-danger-bg p-4 text-sm text-danger">
           Your browser doesn't support audio recording. Try Chrome, Edge, or
           Firefox on desktop.
         </p>

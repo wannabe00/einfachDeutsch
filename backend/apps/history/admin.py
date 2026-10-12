@@ -12,7 +12,7 @@ class HistoryLessonAdmin(admin.ModelAdmin):
 
     @admin.display(boolean=True, description="Image")
     def has_image(self, obj) -> bool:
-        """Blank is fine — the card falls back to a drawn era tile."""
+        """Optional. When blank the card draws an era tile instead."""
         return bool(obj.image_url)
 
 

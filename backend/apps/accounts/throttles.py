@@ -4,8 +4,9 @@ from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 class LoginThrottle(AnonRateThrottle):
     """Brute-force guard for credential/code exchanges (per-IP, unauthenticated).
 
-    Applied to username/password login and the social-login code exchange —
-    the global anon rate (120/min) is far too generous for password guessing.
+    Applied to username/password login and the social-login code exchange,
+    because the global anonymous rate (120/min) is far too generous for
+    password guessing.
     """
 
     scope = "login"

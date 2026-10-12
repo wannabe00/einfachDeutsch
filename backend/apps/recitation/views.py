@@ -55,7 +55,7 @@ def recite(request):
         result = grade_retelling(source_text, transcript)
     except AIConfigError as exc:
         return Response({"detail": str(exc)}, status=503)
-    except Exception:  # noqa: BLE001 — any provider/transcription failure
+    except Exception:  # noqa: BLE001 - any provider or transcription failure
         return Response(
             {"detail": "Could not process the recording. Please try again."},
             status=502,

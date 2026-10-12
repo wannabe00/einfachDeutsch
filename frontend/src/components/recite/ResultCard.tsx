@@ -3,8 +3,8 @@ import { Check, RotateCcw, X } from "lucide-react"
 import type { RecitationResult } from "@/types"
 import { Button } from "@/components/ui/button"
 
-/** Step 3 — the graded feedback card (coverage, covered/missed, grammar,
-    pronunciation, transcript) + "Try another". */
+/** Step 3: the feedback (coverage, covered and missed points, grammar,
+    pronunciation, transcript) and a "Try another" button. */
 export function ResultCard({
   result,
   onReset,
@@ -59,7 +59,7 @@ export function ResultCard({
           What we heard (transcript)
         </summary>
         <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-          {result.transcript || "—"}
+          {result.transcript || "No speech was picked up."}
         </p>
       </details>
 

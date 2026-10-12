@@ -76,7 +76,7 @@ export function LessonQuiz({
         <p className="mt-5 text-sm">
           You scored <span className="font-semibold text-accent">{result.score}%</span> (
           {result.correct}/{result.total}).{" "}
-          {result.score === 100 ? "Perfect!" : "Lesson marked complete."}
+          {result.score === 100 ? "All correct." : "Lesson marked complete."}
         </p>
       ) : (
         <Button

@@ -10,8 +10,8 @@ import { DrillShell } from "./DrillShell"
 
 const ROUNDS = 15
 const ARTICLES = ["der", "die", "das"] as const
-// Full, literal class strings so Tailwind can see them at build time (it scans
-// source text — a `var(--${...})` interpolation would emit unparseable CSS).
+// Full class names written out so Tailwind finds them when it scans the source.
+// Building them with `var(--${...})` would produce CSS it can't parse.
 const ARTICLE_TEXT: Record<string, string> = {
   der: "text-[hsl(var(--article-der))]",
   die: "text-[hsl(var(--article-die))]",

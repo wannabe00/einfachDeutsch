@@ -1,5 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom"
-import type { ReactNode } from "react"
+import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
 import { useAuth } from "@/contexts/AuthContext"
 import { Layout } from "@/components/layout/Layout"
@@ -27,7 +26,6 @@ import PathPage from "@/pages/PathPage"
 import UnitPage from "@/pages/UnitPage"
 import LessonPlayerPage from "@/pages/LessonPlayerPage"
 import ExamPage from "@/pages/ExamPage"
-import UiKitPage from "@/pages/UiKitPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
 function Loading() {
@@ -38,21 +36,21 @@ function Loading() {
   )
 }
 
-function RequireAuth({ children }: { children: ReactNode }) {
+/** Account-only routes. Guests see the page locked behind a sign-in prompt
+    instead of being redirected away. */
+function RequireAuth() {
   const { user, loading } = useAuth()
   if (loading) return <Loading />
-  // Guests see the section blurred behind a sign-up/login overlay rather than
-  // being redirected away.
   if (!user) return <LockedFeature />
-  return <>{children}</>
+  return <Outlet />
 }
 
-/** Premium-only sections (AI, Recite — Spec v3). The backend is the real gate
-    (`IsPremium` → 403); this just shows the upsell instead of a broken page. */
-function RequirePremium({ children }: { children: ReactNode }) {
+/** Premium-only routes. The API enforces this too (403); here we show the
+    upgrade prompt instead of a page full of failed requests. */
+function RequirePremium() {
   const { user } = useAuth()
   if (!user?.has_premium) return <PremiumLock />
-  return <>{children}</>
+  return <Outlet />
 }
 
 /** A signed-in user must finish profile setup, then level onboarding, before
@@ -66,7 +64,7 @@ function pendingOnboardingPath(user: {
   return null
 }
 
-/** The app shell — signed-in users with unfinished onboarding are redirected. */
+/** The app shell. Signed-in users with unfinished onboarding are redirected. */
 function AppShell() {
   const { user } = useAuth()
   if (user) {
@@ -100,9 +98,9 @@ function App() {
         path="/login"
         element={user ? <Navigate to="/" replace /> : <AuthPage />}
       />
-      {/* /register kept as an alias so old links still work. */}
+      {/* Old links to /register still work. */}
       <Route path="/register" element={<Navigate to="/login" replace />} />
-      {/* OAuth provider redirect lands here (public — no token yet). */}
+      {/* OAuth providers redirect here before we have a token. */}
       <Route path="/auth/callback/:provider" element={<OAuthCallbackPage />} />
 
       {/* Root: landing page (guests) or dashboard (signed-in). */}
@@ -137,102 +135,34 @@ function App() {
         }
       />
 
-      {/* The app shell is open to guests; individual routes decide whether
-          they require an account (see lib/access.ts). */}
+      {/* The app shell is open to guests; routes below opt into auth. */}
       <Route element={<AppShell />}>
-        {/* Guest-OK (free to the owner, read-only or cheap, backend-throttled) */}
         <Route path="/review" element={<ReviewPage />} />
         <Route path="/words" element={<WordBankPage />} />
         <Route path="/grammar" element={<GrammarPage />} />
         <Route path="/exercises" element={<ExercisesPage />} />
         <Route path="/books" element={<BooksPage />} />
         <Route path="/chapters/:chapterId" element={<ChapterDetailPage />} />
-        {/* Drills hub is public; individual drills gate themselves. */}
+        {/* The drills hub is public; individual drills gate themselves. */}
         <Route path="/drills" element={<DrillsPage />} />
-        {/* Design v3 living style guide (Phase 23.2 reference). */}
-        <Route path="/ui-kit" element={<UiKitPage />} />
 
-        {/* Account-only (cost the owner / abusable / speech) */}
-        {/* The path is inherently per-user (level + progress + energy). */}
-        <Route
-          path="/path"
-          element={
-            <RequireAuth>
-              <PathPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/path/exam"
-          element={
-            <RequireAuth>
-              <ExamPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/path/:unitId"
-          element={
-            <RequireAuth>
-              <UnitPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/path/:unitId/lesson/:lessonId"
-          element={
-            <RequireAuth>
-              <LessonPlayerPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/speak"
-          element={
-            <RequireAuth>
-              <RequirePremium>
-                <RecitePage />
-              </RequirePremium>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/ai"
-          element={
-            <RequireAuth>
-              <RequirePremium>
-                <AIAssistantPage />
-              </RequirePremium>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/videos"
-          element={
-            <RequireAuth>
-              <VideosPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <RequireAuth>
-              <HistoryPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <RequireAuth>
-              <SettingsPage />
-            </RequireAuth>
-          }
-        />
+        <Route element={<RequireAuth />}>
+          <Route path="/path" element={<PathPage />} />
+          <Route path="/path/exam" element={<ExamPage />} />
+          <Route path="/path/:unitId" element={<UnitPage />} />
+          <Route path="/path/:unitId/lesson/:lessonId" element={<LessonPlayerPage />} />
+          <Route path="/videos" element={<VideosPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+
+          <Route element={<RequirePremium />}>
+            <Route path="/speak" element={<RecitePage />} />
+            <Route path="/ai" element={<AIAssistantPage />} />
+          </Route>
+        </Route>
       </Route>
 
-      {/* Privacy is public (linked from the landing footer) and standalone. */}
+      {/* Linked from the landing footer, so it lives outside the app shell. */}
       <Route path="/privacy" element={<PrivacyPage />} />
     </Routes>
   )

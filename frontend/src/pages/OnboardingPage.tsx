@@ -5,10 +5,11 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/contexts/AuthContext"
 import { fetchPlacementTest, setLevel, submitPlacementTest } from "@/api/leveling"
 import type { CEFRLevel, PlacementResult } from "@/types"
-import { SITE_NAME } from "@/lib/site"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PlacementTestForm } from "@/components/onboarding/PlacementTestForm"
+import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
+import { AUTH_CARD } from "@/lib/authCard"
 
 const LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -56,13 +57,13 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-lg">
-        <h1 className="text-center text-2xl font-semibold tracking-tight">{SITE_NAME}</h1>
+    <AuthShell maxWidth="max-w-lg">
+      <div>
+        <AuthWordmark />
 
-        {/* Step 1 — choose: start at A1, or take the test (no free level pick) */}
+        {/* Step 1: start at A1 or take the test. There's no free choice of level. */}
         {phase === "choose" && (
-          <div className="mt-8 rounded-xl border border-border bg-surface p-6">
+          <div className={`mt-8 ${AUTH_CARD}`}>
             <h2 className="text-lg font-semibold">What's your German level?</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               New to German? Start at A1. Already know some? Take the placement
@@ -70,7 +71,7 @@ export default function OnboardingPage() {
             </p>
             <div className="mt-5 flex flex-col gap-3">
               <Button size="lg" disabled={save.isPending} onClick={() => save.mutate("A1")}>
-                {save.isPending ? "Starting…" : "Start at A1 — I'm a beginner"}
+                {save.isPending ? "Starting…" : "I'm a beginner, start at A1"}
               </Button>
               <Button
                 variant="outline"
@@ -84,7 +85,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 2 — test */}
+        {/* Step 2: the placement test */}
         {phase === "test" &&
           (test ? (
             <PlacementTestForm
@@ -96,9 +97,9 @@ export default function OnboardingPage() {
             <p className="mt-8 text-center text-sm text-muted-foreground">Loading…</p>
           ))}
 
-        {/* Step 3 — result + adjust */}
+        {/* Step 3: the result, which the user can nudge up or down */}
         {phase === "result" && result && (
-          <div className="mt-8 rounded-xl border border-border bg-surface p-6 text-center">
+          <div className={`mt-8 text-center ${AUTH_CARD}`}>
             <p className="text-sm text-muted-foreground">
               You got {result.correct} of {result.total} right. We suggest:
             </p>
@@ -135,6 +136,6 @@ export default function OnboardingPage() {
           </div>
         )}
       </div>
-    </div>
+    </AuthShell>
   )
 }

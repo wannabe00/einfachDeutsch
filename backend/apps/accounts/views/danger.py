@@ -1,6 +1,5 @@
-"""Destructive account endpoints. Policy (AUDIT S2): every destructive action
-requires the account password server-side — a stolen token alone must not be
-able to wipe or delete an account."""
+"""Destructive account endpoints. Every one of them requires the account
+password, so a stolen token alone can't wipe or delete an account."""
 
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -12,8 +11,8 @@ def _password_error(request):
     """Verify the password sent with a destructive request. Returns an error
     Response, or None when the action may proceed.
 
-    Accounts that never finished onboarding have no usable password yet — they
-    hold no data worth protecting, so they may proceed without one."""
+    Accounts that never finished onboarding have no password yet. They hold no
+    data worth protecting, so they may proceed without one."""
     user = request.user
     if not user.has_usable_password():
         return None
@@ -28,7 +27,7 @@ def _password_error(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_all(request):
-    """Invalidate the user's auth token(s) — logs out everywhere."""
+    """Delete the user's auth tokens, logging them out on every device."""
     Token.objects.filter(user=request.user).delete()
     return Response({"detail": "Logged out of all devices."})
 
@@ -62,11 +61,12 @@ def delete_account(request):
 @permission_classes([IsAuthenticated])
 def reset_progress(request):
     """Clear all of the user's learning progress (keeps the account)."""
+    from apps.curriculum.models import LevelExamAttempt, PathLessonProgress
     from apps.exercises.models import ExerciseAttempt
     from apps.history.models import UserHistoryProgress
     from apps.vocabulary.models import ReviewLog, WordProgress
 
-    from ..models import StreakRecord, UserLessonProgress
+    from ..models import StreakRecord
 
     error = _password_error(request)
     if error:
@@ -77,6 +77,7 @@ def reset_progress(request):
     ReviewLog.objects.filter(user=user).delete()
     ExerciseAttempt.objects.filter(user=user).delete()
     UserHistoryProgress.objects.filter(user=user).delete()
-    UserLessonProgress.objects.filter(user=user).delete()
+    PathLessonProgress.objects.filter(user=user).delete()
+    LevelExamAttempt.objects.filter(user=user).delete()
     StreakRecord.objects.filter(user=user).delete()
     return Response({"detail": "Progress reset."})

@@ -1,7 +1,7 @@
 import { apiClient } from "./client"
 import type { Conversation, ConversationDetail, ConversationMessage } from "@/types"
 
-/* ChatGPT-style AI chat history (Phase 23.13). Premium-gated server-side. */
+/* Saved AI conversations. Premium only; the server enforces it. */
 
 export async function fetchConversations(): Promise<Conversation[]> {
   const { data } = await apiClient.get<Conversation[]>("/ai/conversations/")

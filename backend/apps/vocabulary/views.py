@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.levels import visible_levels_for
+from apps.accounts.scheduling import record_activity
 from apps.exercises.models import Exercise, ExerciseAttempt
 from apps.grammar.models import GrammarRule
 
@@ -22,26 +23,15 @@ def current_user(request):
     return request.user if request.user.is_authenticated else None
 
 
-def _record_activity(user):
-    """Update the user's streak — best-effort, never breaks the request."""
-    try:
-        from apps.accounts.scheduling import register_activity
-
-        register_activity(user)
-    except Exception:  # noqa: BLE001 — streak is non-critical
-        pass
-
-
 def locked_chapter_ids_for(user) -> set[int]:
-    """Chapters whose vocabulary is still locked for `user` (Phase 23.9).
+    """Chapters whose vocabulary is still locked for `user`.
 
-    A Lektion at the user's **own** level stays locked until they've completed a
-    lesson in it — that's what "words from unreached lessons" means. Lektionen
-    *below* their level are optional review and always open, and chapters with no
-    path unit (legacy content, words the user added) are never locked.
+    A Lektion at the user's own level stays locked until they've completed a
+    lesson in it. Lektionen below their level are review and always open, and
+    chapters with no path unit (older content, words the user added) never lock.
 
-    (Words above the user's level aren't locked — they're not returned at all;
-    see the ≤-level filter.)
+    Words above the user's level aren't locked; the level filter means they're
+    never returned at all.
     """
     if user is None:
         return set()
@@ -69,8 +59,8 @@ def due_words_for(user, chapter_id=None):
     the user has never reviewed it (new words are due). For a guest (user=None)
     every word is new, so all words are due.
 
-    Level-gated (Spec v3): review never surfaces words above the user's level —
-    otherwise forward content would leak in through the back door.
+    Words above the user's level are never due, or review would leak content
+    from higher levels.
     """
     today = date.today()
     qs = Word.objects.select_related("chapter")
@@ -117,7 +107,7 @@ class WordViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Word.objects.select_related("chapter")
-        # ≤-level rule (Spec v3): never expose vocabulary above the user's level.
+        # ≤-level rule: never expose vocabulary above the user's level.
         # Guests see the lowest level only.
         qs = qs.filter(chapter__cefr_level__in=visible_levels_for(self.request.user))
         chapter = self.request.query_params.get("chapter")
@@ -181,7 +171,7 @@ class WordViewSet(viewsets.ModelViewSet):
         if user is not None:
             progress.save()
             ReviewLog.objects.create(word=word, quality=quality, user=user)
-            _record_activity(user)
+            record_activity(user)
 
         return Response(WordProgressSerializer(progress).data)
 
@@ -289,11 +279,11 @@ class StatsView(APIView):
 
 
 class PublicStatsView(APIView):
-    """Real content totals for the marketing landing (Phase 22.4).
+    """Live content counts for the landing page.
 
-    Honest numbers, not hardcoded figures: every count is a live COUNT(*) of
-    admin-curated content, so the landing can never over-claim. Public (guests
-    see the landing) and lightly cached — the counts change rarely.
+    Each number is a COUNT(*) of real content, so the landing can't overstate
+    anything. Public (guests see the landing) and cached for a while, since the
+    counts rarely change.
     """
 
     permission_classes = [AllowAny]

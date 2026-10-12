@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.scheduling import record_activity
+
 from .models import Exercise, ExerciseAttempt
 from .serializers import ExerciseSerializer
 
@@ -86,12 +88,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         )
 
         if request.user.is_authenticated:
-            try:
-                from apps.accounts.scheduling import register_activity
-
-                register_activity(request.user)
-            except Exception:  # noqa: BLE001 — streak is non-critical
-                pass
+            record_activity(request.user)
 
         return Response(
             {

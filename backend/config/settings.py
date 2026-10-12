@@ -1,8 +1,4 @@
-"""
-Django settings for the German Learning Platform.
-
-Brick 0.1 — base project configuration. DRF + CORS are wired in brick 0.2.
-"""
+"""Django settings for einfachDeutsch."""
 
 import os
 from pathlib import Path
@@ -174,7 +170,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": os.getenv("THROTTLE_ANON", "120/min"),
         "user": os.getenv("THROTTLE_USER", "600/min"),
-        # Protect the (free, limited) Gemini quota — per signed-in user.
+        # Per signed-in user, to protect the limited free Gemini quota.
         "ai_burst": os.getenv("THROTTLE_AI_BURST", "12/min"),
         "ai_daily": os.getenv("THROTTLE_AI_DAILY", "120/day"),
         # Brute-force guard on login + social code exchange (per IP).
@@ -223,11 +219,11 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-# Where the SPA lives — used to build OAuth callback URLs.
+# Where the frontend lives; used to build OAuth callback URLs.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 REST_AUTH = {
-    "USE_JWT": False,  # simple DRF token in localStorage — easiest for the SPA
+    "USE_JWT": False,  # A plain DRF token in localStorage is simplest for the SPA.
     "SESSION_LOGIN": False,
     "TOKEN_MODEL": "rest_framework.authtoken.models.Token",
     "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
@@ -285,7 +281,7 @@ if not DEBUG:
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 
-# ---- Lesson schedule + streaks (Phase 15, all tunable) ----
+# ---- Lesson schedule and streaks ----
 # Weekdays new lessons unlock on (Mon=0 … Sun=6). Default Mon/Wed/Fri.
 LESSON_UNLOCK_WEEKDAYS = [
     int(d) for d in os.getenv("LESSON_UNLOCK_WEEKDAYS", "0,2,4").split(",") if d != ""
@@ -294,24 +290,24 @@ STREAK_INITIAL_FREEZE_TOKENS = int(os.getenv("STREAK_INITIAL_FREEZE_TOKENS", "2"
 STREAK_FREEZE_EARN_DAYS = int(os.getenv("STREAK_FREEZE_EARN_DAYS", "14"))
 STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))
 
-# ---- Recitation v2 cost control (Phase 16, tunable) ----
+# ---- Recite cost control ----
 RECITATION_DAILY_CAP = int(os.getenv("RECITATION_DAILY_CAP", "5"))
 RECITATION_MAX_AUDIO_SECONDS = int(os.getenv("RECITATION_MAX_AUDIO_SECONDS", "120"))
 RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
 
-# ---- Video / show suggestions (Phase 17) ----
+# ---- Video / show suggestions ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
 VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
 
 
-# ---- Learning path: energy + premium (Phase 23, Spec v3) ----
+# ---- Learning path: energy + premium ----
 # Free tier energy: bar size, and hours to regenerate +1. Premium = unlimited.
 ENERGY_MAX = int(os.getenv("ENERGY_MAX", "3"))
 ENERGY_REFILL_HOURS = int(os.getenv("ENERGY_REFILL_HOURS", "4"))
 # Length of the premium free trial, in days.
 PREMIUM_TRIAL_DAYS = int(os.getenv("PREMIUM_TRIAL_DAYS", "7"))
 
-# ---- Level checkpoint exam (Phase 23.14) ----
+# ---- Level checkpoint exam ----
 # Share of a level's lessons that must be completed before the exam unlocks,
 # the score needed to pass (and be promoted), and how many questions it samples.
 EXAM_UNLOCK_RATIO = float(os.getenv("EXAM_UNLOCK_RATIO", "0.9"))

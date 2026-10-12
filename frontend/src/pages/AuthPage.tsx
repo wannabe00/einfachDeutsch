@@ -7,6 +7,8 @@ import { SITE_NAME } from "@/lib/site"
 import { isProviderConfigured, startOAuth } from "@/lib/oauth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AuthShell } from "@/components/auth/AuthShell"
+import { AUTH_CARD } from "@/lib/authCard"
 
 export default function AuthPage() {
   const { login } = useAuth()
@@ -38,16 +40,14 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-sm">
-        <h1 className="text-center text-2xl font-semibold tracking-tight">
-          {SITE_NAME}
-        </h1>
+    <AuthShell maxWidth="max-w-sm">
+      <div>
+        <h1 className="text-center text-2xl font-bold tracking-tight">{SITE_NAME}</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
           Sign in or create your account
         </p>
 
-        <div className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6">
+        <div className={`mt-8 flex flex-col gap-3 ${AUTH_CARD}`}>
           {/* Social sign-in (also creates the account on first use) */}
           <SocialButton
             provider="google"
@@ -92,11 +92,11 @@ export default function AuthPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          New here? Just continue with Google or GitHub — we'll set up your
-          profile right after.
+          New here? Continue with Google or GitHub and we'll set up your
+          profile next.
         </p>
       </div>
-    </div>
+    </AuthShell>
   )
 }
 
@@ -116,7 +116,7 @@ function SocialButton({
       onClick={onClick}
       disabled={!configured}
       title={configured ? undefined : "Sign-in not configured yet"}
-      className="flex h-11 items-center justify-center gap-3 rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-11 items-center justify-center gap-3 rounded-lg border border-border bg-muted text-sm font-medium transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {provider === "google" ? <GoogleMark /> : <GitHubMark />}
       {label}

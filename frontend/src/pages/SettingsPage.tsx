@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { ProfileHeader } from "@/components/profile/ProfileHeader"
 import { ProfileSection } from "@/components/settings/ProfileSection"
 import { SecuritySection } from "@/components/settings/SecuritySection"
 import { PreferencesSection } from "@/components/settings/PreferencesSection"
@@ -16,11 +17,9 @@ import { DataSection } from "@/components/settings/DataSection"
 import { DangerZoneSection } from "@/components/settings/DangerZoneSection"
 
 /*
- * Settings v2 (Design v2 — Cinematic). Spaceship-style layout: a vertical tab
- * rail on the left (desktop) / a horizontal scrolling tab strip (mobile), with a
- * single panel showing the active section. Each tab is one of the existing
- * self-contained section components — they own their own state + save logic, so
- * only the active one is mounted at a time.
+ * Settings: a tab list (vertical on desktop, a scrolling strip on mobile) and
+ * the active section next to it. Each section manages its own state and saving,
+ * so only the active one is mounted.
  */
 interface Tab {
   id: string
@@ -44,15 +43,10 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your profile, security, and preferences.
-        </p>
-      </header>
+      <ProfileHeader />
 
       <div className="grid gap-6 md:grid-cols-[210px_1fr]">
-        {/* Tab rail — horizontal scroll on mobile, sticky vertical on desktop */}
+        {/* Scrolls sideways on mobile, sticks to the side on desktop. */}
         <nav
           aria-label="Settings sections"
           className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-col md:overflow-visible md:px-0 md:pb-0 md:self-start md:sticky md:top-20"

@@ -6,10 +6,9 @@ import { resolveAccent } from "@/lib/sections"
 import { NextUp } from "@/components/path/NextUp"
 
 /*
- * "Continue where you left off" on the Dashboard (Phase 23.4c). Reuses the path's
- * own `next_up` and the shared NextUp banner, deep-linking to the unit that holds
- * the next lesson. Renders nothing when there's no next lesson (caught up, or no
- * path for this level yet).
+ * "Continue where you left off" on the Dashboard. Uses the path's `next_up` and
+ * links to the unit that holds that lesson. Renders nothing when there's no next
+ * lesson (all caught up, or no path for this level yet).
  */
 export function ContinuePath() {
   const { user } = useAuth()

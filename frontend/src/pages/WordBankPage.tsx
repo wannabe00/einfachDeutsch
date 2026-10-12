@@ -6,22 +6,20 @@ import { fetchWords } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
 import type { Chapter, Word } from "@/types"
 import { PARTS_OF_SPEECH, partOfSpeechLabel } from "@/lib/labels"
-import { sectionColor } from "@/lib/sections"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { useAIPanel } from "@/contexts/AIPanelContext"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/button"
 import { WordForm } from "@/components/vocabulary/WordForm"
 import { CSVImportButton } from "@/components/vocabulary/CSVImportButton"
 import { PasteWordsButton } from "@/components/vocabulary/PasteWordsButton"
 
 /*
- * Word Bank v2 (Phase 23.9). Grouped **Level → part of speech** — no Lektion
- * numbers, which meant nothing outside the book. Level-gating is server-side
- * (only ≤ your level is ever returned); words from a Lektion at your own level
- * that you haven't reached come back `locked` and are shown blurred.
+ * Words grouped by level, then by part of speech. The API only returns your
+ * level and below; words from a Lektion at your level that you haven't reached
+ * yet come back `locked` and are shown blurred.
  */
 export default function WordBankPage() {
   const { user } = useAuth()
@@ -93,7 +91,7 @@ export default function WordBankPage() {
       />
 
       {showForm && allChapters.length > 0 && (
-        <SectionCard>
+        <Card>
           <div className="flex flex-col gap-4 p-5">
             <WordForm
               chapters={allChapters}
@@ -105,7 +103,7 @@ export default function WordBankPage() {
               <CSVImportButton chapters={allChapters} defaultChapterId={allChapters[0]?.id} />
             </div>
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       <div className="relative">
@@ -113,7 +111,7 @@ export default function WordBankPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search your words — German or English…"
+          placeholder="Search in German or English"
           className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
@@ -123,16 +121,15 @@ export default function WordBankPage() {
       ) : levels.length === 0 ? (
         <Centered>{query ? `No words match “${query}”.` : "No words yet."}</Centered>
       ) : (
-        levels.map(([level, levelWords], i) => (
-          <LevelSection key={level} level={level} words={levelWords} index={i} />
+        levels.map(([level, levelWords]) => (
+          <LevelSection key={level} level={level} words={levelWords} />
         ))
       )}
     </div>
   )
 }
 
-function LevelSection({ level, words, index }: { level: string; words: Word[]; index: number }) {
-  const accent = sectionColor(index)
+function LevelSection({ level, words }: { level: string; words: Word[] }) {
   const groups = PARTS_OF_SPEECH.map((p) => ({
     ...p,
     items: words.filter((w) => w.part_of_speech === p.value),
@@ -141,7 +138,7 @@ function LevelSection({ level, words, index }: { level: string; words: Word[]; i
   return (
     <section>
       <div className="mb-3 flex items-baseline gap-3">
-        <h2 className="text-xl font-bold" style={{ color: accent }}>
+        <h2 className="text-xl font-bold">
           {level}
         </h2>
         <span className="text-sm text-muted-foreground">{words.length} words</span>
@@ -149,7 +146,7 @@ function LevelSection({ level, words, index }: { level: string; words: Word[]; i
 
       <div className="flex flex-col gap-4">
         {groups.map((g) => (
-          <SectionCard key={g.value} accent={accent}>
+          <Card key={g.value}>
             <div className="p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {partOfSpeechLabel(g.value)}{" "}
@@ -161,7 +158,7 @@ function LevelSection({ level, words, index }: { level: string; words: Word[]; i
                 ))}
               </ul>
             </div>
-          </SectionCard>
+          </Card>
         ))}
       </div>
     </section>
@@ -195,7 +192,7 @@ function WordItem({ word }: { word: Word }) {
   )
 }
 
-/** AI generation is premium (Spec v3) — free users see it locked. */
+/** AI word generation is premium, so free users see it locked. */
 function GenerateWithAI({ premium, onOpen }: { premium: boolean; onOpen: () => void }) {
   if (!premium) {
     return (

@@ -35,7 +35,7 @@ export function ExerciseCard({ exercise }: { exercise: Exercise }) {
   return (
     <article
       className={cn(
-        "rounded-xl border-2 bg-surface p-5 shadow-sm transition-colors",
+        "rounded-xl border-2 bg-surface p-5 transition-colors",
         borderClass,
       )}
     >

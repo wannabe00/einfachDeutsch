@@ -1,18 +1,18 @@
-"""Grammar unlocking (Phase 23.10).
+"""Grammar unlocking.
 
-Spec v3: a grammar topic unlocks with **the lesson that teaches it** — grammar
-lives on only some Lektionen, so topics are tied to specific lessons rather than
-to progress in general.
+A grammar topic unlocks with the lesson that teaches it. Only some Lektionen
+have grammar, so topics are tied to specific lessons rather than to overall
+progress.
 
 Rules:
-  - a topic **below** the user's level is optional review → always open
-  - a topic at the user's level that a lesson teaches → locked until that lesson
-    is completed
-  - a topic **no lesson references** (legacy content) can't be locked by this
-    rule, so it stays open — otherwise the existing library would vanish
+  - a topic below the user's level is review, so it's always open
+  - a topic at the user's level that a lesson teaches stays locked until that
+    lesson is completed
+  - a topic no lesson uses (older content) can't be locked by this rule, so it
+    stays open; otherwise the existing library would disappear
 
-(Topics *above* the user's level never appear at all; the ≤-level filter from
-23.8 drops them before this runs.)
+Topics above the user's level never get here; the level filter removes them
+first.
 """
 
 from apps.accounts.levels import level_rank

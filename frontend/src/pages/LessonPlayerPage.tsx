@@ -16,16 +16,15 @@ import type {
 import { resolveAccent } from "@/lib/sections"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { ExerciseInput } from "@/components/exercises/ExerciseInput"
 import { isAnswered } from "@/lib/exercises"
 
 /*
- * The lesson player (Phase 23.5) — one item at a time, immediate feedback.
- * Grading is server-side and deterministic: we submit an answer and get back
- * correctness + the solution (which is never in the payload beforehand). On
- * finish the server re-grades everything authoritatively and awards XP/crown,
- * spending energy only on a successful first completion.
+ * The lesson player: one item at a time with immediate feedback. Each answer is
+ * graded by the server, which returns whether it was right and the solution
+ * (the solution is never sent beforehand). On finish the server re-grades
+ * everything, awards XP and a crown, and spends energy only on a first pass.
  */
 export default function LessonPlayerPage() {
   const { unitId, lessonId } = useParams()
@@ -48,7 +47,7 @@ export default function LessonPlayerPage() {
   if (error) return <OutOfEnergy unitId={unitId} />
   if (!data) return <Centered>Couldn’t load this lesson.</Centered>
 
-  // Bind after the guard — TS won't carry the narrowing into the closures below.
+  // Bound after the guard because TS doesn't carry the narrowing into closures.
   const lesson = data
   const accent = resolveAccent(lesson.accent_color, 0)
 
@@ -99,7 +98,7 @@ export default function LessonPlayerPage() {
       <ItemStep key={item.id} item={item} lessonId={lesson.id} accent={accent} onNext={handleNext} />
 
       <p className="text-center text-xs text-muted-foreground">
-        Quitting is free — energy is only spent when you finish.
+        Quitting is free. Energy is only spent when you finish.
       </p>
     </div>
   )
@@ -119,7 +118,7 @@ function ItemStep({
   if (item.kind === "review") {
     const c = item.content as ReviewContent
     return (
-      <SectionCard accent={accent}>
+      <Card>
         <div className="p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             New word
@@ -130,14 +129,14 @@ function ItemStep({
             Got it
           </Button>
         </div>
-      </SectionCard>
+      </Card>
     )
   }
 
   if (item.kind === "grammar") {
     const c = item.content as GrammarContent
     return (
-      <SectionCard accent={accent} glow>
+      <Card>
         <div className="p-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Grammar
@@ -157,7 +156,7 @@ function ItemStep({
             Continue
           </Button>
         </div>
-      </SectionCard>
+      </Card>
     )
   }
 
@@ -195,7 +194,7 @@ function ExerciseStep({
   }
 
   return (
-    <SectionCard accent={accent}>
+    <Card>
       <div className="p-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {content.type === "sentence_order" ? "Build the sentence" : "Exercise"}
@@ -228,7 +227,7 @@ function ExerciseStep({
           )}
         </div>
       </div>
-    </SectionCard>
+    </Card>
   )
 }
 
@@ -272,7 +271,7 @@ function Summary({
 }) {
   return (
     <div className="mx-auto max-w-md">
-      <SectionCard accent={accent} glow>
+      <Card>
         <div className="p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {lessonTitle}
@@ -307,7 +306,7 @@ function Summary({
 
           {!result.passed && (
             <p className="mt-5 text-sm text-muted-foreground">
-              You need 60% to advance — no energy spent. Give it another go.
+              You need 60% to pass. No energy was spent, so try again.
             </p>
           )}
 
@@ -315,7 +314,7 @@ function Summary({
             <Link to={`/path/${unitId}`}>Back to unit</Link>
           </Button>
         </div>
-      </SectionCard>
+      </Card>
     </div>
   )
 }
@@ -332,19 +331,19 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 function OutOfEnergy({ unitId }: { unitId?: string }) {
   return (
     <div className="mx-auto max-w-md">
-      <SectionCard accent="hsl(var(--brand))" glow>
+      <Card>
         <div className="p-8 text-center">
           <Zap className="mx-auto size-8" style={{ color: "hsl(var(--brand))" }} />
           <h1 className="mt-3 text-2xl font-bold">Out of energy</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            New lessons cost 1 energy, and it refills over time. Review, Word Bank, Grammar and
-            redoing finished lessons are always free — or go Premium for unlimited energy.
+            New lessons cost 1 energy, which refills over time. Review, Word Bank, Grammar and
+            redoing finished lessons are always free. Premium has no energy limit.
           </p>
           <Button asChild variant="secondary" className="mt-6">
             <Link to={`/path/${unitId ?? ""}`}>Back to unit</Link>
           </Button>
         </div>
-      </SectionCard>
+      </Card>
     </div>
   )
 }

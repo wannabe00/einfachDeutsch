@@ -11,5 +11,5 @@ class ShowSuggestionAdmin(admin.ModelAdmin):
 
     @admin.display(boolean=True, description="Artwork")
     def has_image(self, obj) -> bool:
-        """Blank is fine — the UI falls back to a generated platform tile."""
+        """Optional. When blank the UI draws a platform tile instead."""
         return bool(obj.image_url)

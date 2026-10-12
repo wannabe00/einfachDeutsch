@@ -5,27 +5,27 @@ from apps.accounts.models import CEFR_LEVELS
 
 
 class HistoryLesson(models.Model):
-    """A German-history lesson (Phase 18). Always-available (no Mon/Wed/Fri
+    """A German-history lesson. Always-available (no Mon/Wed/Fri
     gating). Bilingual: the frontend shows English + German through A2 and
     German-only from B1. `quiz` holds the questions WITH answers; the serializer
     strips answers before sending, and the complete endpoint grades against it.
     """
 
-    # CEFR level for the ≤-level rule (Phase 23.8) — a B1 user never sees C1
-    # history. Defaults to A1 so existing lessons stay visible to everyone.
+    # Used by the level rule, so a B1 user never sees C1 history. Defaults to
+    # A1 so existing lessons stay visible to everyone.
     cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, default="A1")
     title = models.CharField(max_length=200)
     era = models.CharField(max_length=80, blank=True)  # grouping label
     order = models.PositiveIntegerField(default=0)
     body_en = models.TextField(blank=True)
     body_de = models.TextField()
-    # Article-card fields (Phase 23.12). Both optional:
-    #   * `excerpt` blank → derived from the body, so old lessons need no edit;
-    #   * `image_url` blank → the UI draws an era tile instead. The prod CSP only
-    #     allows images from 'self', data:, images.unsplash.com and
-    #     res.cloudinary.com, so point this at a Cloudinary/Unsplash asset —
-    #     hotlinking elsewhere is blocked in production. Use public-domain or
-    #     royalty-free imagery only.
+    # Article-card fields. Both optional:
+    #   * `excerpt`: when blank it's taken from the body, so old lessons need
+    #     no edit;
+    #   * `image_url`: when blank the UI draws an era tile. The production CSP
+    #     only allows images from 'self', data:, images.unsplash.com and
+    #     res.cloudinary.com, so use a Cloudinary or Unsplash image; anything
+    #     else is blocked. Only public-domain or royalty-free images.
     excerpt = models.CharField(max_length=300, blank=True)
     image_url = models.URLField(blank=True)
     # [{"prompt": str, "options": [str, ...], "answer": str}]

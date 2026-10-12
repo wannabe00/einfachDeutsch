@@ -1,8 +1,6 @@
 import type { ReactNode } from "react"
 
-/* Shared page header (Design v2 — Cinematic). One consistent title treatment
-   across study pages: a bold Space Grotesk heading (via the global h1 rule),
-   an optional subtitle, and optional right-aligned actions. */
+/* Page title with an optional subtitle and right-aligned actions. */
 export function PageHeader({
   title,
   subtitle,

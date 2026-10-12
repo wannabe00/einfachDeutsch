@@ -11,7 +11,7 @@ class Word(models.Model):
     english = models.CharField(max_length=200)  # shown to the user: "dog"
     german = models.CharField(max_length=200)  # correct answer: "der Hund"
     notes = models.TextField(blank=True)
-    # The Word Bank groups by Level → part of speech (Phase 23.9). Left blank it
+    # The Word Bank groups by Level → part of speech. Left blank it
     # is guessed from the German on save; an explicit value always wins, so
     # curated content and admin corrections stick.
     part_of_speech = models.CharField(max_length=16, choices=PART_OF_SPEECH_CHOICES, blank=True)
@@ -61,11 +61,11 @@ class WordProgress(models.Model):
         unique_together = [("user", "word")]
 
     def __str__(self):
-        return f"{self.word.english} — next: {self.next_review}"
+        return f"{self.word.english} (next: {self.next_review})"
 
 
 class ReviewLog(models.Model):
-    """One row per review event — enables historical activity charts.
+    """One row per review, used for the activity chart.
 
     WordProgress only keeps the *latest* review; this keeps the full history.
     Per-user (nullable for safety; the review endpoint always sets it).

@@ -5,12 +5,12 @@ import { fetchEnergy } from "@/api/curriculum"
 import { useAuth } from "@/contexts/AuthContext"
 
 /*
- * Live energy for the global meter (Phase 23.6).
+ * Live energy for the meter in the top bar.
  *
- * The server computes regen on read (no background job), so the client only
- * needs to tick the countdown locally and refetch when it reaches zero — that's
- * the moment a new bolt has actually regenerated. Premium users are unlimited,
- * so they never tick.
+ * The server works out refills when energy is read (there's no background job),
+ * so the client just counts down locally and refetches when the timer hits
+ * zero, which is when a new bolt has refilled. Premium users have no limit, so
+ * there's nothing to count.
  */
 export function useEnergy() {
   const { user } = useAuth()
@@ -29,8 +29,8 @@ export function useEnergy() {
   const [remaining, setRemaining] = useState<number | null>(serverSeconds)
   const [seenSeconds, setSeenSeconds] = useState<number | null>(serverSeconds)
 
-  // Restart the countdown whenever the server hands us a fresh value (adjust-
-  // state-on-change during render — the lint config forbids setState in effects).
+  // Restart the countdown whenever the server sends a new value. This adjusts
+  // state during render because the lint config forbids setState in effects.
   if (seenSeconds !== serverSeconds) {
     setSeenSeconds(serverSeconds)
     setRemaining(serverSeconds)
@@ -39,7 +39,7 @@ export function useEnergy() {
   useEffect(() => {
     if (remaining === null || data?.premium) return
     if (remaining <= 0) {
-      // A bolt just refilled — ask the server for the authoritative state.
+      // A bolt just refilled, so ask the server for the real state.
       qc.invalidateQueries({ queryKey: ["energy"] })
       qc.invalidateQueries({ queryKey: ["path"] })
       return

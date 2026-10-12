@@ -1,94 +1,91 @@
-# German Learning Platform (einfachDeutsch)
+# einfachDeutsch
 
-A web app for learning German — SRS vocabulary flashcards, grammar reference, interactive exercises, drills, an AI tutor, and a "retell it in your own words" speaking exercise. Multi-user with CEFR leveling, a Mon/Wed/Fri lesson schedule, and practice streaks.
+A web app for learning German. Learners follow a guided path of short daily
+lessons, review vocabulary with spaced-repetition flashcards, and practise with
+drills, grammar notes, curated videos and short reads on German history.
 
-**Stack:** Django 5 + DRF (backend) · React 19 + TypeScript + Vite (frontend) · Google Gemini (AI) · SQLite (dev) / Postgres-Neon (prod).
+**Stack:** Django 5 + Django REST Framework, React 19 + TypeScript + Vite,
+Google Gemini for the AI features, SQLite locally and Neon Postgres in
+production.
 
----
+## Features
 
-## Project status
+- **Learning path.** Levels are split into units (one per textbook Lektion) and
+  units into lessons of about six items. Progress within a level is linear, and
+  content above your level is never shown. A1 is being written now.
+- **Energy.** Free users have 3 energy, a new lesson costs 1, and it refills
+  one every 4 hours. Redoing lessons, review and everything else is free.
+- **Level exam.** Finishing a level's path unlocks an exam; passing it moves you
+  up a level.
+- **Spaced review.** SM-2 flashcards where you type the German, article
+  included.
+- **Word Bank and Grammar.** Grouped by level; topics and words unlock as you
+  reach the lessons that teach them.
+- **Drills.** Six short games (articles, spelling, word order and more).
+- **Videos and History.** Curated watch suggestions and history reads with a
+  quiz, filtered to your level.
+- **Premium.** Unlimited energy, an AI tutor with saved conversations, and
+  Recite: read a text, retell it aloud and get feedback. The audio is
+  transcribed and then discarded. Payments aren't live yet, so premium is a
+  flag set in the admin (plus a one-time 7-day trial).
+- **Accounts.** Sign up with Google or GitHub, then set a username and
+  password during onboarding. Guests can try parts of the app with a daily
+  limit.
 
-**Built & live (Phases 0–18 + landing page):**
-- **Vocabulary + SRS** — SM-2 flashcards (type the German with its article), per-word performance tracking.
-- **Word Bank** — chapters as a tile grid + word list (two-pane), add/import words (single, paste-list, CSV).
-- **Grammar** — searchable topic-card gallery (Markdown rules).
-- **Exercises** — 9 interactive types with server-side grading; **Drills** hub (6 games).
-- **Dashboard** — stats, 7-day activity chart, streak banner.
-- **AI Assistant** — chat, word/exercise generation, answer feedback (Google Gemini, account-only + rate-limited).
-- **Recite (v2)** — read a text, retell it from memory; audio is transcribed (Gemini) and graded (coverage, grammar, pronunciation) then **discarded**.
-- **Accounts & multi-user** — **Google/GitHub sign-in** (account creation is social-login only) + a username/password fallback set during onboarding; no email/phone verification. **Content shared / progress per-user**, freemium guest access with a daily cap + sign-up wall, server-side throttling.
-- **CEFR leveling** — onboarding placement test (or quick-pick) with ±1 adjust; completion-gated progression engine.
-- **Schedule + streaks** — Mon/Wed/Fri lesson unlock; streaks with auto-consumed freeze tokens.
-- **Videos & shows** — curated German watch/listen suggestions tagged by level, unlocked at B1.
-- **History track** — short German-history lessons (English+German through A2, German-only from B1) with a per-lesson quiz.
-- **Landing page & account menu** — marketing landing page for guests; account dropdown with Settings (incl. level changer) and a public Privacy page.
-- **Deployment** — Neon Postgres + Render (backend) + Vercel (frontend); WhiteNoise, gunicorn, env-driven prod config.
-
-**Not yet built (see `PROJECT_PLAN.md`):**
-- **UI polish pass (in progress)** — page-by-page visual upgrade using hand-copied 21st.dev components re-themed to our tokens (copied into the repo; no runtime dependency).
-- **Phase 11** — more original per-lesson exercises, a "paste-your-own" exercise importer, voice conversation practice, extra drill/question variants.
-- **Phase 19** — generic readers / `Passage` model with CEFR tagging.
-
----
-
-## Quick start (local dev)
+## Running locally
 
 ```bash
 # Backend
 cd backend
 python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env            # set GEMINI_API_KEY (optional); dev defaults work
+cp .env.example .env              # GEMINI_API_KEY is optional; the rest has dev defaults
 python manage.py migrate
-python manage.py seed_menschen  # loads the Menschen A1.1/A1.2 content
-python manage.py createsuperuser
-python manage.py runserver      # http://localhost:8000
+python manage.py seed_a1_path     # the A1 learning path
+python manage.py seed_menschen    # older Menschen A1 vocabulary
+python manage.py create_dev_user  # a ready-to-use login, since OAuth rarely works on localhost
+python manage.py runserver        # http://localhost:8000
 
-# Frontend (new terminal)
+# Frontend, in a second terminal
 cd frontend
 npm install
-npm run dev                     # http://localhost:5173
+npm run dev                       # http://localhost:5173
 ```
 
-Open http://localhost:5173. Admin: http://localhost:8000/admin.
+`create_dev_user --superuser` also gives the account access to the Django admin
+at http://localhost:8000/admin.
 
-> **Sign-in:** accounts are created via **Google or GitHub** OAuth, then a username + password is set in onboarding (so username/password login also works). No email or phone verification. Configure OAuth client IDs/secrets via env (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` on the backend; `VITE_GOOGLE_CLIENT_ID`/`VITE_GITHUB_CLIENT_ID` on the frontend). The existing superuser still logs in at `/admin`.
+Google and GitHub sign-in need OAuth credentials in the environment:
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID` and
+`GITHUB_CLIENT_SECRET` for the backend, and `VITE_GOOGLE_CLIENT_ID` and
+`VITE_GITHUB_CLIENT_ID` for the frontend.
 
----
+## Checks
 
-## Tech stack
-
-| Layer | Tech |
-|---|---|
-| Backend | Django 5 + Django REST Framework |
-| Frontend | React 19 + TypeScript + Vite + Tailwind v3 + shadcn/ui |
-| Database | SQLite (dev) · Neon Postgres (prod, via `DATABASE_URL`) |
-| SRS | SM-2 (custom, `apps/vocabulary/srs.py`) |
-| AI / speech | Google Gemini (`gemini-2.5-flash`), behind swappable interfaces |
-| Auth | django-allauth + dj-rest-auth, DRF token |
-| Hosting | Vercel (frontend) · Render (backend) · Neon (DB) |
-
----
+```bash
+cd backend && ruff check . && ruff format --check . && python manage.py check
+cd frontend && npx tsc --noEmit && npx eslint src && npm run build
+```
 
 ## Deployment
 
-The repo is deploy-ready: `render.yaml` (backend blueprint), `frontend/vercel.json`, and env-driven settings (`ALLOWED_HOSTS`, `DATABASE_URL`, CORS/CSRF, SMTP, prod security). All variables are documented in `backend/.env.example`. Backend migrations run automatically on each Render deploy.
+The frontend is on Vercel (`frontend/vercel.json`), the backend on Render
+(`render.yaml`) and the database on Neon. Settings come from environment
+variables, all listed in `backend/.env.example` and `frontend/.env.example`.
+Render runs migrations on every deploy.
 
----
+## Project layout
 
-## Project docs
-
-| File | What it covers |
+| Path | Contents |
 |---|---|
-| `PROJECT_PLAN.md` | Phase-by-phase build plan — what's done and what's left |
-| `KNOWLEDGE_BASE.md` | Current state: features, API routes, directory map, changelog |
-| `DESIGN.md` | UI design system, tokens, component rules |
-| `AGENTS.md` / `CLAUDE.md` | Rules for AI coding sessions on this project |
-| `WORKFLOW.md` | How work is driven ("do the next brick") |
-| `CONTRIBUTING.md` | Git conventions |
-
----
+| `backend/apps/curriculum` | Units, lessons, energy, grading, the level exam |
+| `backend/apps/vocabulary` | Words, SM-2 scheduling, review history |
+| `backend/apps/accounts` | Profiles, placement test, streaks, premium |
+| `backend/apps/ai_assistant` | Gemini calls and saved conversations |
+| `frontend/src/pages` | One component per route |
+| `frontend/src/components` | Shared UI, grouped by feature |
 
 ## License
 
-Personal project — not licensed for redistribution. Textbook content is author-original (not reproduced from copyrighted workbooks).
+Personal project, not licensed for redistribution. Lesson content is written
+for this app; nothing is copied from the textbooks it follows.

@@ -1,10 +1,11 @@
-"""CEFR level helpers — the single source of truth for the ≤-level rule.
+"""CEFR level helpers, and the one place the level rule is defined.
 
-Spec v3: a user only ever sees content **at or below their level**. Below = optional
-review (fully open), current = the linear path, above = never shown at all.
+A user only sees content at or below their level. Lower levels are open for
+review, their own level is the linear path, and higher levels are never shown.
 
-This lives in `accounts` (which owns `CEFR_LEVELS`) so every app — vocabulary,
-grammar, history, videos, curriculum — can gate without importing `curriculum`.
+This lives in `accounts` (which owns `CEFR_LEVELS`) so vocabulary, grammar,
+history, videos and curriculum can all apply the rule without importing
+`curriculum`.
 """
 
 from .models import CEFR_LEVELS
@@ -32,8 +33,8 @@ def is_level_visible(user_level: str, content_level: str) -> bool:
 def visible_levels_for(user) -> list[str]:
     """Levels a request's user may browse.
 
-    Guests have no level, so they see only the lowest one — never forward
-    content. Used by the guest-OK pages (Word Bank, Grammar).
+    Guests have no level, so they only see the lowest one. Used by the pages
+    guests can open (Word Bank, Grammar).
     """
     if not getattr(user, "is_authenticated", False):
         return visible_levels(LOWEST_LEVEL)

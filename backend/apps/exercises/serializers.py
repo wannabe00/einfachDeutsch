@@ -4,7 +4,7 @@ from .models import Exercise, ExerciseAttempt
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
-    """Default representation — solutions are intentionally omitted.
+    """Default representation, with solutions deliberately left out.
 
     `correct_answer` is never sent here, and answer fields are stripped from
     `payload`. The attempt endpoint reveals the solution and grades the answer.
@@ -35,7 +35,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
             # keep options, drop the answer
             return {"options": p.get("options", [])}
         if t == "matching":
-            # send left + right separately (right shuffled) — no pairing given
+            # Send left and right separately, right shuffled, so no pairing is given away.
             pairs = p.get("pairs", [])
             lefts = [pair[0] for pair in pairs]
             rights = [pair[1] for pair in pairs]

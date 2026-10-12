@@ -11,8 +11,8 @@
  */
 
 /**
- * Max "actions" (a graded exercise, a reviewed card, etc.) a signed-out guest
- * may perform per calendar day before the sign-up wall appears. Signed-in users
- * are unlimited. This is UX only — the backend throttles independently.
+ * How many "actions" (a graded exercise, a reviewed card, ...) a signed-out
+ * guest gets per day before the sign-up prompt appears. Signed-in users have no
+ * limit. This is only a UI nudge; the backend has its own throttling.
  */
 export const GUEST_DAILY_ACTION_LIMIT = 20

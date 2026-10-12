@@ -4,10 +4,9 @@ import type { PathLesson } from "@/types"
 import { PathNode } from "./PathNode"
 
 /*
- * The winding lesson road for a unit page (Phase 23.4b). Nodes are placed along
- * a sine curve and the road itself is that same curve sampled finely — so the
- * trail genuinely curls rather than stepping left/right, and every node sits
- * exactly on the road.
+ * The winding lesson road on a unit page. Nodes sit on a sine curve and the
+ * road is the same curve drawn at a finer step, so every node lands exactly on
+ * the road.
  */
 const SPACING = 124 // vertical gap between nodes
 const AMP = 62 // how far the road swings sideways

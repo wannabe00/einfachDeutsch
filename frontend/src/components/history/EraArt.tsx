@@ -4,14 +4,11 @@ import { Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /*
- * Hero artwork for a history article card (Phase 23.12).
- *
- * Same approach as `SourceArt` on Videos, and for the same reason: the prod CSP
- * only allows images from 'self', data:, images.unsplash.com and
- * res.cloudinary.com, so an arbitrary hotlinked photo is blocked in production —
- * and historical imagery is a copyright minefield unless it's public-domain or
- * royalty-free. So we DRAW the era when `image_url` is blank, and render the
- * image (with fallback) when the owner sets one to an asset they control.
+ * Artwork for a history article card. Works like `SourceArt` on Videos, for the
+ * same reasons: the production CSP only allows images from 'self', data:,
+ * images.unsplash.com and res.cloudinary.com, and historical photos are often
+ * under copyright. So when `image_url` is blank we draw a tile for the era, and
+ * when it's set (to an image the owner controls) we show it with a fallback.
  */
 
 /** Deterministic hue per era, so an era always looks the same. */

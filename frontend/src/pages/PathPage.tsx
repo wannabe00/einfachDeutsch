@@ -1,19 +1,18 @@
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ChevronRight, GraduationCap, Lock } from "lucide-react"
+import { ChevronRight, Lock } from "lucide-react"
 
 import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { NextUp } from "@/components/path/NextUp"
 
 /*
- * The learning path (Phase 23.4) — an overview of the units for your level,
- * stacked one under another. Each card opens that unit's page, where the
- * winding lesson road and its review material live. Level-gating is
- * server-side: the API only returns units at or below the user's level.
+ * The learning path: the units for your level, one under another. Each card
+ * opens the unit's page with its lessons and review material. The API only
+ * returns units at or below your level.
  */
 export default function PathPage() {
   const { data, isLoading, isError } = useQuery({ queryKey: ["path"], queryFn: fetchPath })
@@ -62,14 +61,8 @@ function ExamBanner({ level, nextLevel }: { level: string; nextLevel: string | n
   return (
     <Link
       to="/path/exam"
-      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-b from-surface-2 to-surface p-4 shadow-lg shadow-black/40 transition-transform hover:-translate-y-0.5"
+      className="group flex items-center gap-4 rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
     >
-      <span
-        className="flex size-12 shrink-0 items-center justify-center rounded-xl text-white"
-        style={{ background: "hsl(var(--brand))", boxShadow: "0 8px 20px -6px hsl(var(--brand))" }}
-      >
-        <GraduationCap className="size-6" />
-      </span>
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Checkpoint unlocked
@@ -90,8 +83,8 @@ function UnitCard({ unit, index }: { unit: PathUnit; index: number }) {
   const active = unit.lessons.some((l) => l.state === "current")
 
   return (
-    <Link to={`/path/${unit.id}`} className="block transition-transform hover:-translate-y-0.5">
-      <SectionCard accent={accent} glow={active}>
+    <Link to={`/path/${unit.id}`} className="group block">
+      <Card className="transition-colors group-hover:border-muted-foreground/50">
         <div className="flex items-center gap-4 p-5">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -107,7 +100,7 @@ function UnitCard({ unit, index }: { unit: PathUnit; index: number }) {
           </div>
           <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
         </div>
-      </SectionCard>
+      </Card>
     </Link>
   )
 }

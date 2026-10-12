@@ -1,7 +1,7 @@
 import { apiClient } from "./client"
 import type { AIResponse } from "@/types"
 
-export interface ChatTurn {
+interface ChatTurn {
   role: "user" | "assistant"
   content: string
 }

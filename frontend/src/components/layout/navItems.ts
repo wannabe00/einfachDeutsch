@@ -14,9 +14,8 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
-/* Shared navigation model — consumed by both the desktop top bar (grouped
-   dropdowns) and the mobile drawer, so the two never drift apart. Same items as
-   before; only the presentation changed. */
+/* Navigation items, shared by the desktop top bar and the mobile drawer so
+   both always list the same pages. */
 
 export interface NavLeaf {
   to: string
@@ -38,7 +37,7 @@ export const dashboardItem: NavLeaf = {
   icon: LayoutDashboard,
   end: true,
 }
-/** The learning path — the spine of the app (Phase 23), so it sits top-level. */
+/** The learning path is the core of the app, so it gets a top-level link. */
 export const pathItem: NavLeaf = { to: "/path", label: "Path", icon: RouteIcon }
 export const aiItem: NavLeaf = { to: "/ai", label: "AI Assistant", icon: Sparkles }
 

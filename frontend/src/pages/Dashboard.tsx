@@ -1,20 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import {
-  BookMarked,
-  BookOpen,
-  CalendarClock,
-  GraduationCap,
-  Landmark,
-  type LucideIcon,
-  Mic,
-  NotebookPen,
-  Repeat,
-  Sparkles,
-  Swords,
-  Tv,
-} from "lucide-react"
 
 import { fetchStats, fetchActivity } from "@/api/stats"
 import { useAuth } from "@/contexts/AuthContext"
@@ -25,19 +11,20 @@ import { StreakBanner } from "@/components/dashboard/StreakBanner"
 import { GamificationRow } from "@/components/dashboard/GamificationRow"
 import { ContinuePath } from "@/components/dashboard/ContinuePath"
 
-// Swap for your own image in /public anytime; a gradient shows if it fails.
+// Replace with an image in /public whenever you like. If it fails to load,
+// the hero falls back to a plain dark surface.
 const HERO_IMG =
   "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=2400&q=80"
 
-const SHORTCUTS: { to: string; label: string; tagline: string; icon: LucideIcon }[] = [
-  { to: "/review", label: "Review", tagline: "Your due flashcards", icon: GraduationCap },
-  { to: "/words", label: "Word Bank", tagline: "Browse & add vocab", icon: BookMarked },
-  { to: "/grammar", label: "Grammar", tagline: "Rules & topics", icon: BookOpen },
-  { to: "/exercises", label: "Exercises", tagline: "Practice sets", icon: NotebookPen },
-  { to: "/drills", label: "Drills", tagline: "Fast focused games", icon: Swords },
-  { to: "/speak", label: "Recite", tagline: "Speak & get scored", icon: Mic },
-  { to: "/videos", label: "Videos", tagline: "Shows for your level", icon: Tv },
-  { to: "/history", label: "History", tagline: "German history", icon: Landmark },
+const SHORTCUTS = [
+  { to: "/review", label: "Review", tagline: "Your due flashcards" },
+  { to: "/words", label: "Word Bank", tagline: "Browse and add vocabulary" },
+  { to: "/grammar", label: "Grammar", tagline: "Rules and topics" },
+  { to: "/exercises", label: "Exercises", tagline: "Practice sets" },
+  { to: "/drills", label: "Drills", tagline: "Short timed games" },
+  { to: "/speak", label: "Recite", tagline: "Speak and get feedback" },
+  { to: "/videos", label: "Videos", tagline: "Shows for your level" },
+  { to: "/history", label: "History", tagline: "Short reads on German history" },
 ]
 
 export default function Dashboard() {
@@ -46,11 +33,9 @@ export default function Dashboard() {
   const [imgOk, setImgOk] = useState(true)
 
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: fetchStats })
-  const { data: activity } = useQuery({
-    queryKey: ["activity"],
-    queryFn: fetchActivity,
-  })
+  const { data: activity } = useQuery({ queryKey: ["activity"], queryFn: fetchActivity })
 
+  // Slow parallax on the hero photo.
   useEffect(() => {
     function onScroll() {
       if (imgRef.current) {
@@ -62,15 +47,15 @@ export default function Dashboard() {
   }, [])
 
   const dueToday = stats?.due_today ?? 0
-  // Use the live username (falls back to first name); updates after the user
-  // changes it in Settings, since useAuth refreshes the cached user.
   const name = user?.username || user?.first_name || null
+  const secondary =
+    dueToday > 0
+      ? { to: "/review", label: `Start review (${dueToday} due)` }
+      : { to: "/words", label: "Browse the Word Bank" }
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Hero */}
-      <section className="relative h-60 overflow-hidden rounded-2xl sm:h-72">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1b2a4a] via-[#24304d] to-[#3a2a4d]" />
+      <section className="relative h-60 overflow-hidden rounded-xl border border-border bg-surface-2 sm:h-72">
         {imgOk && (
           <img
             ref={imgRef}
@@ -80,46 +65,45 @@ export default function Dashboard() {
             className="absolute inset-0 h-[140%] w-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-black/55" />
+        {/* Darken the bottom of the photo so the text stays readable. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/25" />
         <div className="relative flex h-full flex-col justify-center px-6 text-white sm:px-10">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="text-2xl font-bold sm:text-3xl">
             Willkommen zurück{name ? `, ${name}` : ""}!
           </h1>
           <p className="mt-1 text-sm text-white/85">
             {dueToday > 0
               ? `You have ${dueToday} ${dueToday === 1 ? "word" : "words"} due for review.`
-              : "You're all caught up — keep exploring."}
+              : "Nothing due for review right now."}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {dueToday > 0 ? (
-              <Button asChild>
-                <Link to="/review">Start review · {dueToday} due</Link>
-              </Button>
-            ) : (
-              <Button asChild variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20">
-                <Link to="/words">Browse the Word Bank</Link>
-              </Button>
-            )}
+            <Button asChild>
+              <Link to="/path">Continue your path</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/50 bg-transparent text-white hover:bg-white/10"
+            >
+              <Link to={secondary.to}>{secondary.label}</Link>
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Continue where you left off on the path (Phase 23.4c). */}
       <ContinuePath />
 
-      {/* Progress */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Your progress
         </h2>
         <StreakBanner />
-        {/* Path gamification — XP / crowns / lessons (Phase 23.15). */}
         <GamificationRow />
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard icon={CalendarClock} value={dueToday} label="Due today" accent={dueToday > 0} />
-          <StatCard icon={GraduationCap} value={stats?.learned_total ?? 0} label="Words learned" />
-          <StatCard icon={Repeat} value={stats?.reviewed_today ?? 0} label="Reviewed today" />
-          <StatCard icon={Sparkles} value={stats?.total_words ?? 0} label="Total words" />
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard value={dueToday} label="Due today" highlight={dueToday > 0} />
+          <StatCard value={stats?.learned_total ?? 0} label="Words learned" />
+          <StatCard value={stats?.reviewed_today ?? 0} label="Reviewed today" />
+          <StatCard value={stats?.total_words ?? 0} label="Words in the bank" />
         </div>
         {activity && activity.length > 0 && (
           <div className="mt-4">
@@ -128,32 +112,26 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Quick launch */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Jump back in
         </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {SHORTCUTS.map((s) => (
             <Link
               key={s.to}
               to={s.to}
-              className="group flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 shadow-sm transition-all hover:border-accent hover:shadow-md"
+              className="rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
             >
-              <div className="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                <s.icon className="size-5" />
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{s.label}</span>
+                {s.to === "/review" && dueToday > 0 && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                    {dueToday}
+                  </span>
+                )}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">{s.label}</span>
-                  {s.to === "/review" && dueToday > 0 && (
-                    <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
-                      {dueToday}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-0.5 text-sm text-muted-foreground">{s.tagline}</p>
-              </div>
+              <p className="mt-0.5 text-sm text-muted-foreground">{s.tagline}</p>
             </Link>
           ))}
         </div>

@@ -3,11 +3,11 @@ from django.db import models
 
 
 class RecitationAttempt(models.Model):
-    """A graded "retell it in your own words" attempt (Phase 16).
+    """A graded "retell it in your own words" attempt.
 
-    The audio is NEVER stored — it's transcribed then discarded. We keep only
-    the transcript + grading so the user has a history and we can enforce the
-    per-user daily cap.
+    The audio is never stored: it's transcribed and then discarded. We keep
+    only the transcript and the grading, so the user has a history and the
+    daily limit per user can be enforced.
     """
 
     user = models.ForeignKey(
@@ -17,7 +17,7 @@ class RecitationAttempt(models.Model):
     )
     source_text = models.TextField()
     transcript = models.TextField(blank=True)
-    coverage_score = models.IntegerField(null=True, blank=True)  # 0–100
+    coverage_score = models.IntegerField(null=True, blank=True)  # 0-100
     feedback = models.JSONField(default=dict, blank=True)  # full structured result
     created_at = models.DateTimeField(auto_now_add=True)
 

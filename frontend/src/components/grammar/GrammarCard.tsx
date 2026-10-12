@@ -15,7 +15,7 @@ export function GrammarCard({ rule }: GrammarCardProps) {
     .filter(Boolean)
 
   return (
-    <article className="rounded-xl border border-border bg-surface p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="rounded-xl border border-border bg-surface p-5 transition-shadow">
       <header className="mb-3 flex items-start justify-between gap-3">
         <h3 className="text-base font-semibold tracking-tight text-foreground">
           {rule.title}

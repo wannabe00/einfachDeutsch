@@ -31,7 +31,7 @@ export function AnswerReveal({
           result.is_correct ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]",
         )}
       >
-        {result.is_correct ? "✓ Correct!" : "✗ Not quite."}
+        {result.is_correct ? "Correct" : "Not quite"}
       </p>
       {!result.is_correct && (
         <p className="text-sm text-foreground">

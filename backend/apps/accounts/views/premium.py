@@ -1,8 +1,8 @@
-"""Premium tier endpoints (Phase 23.7).
+"""Premium tier endpoints.
 
-Until Stripe lands (23.16) premium is granted by a manual admin flag or by the
-one-time 7-day trial started here. Nothing takes payment yet, so this stays
-deliberately small: report status, and let a user start their trial once.
+Until payments exist, premium comes from an admin flag or from the one-time
+7-day trial started here. So this only reports status and lets a user start
+their trial once.
 """
 
 from datetime import timedelta
@@ -37,8 +37,8 @@ def premium_status(request):
 def start_trial(request):
     """Start the one-time 7-day premium trial.
 
-    `trial_started_at` is the guard — once set it's never cleared, so a trial
-    can't be farmed by restarting it.
+    `trial_started_at` is never cleared once set, so the trial can't be
+    restarted.
     """
     profile = request.user.profile
 

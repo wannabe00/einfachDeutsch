@@ -26,7 +26,7 @@ export function ReviewActivityChart({ data }: ReviewActivityChartProps) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <h3 className="mb-4 text-sm font-medium text-foreground">
-        Reviews — last 7 days
+        Reviews in the last 7 days
       </h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>

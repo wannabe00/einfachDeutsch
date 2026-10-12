@@ -45,9 +45,9 @@ class UserProfile(models.Model):
     # Free-form prefs: notifications, daily_goal, reminder_time, language,
     # timezone, etc. Stored as JSON so new toggles don't need migrations.
     preferences = models.JSONField(default=dict, blank=True)
-    # Premium (Spec v3 — Phase 23). Until Stripe (23.16), `is_premium` is a manual
-    # admin flag; `premium_until` also covers the 7-day trial and (later) a paid
-    # subscription's end. `trial_started_at` marks that the trial was granted.
+    # Premium. Until payments exist, `is_premium` is set by hand in the admin.
+    # `premium_until` covers the 7-day trial and, later, the end of a paid
+    # subscription. `trial_started_at` records that the trial was used.
     is_premium = models.BooleanField(default=False)
     premium_until = models.DateTimeField(null=True, blank=True)
     trial_started_at = models.DateTimeField(null=True, blank=True)
@@ -65,33 +65,12 @@ class UserProfile(models.Model):
         return f"{self.user} ({self.cefr_level})"
 
 
-class LevelDefinition(models.Model):
-    """Completion thresholds for one CEFR level (Phase 14).
-
-    A user advances out of their current level once they've completed
-    `required_lessons` lessons and done `required_reviews` reviews. Numbers are
-    editable in the admin (tunable, not hardcoded).
-    """
-
-    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, unique=True)
-    order = models.PositiveIntegerField(default=0)  # A1=1 … C2=6
-    required_lessons = models.PositiveIntegerField(default=0)
-    required_reviews = models.PositiveIntegerField(default=0)
-    description = models.CharField(max_length=200, blank=True)
-
-    class Meta:
-        ordering = ["order"]
-
-    def __str__(self):
-        return f"{self.cefr_level} (#{self.order})"
-
-
 class StreakRecord(models.Model):
-    """Daily-practice streak + freeze tokens (Phase 15). One row per user.
+    """Daily-practice streak + freeze tokens. One row per user.
 
-    A streak only breaks on a missed *scheduled* day (Mon/Wed/Fri) with no
-    freeze token left — a freeze is auto-consumed otherwise. Tunable defaults
-    live in settings (STREAK_*).
+    A streak only breaks on a missed scheduled day (Mon/Wed/Fri) when no freeze
+    token is left; otherwise a freeze is used up automatically. Defaults live
+    in settings (STREAK_*).
     """
 
     user = models.OneToOneField(
@@ -103,25 +82,4 @@ class StreakRecord(models.Model):
     last_active_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user}: {self.current_streak}🔥 ({self.freeze_tokens_available} freezes)"
-
-
-class UserLessonProgress(models.Model):
-    """Marks a lesson (Chapter) completed by a user — feeds the level engine."""
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="lesson_progress",
-    )
-    chapter = models.ForeignKey(
-        "books.Chapter", on_delete=models.CASCADE, related_name="completions"
-    )
-    score = models.FloatField(null=True, blank=True)
-    completed_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = [("user", "chapter")]
-
-    def __str__(self):
-        return f"{self.user} ✓ {self.chapter}"
+        return f"{self.user}: {self.current_streak} days ({self.freeze_tokens_available} freezes)"

@@ -1,17 +1,16 @@
-"""Level checkpoint exam (Phase 23.14, Spec v3).
+"""Level checkpoint exam.
 
-Finishing (at/near 100%) a level's path unlocks a Goethe-style exam: **pass →
-promoted to the next level, fail → back to review** and retry.
+Finishing (almost) all of a level's path unlocks an exam. Pass and you move up
+a level; fail and you go back to review and can retry.
 
-Design notes:
-  * Questions are **sampled from the level's own exercises** rather than authored
-    separately. That keeps the exam automatically in sync as content grows
-    (23.3b) instead of drifting, and needs no extra authoring.
-  * Grading is deterministic/local, like the lesson player — free users must be
-    gradable, and AI is premium.
-  * The question set is **fixed when the attempt starts** and graded against on
-    submit, so a client can't substitute easier questions.
-  * Only unambiguously gradable types are sampled (no free_text, which needs AI).
+Notes:
+  * Questions are sampled from the level's own exercises instead of being
+    written separately, so the exam keeps up as content is added.
+  * Grading is local, like the lesson player, because free users need grading
+    and AI is premium.
+  * The question set is stored when the attempt starts and graded against on
+    submit, so a client can't swap in easier questions.
+  * Only types with one clear answer are sampled (no free_text, which needs AI).
 """
 
 import random

@@ -7,9 +7,8 @@ import { LessonList } from "@/components/history/LessonList"
 import { LessonReader } from "@/components/history/LessonReader"
 
 /*
- * History v2 (Phase 23.12) — a feed of article cards (hero + excerpt) that open
- * the full read + quiz. Level-gated server-side (23.8): only lessons at or below
- * your level are returned.
+ * History lessons as article cards that open the full read and a quiz. The API
+ * only returns lessons at or below your level.
  */
 export default function HistoryPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -26,7 +25,7 @@ export default function HistoryPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="German history"
-        subtitle="Short reads on German history — then a quick quiz. Available any day."
+        subtitle="Short reads on German history, each followed by a quick quiz."
       />
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>

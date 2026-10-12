@@ -3,16 +3,14 @@ import { ExternalLink, Lock } from "lucide-react"
 
 import { fetchVideoSuggestions } from "@/api/videos"
 import type { CEFRLevel, ShowSuggestion } from "@/types"
-import { sectionColor } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { SourceArt } from "@/components/videos/SourceArt"
 
 /*
- * Videos v2 (Phase 23.11). Each suggestion leads with artwork for its source.
- * Two gates, both server-side: suggestions unlock at VIDEO_UNLOCK_MIN_LEVEL
- * (default B1) and, once unlocked, still obey the ≤-level rule — so a B1 user
- * never sees C1 picks.
+ * Video suggestions, each with artwork for its source. The server applies two
+ * rules: the page unlocks at VIDEO_UNLOCK_MIN_LEVEL (B1 by default), and after
+ * that you still only see picks at or below your level.
  */
 const LEVEL_ORDER: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -26,13 +24,13 @@ export default function VideosPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Videos & shows"
-        subtitle="Hand-picked German videos, channels and shows — matched to your level."
+        subtitle="German videos, channels and shows picked for your level."
       />
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
 
       {data && !data.unlocked && (
-        <SectionCard accent="hsl(var(--brand))" glow>
+        <Card>
           <div className="flex flex-col items-center p-8 text-center">
             <span
               className="flex size-12 items-center justify-center rounded-xl"
@@ -44,22 +42,21 @@ export default function VideosPage() {
               Video suggestions unlock at {data.unlock_level}
             </h2>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              You're at {data.current_level} — keep going and they'll open up once you reach{" "}
-              {data.unlock_level}. Lessons and reviews all count.
+              You're at {data.current_level}. Videos open up once you reach{" "}
+              {data.unlock_level}.
             </p>
           </div>
-        </SectionCard>
+        </Card>
       )}
 
       {data?.unlocked &&
-        LEVEL_ORDER.map((level, i) => {
+        LEVEL_ORDER.map((level) => {
           const items = data.suggestions.filter((s) => s.cefr_level === level)
           if (items.length === 0) return null
-          const accent = sectionColor(i)
           return (
             <section key={level}>
               <div className="mb-3 flex items-baseline gap-3">
-                <h2 className="text-xl font-bold" style={{ color: accent }}>
+                <h2 className="text-xl font-bold">
                   {level}
                 </h2>
                 <span className="text-sm text-muted-foreground">
@@ -68,7 +65,7 @@ export default function VideosPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {items.map((s) => (
-                  <SuggestionCard key={s.id} suggestion={s} accent={accent} />
+                  <SuggestionCard key={s.id} suggestion={s} />
                 ))}
               </div>
             </section>
@@ -78,15 +75,15 @@ export default function VideosPage() {
   )
 }
 
-function SuggestionCard({ suggestion, accent }: { suggestion: ShowSuggestion; accent: string }) {
+function SuggestionCard({ suggestion }: { suggestion: ShowSuggestion }) {
   return (
     <a
       href={suggestion.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block transition-transform hover:-translate-y-0.5"
+      className="group block"
     >
-      <SectionCard accent={accent} className="h-full">
+      <Card className="h-full transition-colors group-hover:border-muted-foreground/50">
         <div className="flex h-full gap-4 p-4">
           <div className="size-20 shrink-0 overflow-hidden rounded-xl">
             <SourceArt
@@ -110,7 +107,7 @@ function SuggestionCard({ suggestion, accent }: { suggestion: ShowSuggestion; ac
             </p>
           </div>
         </div>
-      </SectionCard>
+      </Card>
     </a>
   )
 }

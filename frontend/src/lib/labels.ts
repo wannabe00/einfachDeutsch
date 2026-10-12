@@ -30,7 +30,7 @@ export function exerciseTypeLabel(v: string): string {
   return EXERCISE_TYPES.find((t) => t.value === v)?.label ?? v
 }
 
-/** Word Bank groups (Phase 23.9). Order defines how the groups are listed. */
+/** Word Bank groups, listed in this order. */
 export const PARTS_OF_SPEECH = [
   { value: "noun", label: "Nouns" },
   { value: "verb", label: "Verbs" },

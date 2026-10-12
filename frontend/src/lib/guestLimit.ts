@@ -1,10 +1,8 @@
 /**
- * Guest daily-action tracking (client-side, localStorage).
- *
- * Counts the "actions" (a graded exercise, a reviewed card, a drill answer) a
- * signed-out guest performs each day. Once the daily limit is reached the UI
- * shows a sign-up wall. This is UX only — the backend throttles independently
- * and never trusts this counter.
+ * Counts a signed-out guest's "actions" per day in localStorage (a graded
+ * exercise, a reviewed card, a drill answer). At the daily limit the UI shows
+ * the sign-up prompt. The backend never trusts this counter; it throttles on
+ * its own.
  */
 import { GUEST_DAILY_ACTION_LIMIT } from "./access"
 

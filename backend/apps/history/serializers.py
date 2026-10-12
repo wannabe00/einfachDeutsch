@@ -26,7 +26,7 @@ def _derive_excerpt(lesson: HistoryLesson) -> str:
 
 
 class HistoryLessonListSerializer(serializers.ModelSerializer):
-    """The article card: hero image + teaser (Phase 23.12)."""
+    """The article card: hero image + teaser."""
 
     completed = serializers.SerializerMethodField()
     excerpt = serializers.SerializerMethodField()
@@ -73,7 +73,7 @@ class HistoryLessonDetailSerializer(serializers.ModelSerializer):
         return obj.id in self.context.get("completed_ids", set())
 
     def get_quiz(self, obj):
-        # Strip the answer key — the client only gets prompt + options.
+        # Strip the answers; the client only gets each prompt and its options.
         return [
             {"id": i, "prompt": q.get("prompt", ""), "options": q.get("options", [])}
             for i, q in enumerate(obj.quiz or [])

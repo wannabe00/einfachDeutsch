@@ -1,4 +1,4 @@
-"""Level- and progression-gating helpers (Spec v3).
+"""Level- and progression-gating helpers.
 
 Rules:
 - A user sees content **≤ their level**. Below their level = optional review
@@ -30,13 +30,13 @@ def _level_lesson_ids(level: str) -> list[int]:
 
 
 def path_states(user, units) -> tuple[dict[int, str], Lesson | None]:
-    """Bulk state for a whole path render — the same rules as `is_lesson_unlocked`,
-    but in one pass (that helper is per-lesson and would be N queries here).
+    """Lesson states for a whole path in one pass. Same rules as
+    `is_lesson_unlocked`, which works per lesson and would cost N queries here.
 
     Returns ({lesson_id: "completed"|"current"|"available"|"locked"}, next_lesson).
-    `next_lesson` (and the single "current" state) is the first open, incomplete
-    lesson **at the user's own level** — lessons below their level are optional
-    review, so they never claim "current".
+    `next_lesson` (and the one "current" state) is the first open, unfinished
+    lesson at the user's own level. Lessons below their level are optional
+    review, so they're never "current".
 
     `units` must be prefetched with their lessons.
     """

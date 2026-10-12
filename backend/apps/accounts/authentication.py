@@ -7,10 +7,10 @@ from rest_framework.exceptions import AuthenticationFailed
 
 
 class ExpiringTokenAuthentication(TokenAuthentication):
-    """DRF's plain tokens never expire — a stolen token works forever. This
-    subclass rejects (and deletes) tokens older than TOKEN_TTL_DAYS, forcing a
-    fresh login. The frontend's 401 interceptor already bounces expired
-    sessions to the login page."""
+    """DRF's plain tokens never expire, so a stolen token would work forever.
+    This subclass rejects (and deletes) tokens older than TOKEN_TTL_DAYS, which
+    forces a fresh login. The frontend's 401 handler sends expired sessions to
+    the login page."""
 
     def authenticate_credentials(self, key):
         user, token = super().authenticate_credentials(key)
