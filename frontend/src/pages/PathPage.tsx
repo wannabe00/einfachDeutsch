@@ -6,7 +6,7 @@ import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { NextUp } from "@/components/path/NextUp"
 
 /*

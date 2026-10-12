@@ -8,7 +8,7 @@ import type { UnitGrammar, UnitWord } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { grammarCategoryLabel } from "@/lib/labels"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { LessonTrail } from "@/components/path/LessonTrail"
 
 /*

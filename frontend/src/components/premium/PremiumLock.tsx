@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { fetchPremiumStatus, startTrial } from "@/api/premium"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 
 /**
  * Shown in place of a premium-only page (AI Assistant, Recite) for free users.

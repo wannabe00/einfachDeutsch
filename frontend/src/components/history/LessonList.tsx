@@ -1,7 +1,7 @@
 import { Check } from "lucide-react"
 
 import type { HistoryLessonSummary } from "@/types"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { EraArt } from "./EraArt"
 
 /*

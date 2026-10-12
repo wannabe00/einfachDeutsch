@@ -16,7 +16,7 @@ import type {
 import { resolveAccent } from "@/lib/sections"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { ExerciseInput } from "@/components/exercises/ExerciseInput"
 import { isAnswered } from "@/lib/exercises"
 
