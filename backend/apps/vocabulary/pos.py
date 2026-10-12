@@ -1,4 +1,4 @@
-"""Part of speech for vocabulary (Phase 23.9).
+"""Part of speech for vocabulary.
 
 The Word Bank groups by **Level → part of speech**, so every word needs one.
 Seeded/curated content sets it explicitly; anything else (legacy rows, words a
@@ -71,7 +71,7 @@ def guess_part_of_speech(german: str) -> str:
 
     lowered = text.lower()
 
-    # "der Hund" / "die Katze" / "das Haus" — unambiguous.
+    # "der Hund" / "die Katze" / "das Haus": always a noun.
     if lowered.startswith(ARTICLES):
         return NOUN
 

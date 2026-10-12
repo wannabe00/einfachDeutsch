@@ -42,8 +42,8 @@ class UnitGrammarSerializer(serializers.ModelSerializer):
 
 
 class LessonItemSerializer(serializers.ModelSerializer):
-    """One playable step. **Answers are stripped** — grading happens server-side
-    and the solution is only revealed after an attempt."""
+    """One playable step, without its answer. Grading happens on the server and
+    the solution is only revealed after an attempt."""
 
     content = serializers.SerializerMethodField()
 
@@ -53,7 +53,7 @@ class LessonItemSerializer(serializers.ModelSerializer):
 
     def get_content(self, item: LessonItem):
         if item.exercise_id and item.kind in {LessonItem.Kind.EXERCISE, LessonItem.Kind.DRILL}:
-            # Shared with the level exam — one place strips answers.
+            # Shared with the level exam, so answers are stripped in one place.
             return grading.public_exercise(item.exercise)
         if item.word_id and item.kind == LessonItem.Kind.REVIEW:
             return {

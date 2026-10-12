@@ -1,12 +1,11 @@
-"""Premium gating (Phase 23.7, Spec v3).
+"""Premium gating.
 
-Premium = **unlimited energy + AI Assistant + AI explanations + Recite**. Free
-users get the full path (energy-limited) and every content page, so this gate is
-deliberately narrow: it only guards features that cost the owner money (Gemini)
-or are the paid-tier promise.
+Premium means unlimited energy, the AI Assistant, AI explanations and Recite.
+Free users get the whole path (limited by energy) and every content page, so
+this only guards features that cost money to run (Gemini).
 
-Until Stripe (23.16) premium is a manual admin flag — but always gate on
-`profile.has_premium`, **never** on a hardcoded user list.
+Until payments exist, premium is a flag set in the admin. Always check
+`profile.has_premium`, never a hardcoded list of users.
 """
 
 from rest_framework.permissions import BasePermission

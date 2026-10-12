@@ -22,7 +22,7 @@ from .serializers import (
 
 
 def _energy_payload(user) -> dict:
-    """The shared energy shape (Spec v3). Premium users are unlimited, so the
+    """The shared energy shape. Premium users are unlimited, so the
     client shows ∞ and never a countdown."""
     return {
         "current": energy_lib.current_energy(user),
@@ -36,8 +36,8 @@ def _energy_payload(user) -> dict:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def energy(request):
-    """Live energy (Phase 23.6) — polled by the global meter so it can tick and
-    refill without loading the whole path. Regen is computed on read, so there's
+    """Current energy. Polled by the meter in the top bar so it can count down
+    without loading the whole path. Refills are worked out on read, so there's
     no background job."""
     return Response(_energy_payload(request.user))
 
@@ -45,12 +45,12 @@ def energy(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def gamification(request):
-    """XP + crowns + progress for the Dashboard (Phase 23.15).
+    """XP + crowns + progress for the Dashboard.
 
     Read-only aggregation over data the lesson player already writes
-    (`PathLessonProgress.xp_earned`/`crown`) — nothing new is stored. Crowns and
-    lessons_completed count only *this level's* path (progress you can still make),
-    while total_xp is lifetime across every level.
+    (`PathLessonProgress.xp_earned` and `crown`); nothing new is stored. Crowns
+    and lessons_completed count only the current level, while total_xp covers
+    every level.
     """
     from django.db.models import Count, Sum
 
@@ -83,12 +83,11 @@ def gamification(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def path(request):
-    """The user's learning path (Phase 23.4).
+    """The user's learning path.
 
-    Level-gated per Spec v3: only units **at or below** the user's level are
-    returned — forward-level content is never exposed, not even locked. Within
-    the user's own level the path is strictly linear; below it, everything is
-    open as optional review.
+    Only units at or below the user's level are returned; higher levels are
+    never sent, not even as locked. The user's own level is strictly linear,
+    and everything below it is open for review.
     """
     user = request.user
     level = user.profile.cefr_level
@@ -129,12 +128,11 @@ def path(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def unit_detail(request, unit_id: int):
-    """One unit's page (Phase 23.4b): its lesson trail + review material.
+    """One unit's page: its lesson trail + review material.
 
-    Review material comes from the unit's chapter — i.e. the whole Lektion's
-    Wortschatz/grammar — so the panel is complete rather than only the handful
-    of words its lessons happen to reference. Level-gated: a unit above the
-    user's level is refused.
+    Review material comes from the unit's chapter, so the panel shows the whole
+    Lektion's words and grammar, not just the ones its lessons use. A unit above
+    the user's level is refused.
     """
     user = request.user
     unit = get_object_or_404(Unit.objects.prefetch_related("lessons"), pk=unit_id)
@@ -191,10 +189,10 @@ def _already_completed(user, lesson: Lesson) -> bool:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def lesson_detail(request, lesson_id: int):
-    """A lesson's playable items (Phase 23.5), answers stripped.
+    """A lesson's playable items, answers stripped.
 
     Free users need energy to start a **new** lesson; redoing a completed one is
-    always free (Spec v3), as is Review/Word Bank/Grammar.
+    always free, as is Review/Word Bank/Grammar.
     """
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)
@@ -217,8 +215,8 @@ def lesson_detail(request, lesson_id: int):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def lesson_answer(request, lesson_id: int):
-    """Grade a single item for immediate feedback. Records nothing — the
-    authoritative scoring happens in `lesson_complete`."""
+    """Grade one item for immediate feedback. Records nothing; the real scoring
+    happens in `lesson_complete`."""
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)
 
@@ -241,8 +239,8 @@ def lesson_answer(request, lesson_id: int):
 def lesson_complete(request, lesson_id: int):
     """Finish a lesson: re-grade every answer server-side, then award.
 
-    Energy is spent **on a successful first completion** only — quitting costs
-    nothing and a failed attempt doesn't advance the path (Spec v3).
+    Energy is only spent when a lesson is passed for the first time. Quitting
+    costs nothing, and a failed attempt doesn't advance the path.
     """
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)

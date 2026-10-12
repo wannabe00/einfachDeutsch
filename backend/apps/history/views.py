@@ -17,7 +17,7 @@ class HistoryLessonViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # ≤-level rule (Spec v3): a B1 user never sees C1 history.
+        # ≤-level rule: a B1 user never sees C1 history.
         return super().get_queryset().filter(cefr_level__in=visible_levels_for(self.request.user))
 
     def get_serializer_class(self):

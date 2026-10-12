@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
 
-/** Step 2 — show the source text and the record controls / live timer. */
+/** Step 2: the source text, the record controls and a live timer. */
 export function StudyRecordStep({
   sourceText,
   error,

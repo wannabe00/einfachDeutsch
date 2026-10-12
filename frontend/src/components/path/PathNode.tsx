@@ -2,13 +2,12 @@ import { Check, Crown, Lock, Play, Star } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-export type NodeState = "completed" | "current" | "available" | "locked"
+type NodeState = "completed" | "current" | "available" | "locked"
 
 /*
- * A single lesson step on the Duolingo-style path (Spec v3 / Design v3). Four
- * states: completed (crown/check in the section accent), current (highlighted,
- * pulsing "start"), available (outlined), locked (greyed + lock). `accent` is
- * the unit's section colour.
+ * One lesson on the path. Four states: completed (crown in the unit colour),
+ * current (highlighted, with a "start" label), available (outlined) and locked
+ * (grey, with a lock). `accent` is the unit's colour.
  */
 export function PathNode({
   state,
@@ -43,7 +42,7 @@ export function PathNode({
         )}
         style={
           state === "completed"
-            ? { background: accent, boxShadow: `0 8px 20px -6px ${accent}` }
+            ? { background: accent }
             : undefined
         }
       >
@@ -60,11 +59,11 @@ export function PathNode({
             "relative flex size-16 items-center justify-center rounded-full",
             state === "current" && "text-white",
             state === "available" && "border-2 border-dashed border-white/25 text-muted-foreground",
-            locked && "bg-surface text-muted-foreground ring-1 ring-white/10",
+            locked && "bg-surface text-muted-foreground ring-1 ring-border",
           )}
           style={
             state === "current"
-              ? { background: accent, boxShadow: `0 8px 24px -6px ${accent}` }
+              ? { background: accent }
               : undefined
           }
         >

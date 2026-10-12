@@ -15,9 +15,9 @@ function answerReady(ans: UserAnswer): boolean {
 }
 
 /**
- * Answer state + grading for one exercise. Holds whichever answer shape the
- * type needs (text / list / map), submits it, and — for simple text types —
- * fetches optional AI tutor feedback. The card just renders the returned state.
+ * Answer state and grading for one exercise. Holds the answer in whatever shape
+ * the type needs (text, list or map) and submits it. For plain text answers it
+ * also fetches optional AI feedback. The card only renders what this returns.
  */
 export function useExerciseAttempt(exercise: Exercise) {
   const isSimple = SIMPLE_TYPES.includes(exercise.exercise_type)

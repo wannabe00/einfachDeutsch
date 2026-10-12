@@ -9,8 +9,8 @@ import { Field, Msg, Section, Toggle } from "./primitives"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-/** Learning goal, notification toggles, and localization — all saved together
-    via the single "Save preferences" button (one `preferences` JSON blob). */
+/** Learning goal, notifications and localization. One "Save preferences"
+    button stores them together in the `preferences` JSON field. */
 export function PreferencesSection() {
   const { user, refreshUser } = useAuth()
   const prefs = (user?.preferences ?? {}) as Record<string, unknown>
@@ -48,7 +48,7 @@ export function PreferencesSection() {
       await refreshUser()
       setMsg("Preferences saved.")
     } catch {
-      setMsg("Could not save — try again.")
+      setMsg("Could not save. Try again.")
     }
   }
 

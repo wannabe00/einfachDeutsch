@@ -8,12 +8,13 @@ import { EXERCISE_TYPES } from "@/lib/labels"
 import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { ExerciseCard } from "@/components/exercises/ExerciseCard"
 import { ExerciseForm } from "@/components/exercises/ExerciseForm"
+import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { useAIPanel } from "@/contexts/AIPanelContext"
 import { Sparkles } from "lucide-react"
 
 export default function ExercisesPage() {
-  // Exercises require a chosen chapter — no "all chapters" view.
+  // Exercises are always shown for one chapter; there's no "all chapters" view.
   const [chapterId, setChapterId] = useState<number | undefined>()
   const [type, setType] = useState<ExerciseType | undefined>()
   const [showForm, setShowForm] = useState(false)
@@ -28,71 +29,68 @@ export default function ExercisesPage() {
 
   const allChapters: Chapter[] = books?.flatMap((b) => b.chapters) ?? []
   const chapterTitle = (id: number) =>
-    allChapters.find((c) => c.id === id)?.title ?? "—"
+    allChapters.find((c) => c.id === id)?.title ?? "Unknown chapter"
 
   // --- Chapter chooser: shown until a chapter is selected -----------------
   if (chapterId === undefined) {
     return (
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Exercises</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose a chapter to practice.
-        </p>
+      <div className="flex flex-col gap-6">
+        <PageHeader title="Exercises" subtitle="Choose a chapter to practice." />
 
         {books && (
-          <div className="mt-6">
-            <ChapterButtons
-              books={books}
-              selected={-1}
-              onSelect={(v) => {
-                if (v !== "all") setChapterId(v)
-              }}
-              includeAll={false}
-            />
-          </div>
+          <ChapterButtons
+            books={books}
+            selected={-1}
+            onSelect={(v) => {
+              if (v !== "all") setChapterId(v)
+            }}
+            includeAll={false}
+          />
         )}
       </div>
     )
   }
 
   const selectClass =
-    "rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+    "rounded-lg border border-border bg-surface px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Exercises</h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Exercises"
+        subtitle={
           <button
             onClick={() => {
               setChapterId(undefined)
               setType(undefined)
             }}
-            className="mt-0.5 text-sm text-muted-foreground hover:text-accent"
+            className="hover:text-primary"
           >
             {chapterTitle(chapterId)} · change
           </button>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() =>
-              openPanel(
-                "AI · Generate exercises",
-                `Generate 5 practice exercises for chapter: ${chapterTitle(chapterId)}`,
-              )
-            }
-          >
-            <Sparkles className="mr-2 size-4" /> Generate Exercises
-          </Button>
-          <Button onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "Add Exercise"}
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                openPanel(
+                  "AI · Generate exercises",
+                  `Generate 5 practice exercises for chapter: ${chapterTitle(chapterId)}`,
+                )
+              }
+            >
+              <Sparkles className="mr-2 size-4" /> Generate Exercises
+            </Button>
+            <Button onClick={() => setShowForm((v) => !v)}>
+              {showForm ? "Cancel" : "Add Exercise"}
+            </Button>
+          </>
+        }
+      />
 
       {showForm && allChapters.length > 0 && (
-        <div className="mt-4 rounded-xl border border-border bg-surface p-4">
+        <div className="rounded-xl border border-border bg-surface p-4">
           <ExerciseForm
             chapters={allChapters}
             defaultChapterId={chapterId}
@@ -101,7 +99,7 @@ export default function ExercisesPage() {
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <select
           value={type ?? ""}
           onChange={(e) =>
@@ -118,7 +116,7 @@ export default function ExercisesPage() {
         </select>
       </div>
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : !exercises?.length ? (

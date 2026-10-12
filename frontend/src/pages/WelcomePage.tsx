@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext"
 import { SITE_NAME } from "@/lib/site"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
+import { AUTH_CARD } from "@/lib/authCard"
 
 /** First-run profile setup shown after a social sign-in (profile_complete=false).
     Sets username + password (so username login works) + name; birthday
@@ -54,9 +56,10 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-md">
-        <h1 className="text-center text-2xl font-semibold tracking-tight">
+    <AuthShell>
+      <div>
+        <AuthWordmark />
+        <h1 className="mt-3 text-center text-2xl font-bold tracking-tight">
           Welcome to {SITE_NAME}
         </h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
@@ -64,10 +67,7 @@ export default function WelcomePage() {
           GitHub too.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6"
-        >
+        <form onSubmit={handleSubmit} className={`mt-8 flex flex-col gap-3 ${AUTH_CARD}`}>
           <Input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -119,6 +119,6 @@ export default function WelcomePage() {
           </Button>
         </form>
       </div>
-    </div>
+    </AuthShell>
   )
 }

@@ -1,25 +1,24 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowLeft, ArrowRight, GraduationCap, Lock, PartyPopper, RotateCcw } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { fetchExamStatus, startExam, submitExam } from "@/api/curriculum"
 import type { ExamResult, ExerciseContent } from "@/types"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { ExerciseInput } from "@/components/exercises/ExerciseInput"
 import { isAnswered } from "@/lib/exercises"
 
 /*
- * Level checkpoint exam (Phase 23.14) — the Goethe-style gate between levels.
- * Unlocks once you've essentially finished your level's path; passing promotes
- * you, failing sends you back to review and you may retry.
+ * The exam between levels. It unlocks once you've nearly finished your level's
+ * path. Pass and you move up; fail and you can review and retry.
  *
- * Everything that matters is server-side: the questions are sampled and frozen
- * on the attempt, grading is deterministic, and promotion happens on submit.
- * Unlike a lesson, there's no per-question feedback — it's an exam.
+ * The server picks and stores the questions when the attempt starts, grades
+ * them, and promotes on submit. Unlike a lesson there's no feedback per
+ * question.
  */
 const BRAND = "hsl(var(--brand))"
 
@@ -63,7 +62,7 @@ export default function ExamPage() {
   // ---- Taking the exam ---------------------------------------------------
   if (questions && questions.length > 0) {
     const q = questions[step]
-    // Count only *complete* answers — a half-built sentence isn't answered.
+    // Only complete answers count; a half-built sentence isn't answered yet.
     const answered = questions.filter((x) => isAnswered(x, answers[x.exercise_id])).length
     const last = step === questions.length - 1
     return (
@@ -80,7 +79,7 @@ export default function ExamPage() {
           </span>
         </div>
 
-        <SectionCard accent={BRAND}>
+        <Card>
           <div className="p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {status.level} exam · question {step + 1}
@@ -95,7 +94,7 @@ export default function ExamPage() {
               onSubmit={() => !last && setStep(step + 1)}
             />
           </div>
-        </SectionCard>
+        </Card>
 
         <div className="flex items-center justify-between">
           <Button variant="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}>
@@ -123,23 +122,17 @@ export default function ExamPage() {
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6">
       <PageHeader title={`${status.level} checkpoint exam`} />
-      <SectionCard accent={BRAND} glow={status.unlocked}>
+      <Card>
         <div className="p-8 text-center">
-          <span
-            className="mx-auto flex size-14 items-center justify-center rounded-2xl"
-            style={{ background: "hsl(var(--brand)/0.15)", color: BRAND }}
-          >
-            {status.unlocked ? <GraduationCap className="size-7" /> : <Lock className="size-6" />}
-          </span>
 
           {status.unlocked ? (
             <>
-              <h2 className="mt-4 text-2xl font-bold">Ready for {status.next_level ?? "the exam"}?</h2>
+              <h2 className="text-2xl font-bold">Ready for {status.next_level ?? "the exam"}?</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 {status.question_count} questions drawn from everything you've learned at{" "}
                 {status.level}. Score {Math.round(status.pass_threshold * 100)}% or more to be
-                promoted{status.next_level ? ` to ${status.next_level}` : ""}. Fail and you keep
-                your level — review and try again.
+                promoted{status.next_level ? ` to ${status.next_level}` : ""}. If you don't
+                pass, you keep your level and can try again after some review.
               </p>
               <Button className="mt-6" disabled={begin.isPending} onClick={() => begin.mutate()}>
                 {begin.isPending ? "Preparing…" : "Start exam"}
@@ -147,7 +140,7 @@ export default function ExamPage() {
             </>
           ) : (
             <>
-              <h2 className="mt-4 text-2xl font-bold">Finish your path first</h2>
+              <h2 className="text-2xl font-bold">Finish your path first</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 The {status.level} checkpoint unlocks once you've completed{" "}
                 {Math.round(status.unlock_ratio * 100)}% of your path.
@@ -169,12 +162,12 @@ export default function ExamPage() {
 
           {status.last_attempt && (
             <p className="mt-5 border-t border-border pt-4 text-xs text-muted-foreground">
-              Last attempt: {Math.round(status.last_attempt.score * 100)}% —{" "}
-              {status.last_attempt.passed ? "passed" : "not passed"}
+              Last attempt: {Math.round(status.last_attempt.score * 100)}% (
+              {status.last_attempt.passed ? "passed" : "not passed"})
             </p>
           )}
         </div>
-      </SectionCard>
+      </Card>
     </div>
   )
 }
@@ -190,15 +183,9 @@ function Result({
 }) {
   return (
     <div className="mx-auto max-w-md">
-      <SectionCard accent={BRAND} glow>
+      <Card>
         <div className="p-8 text-center">
-          <span
-            className="mx-auto flex size-14 items-center justify-center rounded-2xl"
-            style={{ background: "hsl(var(--brand)/0.15)", color: BRAND }}
-          >
-            {result.passed ? <PartyPopper className="size-7" /> : <RotateCcw className="size-6" />}
-          </span>
-          <h1 className="mt-4 text-3xl font-bold">
+          <h1 className="text-3xl font-bold">
             {result.promoted_to
               ? `Willkommen bei ${result.promoted_to}!`
               : result.passed
@@ -212,13 +199,13 @@ function Result({
 
           {result.promoted_to ? (
             <p className="mt-4 text-sm text-muted-foreground">
-              Your level is now <strong className="text-foreground">{result.promoted_to}</strong> —
-              new units are open on your path.
+              Your level is now <strong className="text-foreground">{result.promoted_to}</strong>.
+              New units are open on your path.
             </p>
           ) : (
             <p className="mt-4 text-sm text-muted-foreground">
               You're still at <strong className="text-foreground">{result.level}</strong>. Review
-              what you missed and retake it whenever you're ready — no energy spent.
+              what you missed and retake it whenever you like. It doesn't cost energy.
             </p>
           )}
 
@@ -231,7 +218,7 @@ function Result({
             )}
           </div>
         </div>
-      </SectionCard>
+      </Card>
     </div>
   )
 }

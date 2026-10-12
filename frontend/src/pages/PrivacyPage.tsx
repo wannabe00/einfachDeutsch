@@ -28,7 +28,7 @@ export default function PrivacyPage() {
           <h2 className="font-semibold">Speaking practice</h2>
           <p className="mt-1 text-muted-foreground">
             Recordings you make in Recite are transcribed and then{" "}
-            <strong>discarded</strong> — the audio is never stored. Only the
+            <strong>discarded</strong>. The audio is never stored; only the
             transcript and your score are kept.
           </p>
         </section>

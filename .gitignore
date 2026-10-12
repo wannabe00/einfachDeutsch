@@ -27,3 +27,14 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+
+# ---- Private working notes and local tool config (not published) ----
+.claude/
+CLAUDE.md
+AGENTS.md
+AUDIT.md
+CONTRIBUTING.md
+DESIGN.md
+KNOWLEDGE_BASE.md
+PROJECT_PLAN.md
+WORKFLOW.md

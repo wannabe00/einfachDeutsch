@@ -11,7 +11,7 @@ export function AccountMenu() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close on outside click (the listener's setState is async — fine).
+  // Close on outside click. The listener sets state asynchronously, which is fine.
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)

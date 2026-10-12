@@ -13,11 +13,9 @@ import { MobileNav } from "./MobileNav"
 import { dashboardItem, pathItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
 
 /*
- * Primary app navigation (Design v2 — Cinematic). Desktop = a spaceship-style
- * top bar: logo, a couple of standalone links, and grouped dropdown menus
- * (Practice / Library / Explore). Mobile = a hamburger that opens `MobileNav`.
- * The left rail is retired. Nav only renders for signed-in users; guests see
- * the login/sign-up buttons.
+ * Main navigation. On desktop: logo, a few direct links, and dropdown groups
+ * (Practice / Library / Explore). On mobile: a menu button that opens
+ * `MobileNav`. Guests see login buttons instead of the nav.
  */
 export function TopBar() {
   const { user } = useAuth()
@@ -32,11 +30,9 @@ export function TopBar() {
     if (drawerOpen) setDrawerOpen(false)
   }
 
-  const brand = SITE_NAME === "German Learning Platform" ? "einfachDeutsch" : SITE_NAME
-
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur">
+      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
         <button
           onClick={() => setDrawerOpen((v) => !v)}
           aria-label={drawerOpen ? "Close menu" : "Open menu"}
@@ -58,7 +54,7 @@ export function TopBar() {
             />
             <span className="size-2.5" style={{ background: "hsl(var(--article-das))" }} />
           </span>
-          {brand}
+          {SITE_NAME}
         </Link>
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">

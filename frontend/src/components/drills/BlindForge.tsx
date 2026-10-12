@@ -73,7 +73,7 @@ export function BlindForge({ onExit }: { onExit: () => void }) {
           {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
           {verdict && (
             <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
-              {verdict === "right" ? "✓ Forged!" : `✗ ${current.german}`}
+              {verdict === "right" ? "Correct" : `Answer: ${current.german}`}
             </p>
           )}
           <Button type="submit">{verdict ? "Next" : "Forge"}</Button>

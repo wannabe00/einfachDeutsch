@@ -1,4 +1,4 @@
-"""ASGI config for the German Learning Platform."""
+"""ASGI config for einfachDeutsch."""
 
 import os
 

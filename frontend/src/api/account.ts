@@ -1,7 +1,7 @@
 import { apiClient } from "./client"
 import type { User } from "@/types"
 
-export interface ProfileUpdate {
+interface ProfileUpdate {
   first_name?: string
   last_name?: string
   username?: string
@@ -43,7 +43,7 @@ export async function logoutAllDevices(): Promise<void> {
   await apiClient.post("/accounts/logout-all/")
 }
 
-// Destructive actions require the account password server-side (AUDIT S2).
+// The server requires the account password for these destructive actions.
 export async function deactivateAccount(password: string): Promise<void> {
   await apiClient.post("/accounts/deactivate/", { password })
 }

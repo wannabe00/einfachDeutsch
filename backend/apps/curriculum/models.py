@@ -1,12 +1,11 @@
-"""Phase 23 — Learning Path data model.
+"""The learning path.
 
-Shared/global CONTENT (Unit → Lesson → LessonItem) plus per-user PROGRESS
-(PathLessonProgress) and ENERGY (EnergyState). Follows the project's content-vs-
-progress split: content carries no per-user FKs; progress/energy are per-user.
+Shared content (Unit, Lesson, LessonItem) plus per-user progress
+(PathLessonProgress) and energy (EnergyState). As elsewhere in the project,
+content has no per-user foreign keys.
 
-A book "Lektion" is *not* a Lesson here — the seed pipeline (23.3) slices book
-structure into small ~6-item Lessons grouped under thematic Units. This model is
-deliberately content-agnostic so that mapping can evolve.
+A book Lektion is a Unit here, not a Lesson. The seed command splits each
+Lektion into small Lessons of about six items.
 """
 
 from django.conf import settings
@@ -25,10 +24,9 @@ class Unit(models.Model):
     title = models.CharField(max_length=200)
     theme = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
-    # One Lektion = one Unit = one Chapter (Spec v3 mapping). The chapter is the
-    # content container holding this unit's full Wortschatz / grammar, so the
-    # unit page can show them for review. Nullable: units may exist before their
-    # content is seeded.
+    # One Lektion is one Unit and one Chapter. The chapter holds the unit's full
+    # word list and grammar so the unit page can show them for review. Nullable
+    # because a unit can exist before its content is seeded.
     chapter = models.ForeignKey(
         "books.Chapter", null=True, blank=True, on_delete=models.SET_NULL, related_name="units"
     )
@@ -49,7 +47,7 @@ class Unit(models.Model):
 
 
 class Lesson(models.Model):
-    """One "day"/lesson on the path — a small bundle of ~6 mixed items."""
+    """One lesson on the path: about six mixed items, sized for a day."""
 
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="lessons")
     order = models.PositiveIntegerField(default=0)  # position within the unit
@@ -151,7 +149,7 @@ class EnergyState(models.Model):
 
 
 class LevelExamAttempt(models.Model):
-    """A Goethe-style checkpoint attempt (Phase 23.14).
+    """A Goethe-style checkpoint attempt.
 
     Unlocked once the user has essentially finished their level's path; passing
     promotes them to the next level, failing sends them back to review and they

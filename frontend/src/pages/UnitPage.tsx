@@ -1,20 +1,19 @@
 import { Link, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
-import { ArrowLeft, BookOpen, Sparkles } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 import { fetchUnit } from "@/api/curriculum"
 import type { UnitGrammar, UnitWord } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { grammarCategoryLabel } from "@/lib/labels"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { LessonTrail } from "@/components/path/LessonTrail"
 
 /*
- * One unit's page (Phase 23.4b): the winding lesson road on the left, and a
- * review panel on the right (this Lektion's grammar + full Wortschatz) so the
- * page teaches something even before you tap a lesson.
+ * One unit: the lesson road on the left, and the Lektion's grammar and full
+ * word list on the right, so there's something to study before the first lesson.
  */
 export default function UnitPage() {
   const { unitId } = useParams()
@@ -42,7 +41,7 @@ export default function UnitPage() {
 
       <PageHeader
         title={data.title}
-        subtitle={`Unit ${data.order} · ${data.cefr_level}${data.theme ? ` · ${data.theme}` : ""} — ${done}/${data.lessons.length} lessons`}
+        subtitle={`Unit ${data.order} · ${data.cefr_level}${data.theme ? ` · ${data.theme}` : ""} · ${done}/${data.lessons.length} lessons done`}
       />
 
       <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
@@ -50,9 +49,9 @@ export default function UnitPage() {
 
         <div className="flex min-w-0 flex-col gap-4">
           {data.grammar.map((rule) => (
-            <GrammarPanel key={rule.id} rule={rule} accent={accent} />
+            <GrammarPanel key={rule.id} rule={rule} />
           ))}
-          <VocabPanel words={data.words} accent={accent} />
+          <VocabPanel words={data.words} />
         </div>
       </div>
 
@@ -60,13 +59,13 @@ export default function UnitPage() {
   )
 }
 
-function GrammarPanel({ rule, accent }: { rule: UnitGrammar; accent: string }) {
+function GrammarPanel({ rule }: { rule: UnitGrammar }) {
   const examples = rule.example_sentences.split("\n").filter(Boolean)
   return (
-    <SectionCard accent={accent} glow>
+    <Card>
       <div className="p-5">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          <BookOpen className="size-3.5" /> {grammarCategoryLabel(rule.category)}
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {grammarCategoryLabel(rule.category)}
         </p>
         <h3 className="mt-1 text-lg font-bold">{rule.title}</h3>
         <div className="prose-sm mt-2 space-y-1 text-sm text-muted-foreground [&_strong]:text-foreground">
@@ -82,17 +81,17 @@ function GrammarPanel({ rule, accent }: { rule: UnitGrammar; accent: string }) {
           </ul>
         )}
       </div>
-    </SectionCard>
+    </Card>
   )
 }
 
-function VocabPanel({ words, accent }: { words: UnitWord[]; accent: string }) {
+function VocabPanel({ words }: { words: UnitWord[] }) {
   if (words.length === 0) return null
   return (
-    <SectionCard>
+    <Card>
       <div className="p-5">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          <Sparkles className="size-3.5" style={{ color: accent }} /> Quick review
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Quick review
         </p>
         <h3 className="mt-1 text-lg font-bold">
           Wortschatz <span className="text-muted-foreground">({words.length})</span>
@@ -106,7 +105,7 @@ function VocabPanel({ words, accent }: { words: UnitWord[]; accent: string }) {
           ))}
         </ul>
       </div>
-    </SectionCard>
+    </Card>
   )
 }
 

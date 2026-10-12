@@ -15,16 +15,16 @@ interface ArticleBadgeProps {
 export function ArticleBadge({ german, className }: ArticleBadgeProps) {
   const article = parseArticle(german)
 
+  if (!article) return null
+
   const colorClass =
     article === "der"
-      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+      ? "bg-article-der/15 text-article-der"
       : article === "die"
-        ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+        ? "bg-article-die/15 text-article-die"
         : article === "das"
-          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+          ? "bg-article-das/15 text-article-das"
           : "bg-muted text-muted-foreground"
-
-  if (!article) return null
 
   return (
     <span

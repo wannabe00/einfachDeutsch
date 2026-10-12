@@ -7,12 +7,7 @@ import { createChapter, fetchBooks } from "@/api/books"
 import type { Book } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { PageHeader } from "@/components/layout/PageHeader"
 
 export default function BooksPage() {
   const {
@@ -22,29 +17,27 @@ export default function BooksPage() {
   } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight">Books</h1>
-      <p className="mt-2 text-muted-foreground">
-        Your books and the chapters you're working through.
-      </p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Books"
+        subtitle="Your books and the chapters you're working through."
+      />
 
-      {isLoading && (
-        <p className="mt-6 text-muted-foreground">Loading books…</p>
-      )}
+      {isLoading && <p className="text-muted-foreground">Loading books…</p>}
 
       {isError && (
-        <p className="mt-6 text-danger">
+        <p className="text-danger">
           Couldn't load books. Is the backend running on port 8000?
         </p>
       )}
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {books?.map((book) => (
           <BookCard key={book.id} book={book} />
         ))}
         {books?.length === 0 && (
           <p className="text-muted-foreground">
-            No books yet — add one in the Django admin or via the API.
+            No books yet. Add one in the Django admin.
           </p>
         )}
       </div>
@@ -57,36 +50,32 @@ function BookCard({ book }: { book: Book }) {
     book.chapters.reduce((max, ch) => Math.max(max, ch.number), 0) + 1
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{book.title}</CardTitle>
-        {book.description && (
-          <p className="text-sm text-muted-foreground">{book.description}</p>
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <h2 className="text-lg font-bold tracking-tight">{book.title}</h2>
+      {book.description && (
+        <p className="mt-1 text-sm text-muted-foreground">{book.description}</p>
+      )}
+      <ul className="mt-4 flex flex-col gap-1">
+        {book.chapters.map((ch) => (
+          <li key={ch.id}>
+            <Link
+              to={`/chapters/${ch.id}`}
+              className="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+            >
+              <span>
+                <span className="font-medium">Chapter {ch.number}:</span>{" "}
+                {ch.title}
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Link>
+          </li>
+        ))}
+        {book.chapters.length === 0 && (
+          <li className="px-3 text-sm text-muted-foreground">No chapters yet.</li>
         )}
-      </CardHeader>
-      <CardContent>
-        <ul className="flex flex-col gap-1">
-          {book.chapters.map((ch) => (
-            <li key={ch.id}>
-              <Link
-                to={`/chapters/${ch.id}`}
-                className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-surface"
-              >
-                <span>
-                  <span className="font-medium">Chapter {ch.number}:</span>{" "}
-                  {ch.title}
-                </span>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Link>
-            </li>
-          ))}
-          {book.chapters.length === 0 && (
-            <li className="text-sm text-muted-foreground">No chapters yet.</li>
-          )}
-        </ul>
-        <AddChapterForm bookId={book.id} nextNumber={nextNumber} />
-      </CardContent>
-    </Card>
+      </ul>
+      <AddChapterForm bookId={book.id} nextNumber={nextNumber} />
+    </div>
   )
 }
 

@@ -1,14 +1,12 @@
-"""Deterministic exercise grading (Phase 23.5).
+"""Deterministic exercise grading.
 
-Grading is **local and deterministic — never AI** (Spec v3): free users must be
-graded too, and AI is premium-only. It runs **server-side** so correct answers
-are never shipped to the client (they'd be trivially readable otherwise); the
-answer is only revealed *after* an attempt, mirroring the existing exercises app.
+Grading is local and never uses AI, because free users need it and AI is
+premium. It runs on the server so correct answers never reach the client (they
+would be easy to read there); an answer is only revealed after an attempt.
 
-Matching is forgiving about the things that shouldn't count as errors at A1
-(case, surrounding whitespace, trailing punctuation) but strict about the German
-itself — umlauts and ß are NOT normalised away, since "schon" vs "schön" is a
-real distinction.
+Matching ignores things that shouldn't count as mistakes at A1 (case, extra
+whitespace, trailing punctuation) but is strict about the German itself.
+Umlauts and ß are kept, since "schon" and "schön" are different words.
 """
 
 import re
@@ -63,15 +61,15 @@ def grade(exercise: Exercise, answer) -> bool:
         given = normalize(answer)
         return any(given == normalize(a) for a in _accepted_answers(exercise))
 
-    # free_text has no single right answer (AI grading is premium) — not gradable here.
+    # free_text has no single right answer and needs AI, so it can't be graded here.
     return False
 
 
 def public_exercise(exercise: Exercise) -> dict:
-    """An exercise as the client may see it — **answers stripped**.
+    """An exercise as the client may see it, with the answers removed.
 
-    The single place that decides what's safe to ship, shared by the lesson
-    player and the level exam so neither can drift and leak a solution.
+    The lesson player and the level exam both use this, so there is one place
+    that decides what is safe to send.
     """
     payload = dict(exercise.payload or {})
     payload.pop("answer", None)

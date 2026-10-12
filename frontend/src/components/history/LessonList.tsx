@@ -1,14 +1,12 @@
 import { Check } from "lucide-react"
 
 import type { HistoryLessonSummary } from "@/types"
-import { sectionColor } from "@/lib/sections"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { EraArt } from "./EraArt"
 
 /*
- * History v2 (Phase 23.12) — era-grouped **news-article cards**: hero image +
- * excerpt, opening the full read. Level-gating is server-side (23.8), so a B1
- * user never receives C1 lessons.
+ * History lessons as article cards grouped by era: a picture and an excerpt,
+ * opening the full read. The API only returns lessons at or below your level.
  */
 export function LessonList({
   lessons,
@@ -22,13 +20,12 @@ export function LessonList({
 
   return (
     <div className="flex flex-col gap-8">
-      {eras.map((era, i) => {
-        const accent = sectionColor(i)
+      {eras.map((era) => {
         const items = lessons.filter((l) => l.era === era)
         return (
           <section key={era}>
             <div className="mb-3 flex items-baseline gap-3">
-              <h2 className="text-xl font-bold" style={{ color: accent }}>
+              <h2 className="text-xl font-bold">
                 {era || "Weitere"}
               </h2>
               <span className="text-sm text-muted-foreground">
@@ -37,7 +34,7 @@ export function LessonList({
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {items.map((lesson) => (
-                <ArticleCard key={lesson.id} lesson={lesson} accent={accent} onOpen={onOpen} />
+                <ArticleCard key={lesson.id} lesson={lesson} onOpen={onOpen} />
               ))}
             </div>
           </section>
@@ -49,19 +46,17 @@ export function LessonList({
 
 function ArticleCard({
   lesson,
-  accent,
   onOpen,
 }: {
   lesson: HistoryLessonSummary
-  accent: string
   onOpen: (id: number) => void
 }) {
   return (
     <button
       onClick={() => onOpen(lesson.id)}
-      className="group block h-full text-left transition-transform hover:-translate-y-0.5"
+      className="group block h-full text-left"
     >
-      <SectionCard accent={accent} className="h-full">
+      <Card className="h-full transition-colors group-hover:border-muted-foreground/50">
         <div className="flex h-full flex-col">
           <div className="h-32 w-full overflow-hidden">
             <EraArt era={lesson.era} imageUrl={lesson.image_url || undefined} title={lesson.title} />
@@ -81,7 +76,7 @@ function ArticleCard({
             </span>
           </div>
         </div>
-      </SectionCard>
+      </Card>
     </button>
   )
 }

@@ -1,9 +1,9 @@
 import type { ExerciseContent } from "@/types"
 
-/** Whether an answer is complete enough to submit (Phase 23.5/23.14).
+/** Whether an answer is complete enough to submit.
 
-    Lives outside the component file so Fast Refresh keeps working — that file
-    may only export components. */
+    Kept out of ExerciseInput.tsx because a component file may only export
+    components (React fast refresh). */
 export function isAnswered(content: ExerciseContent, value: unknown): boolean {
   if (content.type === "multiple_choice") return typeof value === "string" && !!value
   if (content.type === "sentence_order") {

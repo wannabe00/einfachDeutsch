@@ -85,7 +85,7 @@ export function PlacementTestForm({
         <div>
           <h2 className="text-lg font-semibold">Placement test</h2>
           <p className="text-sm text-muted-foreground">
-            Step {stepIndex + 1} of {steps.length} — {step.label}
+            Step {stepIndex + 1} of {steps.length}: {step.label}
           </p>
         </div>
         <div className="text-right text-xs text-muted-foreground tabular-nums">
@@ -140,9 +140,9 @@ export function PlacementTestForm({
             className="w-full rounded-lg border border-border bg-background p-3 text-sm"
           />
           {remaining > 0 && (
-            <p className="text-xs text-[hsl(var(--danger))]">
-              {remaining} question{remaining === 1 ? "" : "s"} still unanswered — go back and
-              finish them to see your level.
+            <p className="text-xs text-danger">
+              {remaining} question{remaining === 1 ? " is" : "s are"} still unanswered. Go back
+              and finish them to see your level.
             </p>
           )}
         </div>

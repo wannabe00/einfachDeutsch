@@ -4,7 +4,7 @@ from .models import GrammarRule
 
 
 class GrammarRuleSerializer(serializers.ModelSerializer):
-    # Grammar is grouped Level → topic (Phase 23.10). The level comes from the
+    # Grammar is grouped Level → topic. The level comes from the
     # rule's chapter (a chapter is one Lektion).
     cefr_level = serializers.CharField(source="chapter.cefr_level", read_only=True)
     # Locked until the lesson that teaches it is completed. The viewset supplies
@@ -35,7 +35,7 @@ class GrammarRuleSerializer(serializers.ModelSerializer):
         return bool(entry and entry["locked"])
 
     def get_unlock_lesson(self, obj):
-        """Which lesson unlocks this topic — powers the "next topic" indicator.
+        """The lesson that unlocks this topic, used for the "next topic" hint.
         Null once unlocked, or for topics no lesson teaches."""
         entry = self._entry(obj)
         if not entry or not entry["locked"]:

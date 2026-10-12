@@ -37,8 +37,8 @@ export async function fetchUnit(unitId: number): Promise<PathUnitDetail> {
   return data
 }
 
-/** A lesson's playable items. 402 if a free user is out of energy (new lessons
-    only — redoing a completed lesson is always free). */
+/** A lesson's playable items. Returns 402 when a free user is out of energy;
+    that only applies to new lessons, since redoing one is always free. */
 export async function fetchLesson(lessonId: number): Promise<LessonDetail> {
   const { data } = await apiClient.get<LessonDetail>(`/curriculum/lessons/${lessonId}/`)
   return data
@@ -57,7 +57,7 @@ export async function answerItem(
   return data
 }
 
-/** Finish the lesson — the server re-grades everything and awards XP/crown. */
+/** Finish the lesson. The server re-grades every answer and awards XP and a crown. */
 export async function completeLesson(
   lessonId: number,
   answers: { item_id: number; answer: unknown }[],
@@ -69,7 +69,7 @@ export async function completeLesson(
   return data
 }
 
-/* ---- Level checkpoint exam (Phase 23.14) ---- */
+/* ---- Level checkpoint exam ---- */
 
 /** Progress toward the exam + whether it's unlocked. */
 export async function fetchExamStatus(): Promise<ExamStatus> {

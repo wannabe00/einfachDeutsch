@@ -1,13 +1,13 @@
-"""CEFR placement test + level progression engine (Phase 14, rebuilt).
+"""The CEFR placement test.
 
-The test mixes authored grammar/vocab MCQs (A1→B2) with three short original
-German reading passages (Lesen, easy→hard) plus one free-write prompt. Options
-are shuffled before they reach the client (the correct answer is never in a
-fixed slot). Objective answers are scored locally; the final CEFR level is
-decided by Gemini from that picture + the writing sample (see ai_assistant.llm),
-with a graceful fallback to local scoring if AI is unavailable.
+It mixes grammar and vocabulary multiple-choice questions (A1 to B2) with three
+short reading passages (easy to hard) and one free-writing prompt. Options are
+shuffled before they reach the client, so the right answer is never in a fixed
+slot. Multiple-choice answers are scored here; Gemini then picks the final level
+from those scores and the writing sample (see ai_assistant.llm). If AI is
+unavailable we fall back to the local score.
 
-All content is original (not from any copyrighted book).
+All questions are original, not taken from any book.
 """
 
 from __future__ import annotations
@@ -230,8 +230,8 @@ READING_PASSAGES = [
 
 WRITING_PROMPT = {
     "id": "w_1",
-    "prompt": "Schreib 1–2 Sätze auf Deutsch: Warum lernst du Deutsch? "
-    "(Write 1–2 sentences in German — why are you learning German?)",
+    "prompt": "Schreib 1-2 Sätze auf Deutsch: Warum lernst du Deutsch? "
+    "(Write 1-2 sentences in German: why are you learning German?)",
 }
 
 
@@ -297,39 +297,3 @@ def local_level(summary: dict) -> str:
         else:
             break
     return suggested
-
-
-def evaluate_level(user) -> dict:
-    """Progression status for `user`: current level, requirements, and whether
-    they've completed enough to advance (completion-gated, not XP)."""
-    from apps.vocabulary.models import ReviewLog
-
-    from .models import LevelDefinition, UserLessonProgress
-
-    profile = user.profile
-    current = profile.cefr_level
-    completed_lessons = UserLessonProgress.objects.filter(user=user).count()
-    total_reviews = ReviewLog.objects.filter(user=user).count()
-
-    current_def = LevelDefinition.objects.filter(cefr_level=current).first()
-    next_def = None
-    can_advance = False
-    if current_def:
-        req_lessons = current_def.required_lessons
-        req_reviews = current_def.required_reviews
-        can_advance = completed_lessons >= req_lessons and total_reviews >= req_reviews
-        next_def = (
-            LevelDefinition.objects.filter(order__gt=current_def.order).order_by("order").first()
-        )
-    else:
-        req_lessons = req_reviews = 0
-
-    return {
-        "current_level": current,
-        "next_level": next_def.cefr_level if next_def else None,
-        "required_lessons": req_lessons,
-        "required_reviews": req_reviews,
-        "completed_lessons": completed_lessons,
-        "total_reviews": total_reviews,
-        "can_advance": can_advance,
-    }

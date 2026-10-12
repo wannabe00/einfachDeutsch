@@ -1,10 +1,10 @@
-"""Level + streak endpoints: set level, placement test, progression, streak."""
+"""Level and streak endpoints: set level, placement test, streak."""
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ..leveling import evaluate_level, local_level, public_test, score_objective
+from ..leveling import local_level, public_test, score_objective
 from ..models import CEFR_LEVELS
 from ..scheduling import streak_status
 
@@ -30,8 +30,8 @@ def set_level(request):
 def placement_test(request):
     """GET: the test (grammar + reading + writing, shuffled, no answers).
     POST {answers:{id:choice}, writing:str}: score the MCQs locally, then ask
-    Gemini for the final CEFR level — falling back to local scoring if the AI
-    key/quota is unavailable."""
+    Gemini for the final CEFR level. Falls back to the local score if the AI
+    key or quota is unavailable."""
     if request.method == "GET":
         return Response(public_test())
 
@@ -59,18 +59,11 @@ def placement_test(request):
             result["source"] = "ai"
             result["rationale"] = ai.get("rationale", "")
     except AIConfigError:
-        pass  # no key configured — keep the local result
-    except Exception:  # noqa: BLE001 — any AI/parse failure falls back to local
+        pass  # No key configured; keep the local result.
+    except Exception:  # noqa: BLE001 - any AI or parse failure falls back to local
         pass
 
     return Response(result)
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def level_status(request):
-    """Progression status: current level, requirements, and advance eligibility."""
-    return Response(evaluate_level(request.user))
 
 
 @api_view(["GET"])

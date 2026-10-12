@@ -1,4 +1,4 @@
-"""Seed the A1 learning path from `a1_curriculum.py` (Phase 23.3).
+"""Seed the A1 learning path from `a1_curriculum.py`.
 
 Idempotent: re-running updates the same rows (keyed by natural keys / a stable
 `source` per exercise), so it's safe to run locally and on Neon. Content is
@@ -131,9 +131,9 @@ class Command(BaseCommand):
             counts["pruned"] = orphans.count()
             orphans.delete()
 
-            # Same for grammar rules renamed between seeds — scoped to THIS book so
-            # legacy Menschen grammar is never touched. A seed rule always has a
-            # lesson item; one without is a leftover from an old title.
+            # Same for grammar rules renamed between seeds. Limited to this book so
+            # the Menschen grammar is never touched. A seeded rule always has a
+            # lesson item; one without is left over from an old title.
             used_rule_ids = set(
                 LessonItem.objects.filter(grammar_rule__isnull=False).values_list(
                     "grammar_rule_id", flat=True

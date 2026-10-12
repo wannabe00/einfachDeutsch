@@ -1,4 +1,4 @@
-"""Grade a retelling against the source text (Phase 16.3 + 16.4).
+"""Grade a retelling against the source text.
 
 Sends source + transcript to Gemini and asks for structured JSON: content
 coverage, missed points, grammar errors (article gender + case especially),
@@ -17,7 +17,7 @@ from apps.ai_assistant.llm import MODEL, AIConfigError
 
 GRADER_SYSTEM = (
     "You are a supportive German tutor grading a student's spoken retelling of a "
-    "text. The student retells in their own words, so wording will differ — judge "
+    "text. The student retells in their own words, so the wording will differ. Judge "
     "MEANING coverage, not verbatim match. Be encouraging but precise. Pay special "
     "attention to article gender (der/die/das) and grammatical case. Respond in "
     "English except when quoting German."
@@ -31,7 +31,7 @@ _INSTRUCTIONS = (
     '  "grammar_errors": array of objects {"error": string, "correction": string, '
     '"type": "article"|"case"|"verb"|"word_order"|"other"},\n'
     '  "pronunciation_notes": array of short strings (words that seemed mis-said, '
-    "inferred from odd/garbled transcription — may be empty),\n"
+    "inferred from odd or garbled transcription; may be empty),\n"
     '  "summary": one or two short encouraging sentences.'
 )
 

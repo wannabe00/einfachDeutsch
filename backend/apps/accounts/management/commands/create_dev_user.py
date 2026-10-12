@@ -1,10 +1,9 @@
 """Create (or reset) a ready-to-use local account for development.
 
-Account creation in the app is social-login only, and social OAuth usually isn't
-wired up on localhost — so there's no easy way to click through to a working
-account while developing. This command mints a plain username+password user with
-onboarding already completed (profile_complete + level_set), so you can log in at
-`/login` and land straight in the app.
+Accounts are normally created through Google or GitHub, which usually isn't set
+up on localhost. This command creates a username/password user with onboarding
+already done (profile_complete and level_set), so you can log in at `/login` and
+go straight into the app.
 
     python manage.py create_dev_user
     python manage.py create_dev_user --username tester --password hunter2 --level A2

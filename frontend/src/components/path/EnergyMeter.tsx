@@ -3,9 +3,9 @@ import { Infinity as InfinityIcon, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /*
- * Energy meter (Spec v3). Free users see `max` bolts with `energy` filled and a
- * countdown to the next refill; premium users see an infinity bolt. Presentational
- * only — the live values come from the energy API (wired in brick 23.6).
+ * Energy meter. Free users see `max` bolts with `energy` of them filled and a
+ * countdown to the next refill; premium users see an infinity sign. Values come
+ * from `useEnergy`.
  */
 export function EnergyMeter({
   energy,

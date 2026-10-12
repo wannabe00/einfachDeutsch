@@ -1,4 +1,4 @@
-"""Energy logic (Spec v3) — free-tier limiter on NEW path lessons.
+"""Energy: how free users are limited on new path lessons.
 
 Model: a bar of `ENERGY_MAX` (default 3). Each new lesson completion costs 1.
 It regenerates +1 every `ENERGY_REFILL_HOURS` (default 4), capped at max. Values

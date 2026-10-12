@@ -43,8 +43,8 @@ class CompatOAuth2Client(OAuth2Client):
 
 
 class ThrottledLoginView(LoginView):
-    """Username/password login with a strict per-IP throttle (S3 — the global
-    anon rate is far too generous for password guessing)."""
+    """Username/password login with a strict per-IP throttle. The global
+    anonymous rate is far too generous for password guessing."""
 
     throttle_classes = [LoginThrottle]
 

@@ -1,7 +1,4 @@
-/**
- * Shared API types — keep in sync with the Django REST serializers.
- * Mirrors the models defined in backend/apps/*.
- */
+/** API types. Keep these in sync with the Django serializers in backend/apps. */
 
 export type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 
@@ -70,8 +67,8 @@ export interface ShowSuggestion {
   url: string
   platform: string
   cefr_level: CEFRLevel
-  /** Optional artwork. Blank → the UI draws a platform tile instead. Must be a
-      CSP-allowed host (Cloudinary/Unsplash) — see SourceArt. */
+  /** Optional artwork. When blank the UI draws a platform tile. Must be on a
+      CSP-allowed host (Cloudinary or Unsplash); see SourceArt. */
   image_url: string
 }
 
@@ -95,7 +92,7 @@ export interface HistoryLessonSummary {
   image_url: string
 }
 
-/* ---- AI chat history (Phase 23.13) — mirrors ai_assistant/serializers.py ---- */
+/* ---- AI chat history (ai_assistant/serializers.py) ---- */
 
 export interface ConversationMessage {
   id: number
@@ -156,8 +153,8 @@ export interface User {
   birthday: string | null
   avatar_url: string
   preferences: Record<string, unknown>
-  /** Gate premium UI on this — it folds together the paid flag, an active
-      trial, and expiry (Phase 23.7). */
+  /** Gate premium UI on this. It combines the paid flag, an active trial and
+      the expiry date. */
   has_premium: boolean
   premium_until: string | null
   trial_started_at: string | null
@@ -209,21 +206,17 @@ export interface Word {
   notes: string
   /** Per-user SM-2 state; null for new (unreviewed) words and for guests. */
   progress: WordProgress | null
-  /** From the word's chapter — the Word Bank groups by Level → part of speech. */
+  /** From the word's chapter. The Word Bank groups by level, then part of speech. */
   cefr_level: CEFRLevel
   part_of_speech: PartOfSpeech
-  /** True for a Lektion at your own level you haven't reached yet (Phase 23.9). */
+  /** True for a Lektion at your own level that you haven't reached yet. */
   locked: boolean
 }
 
 /** Quality scale sent to the review endpoint: Again | Hard | Good | Easy. */
 export type ReviewQuality = 0 | 2 | 4 | 5
 
-export interface ReviewResult {
-  quality: ReviewQuality
-}
-
-/** The lesson that teaches a grammar topic — powers the "next topic" hint. */
+/** The lesson that teaches a grammar topic, used for the "next topic" hint. */
 export interface GrammarUnlockLesson {
   id: number
   title: string
@@ -240,7 +233,7 @@ export interface GrammarRule {
   category: string
   content: string
   example_sentences: string
-  /** From the rule's chapter — Grammar groups by Level → topic (Phase 23.10). */
+  /** From the rule's chapter. Grammar groups by level, then topic. */
   cefr_level: CEFRLevel
   /** Locked until the lesson that teaches it is done. */
   locked: boolean
@@ -278,7 +271,7 @@ export interface Exercise {
   hint: string
   explanation: string
   source: string
-  // correct_answer is intentionally omitted — it is never sent in list/retrieve.
+  // correct_answer is deliberately absent: the API never sends it before an attempt.
 }
 
 /** Returned by POST /api/exercises/{id}/attempt/ */
@@ -287,13 +280,6 @@ export interface AttemptResult {
   // Shape mirrors the type: string for simple, string[] / map for interactive.
   correct_answer: string | string[] | Record<string, string>
   explanation: string
-  ai_feedback: string
-}
-
-export interface ExerciseAttempt {
-  user_answer: string
-  is_correct: boolean
-  correct_answer: string
   ai_feedback: string
 }
 
@@ -324,7 +310,7 @@ export interface ActivityDay {
   count: number
 }
 
-/** Real content totals for the marketing landing (Phase 22.4). */
+/** Live content counts shown on the landing page. */
 export interface PublicStats {
   words: number
   exercises: number
@@ -338,7 +324,7 @@ export interface ImportResult {
   skipped: number
 }
 
-/* ---- Learning path (Phase 23) — mirrors apps/curriculum/serializers.py ---- */
+/* ---- Learning path (curriculum/serializers.py) ---- */
 
 export type PathLessonState = "completed" | "current" | "available" | "locked"
 
@@ -403,7 +389,7 @@ export interface PathUnitDetail extends PathUnit {
   grammar: UnitGrammar[]
 }
 
-/* ---- Gamification (Phase 23.15) ---- */
+/* ---- XP and crowns ---- */
 
 export interface Gamification {
   total_xp: number
@@ -414,7 +400,7 @@ export interface Gamification {
   level_lessons_done: number
 }
 
-/* ---- Level checkpoint exam (Phase 23.14) ---- */
+/* ---- Level exam ---- */
 
 export interface ExamStatus {
   level: CEFRLevel
@@ -447,7 +433,7 @@ export interface ExamResult {
   visible_levels: CEFRLevel[]
 }
 
-/* ---- Lesson player (Phase 23.5). Answers are never sent to the client. ---- */
+/* ---- Lesson player. Answers are never sent to the client. ---- */
 
 export type LessonItemKind = "exercise" | "drill" | "review" | "grammar"
 

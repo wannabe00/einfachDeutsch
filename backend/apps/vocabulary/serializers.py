@@ -24,11 +24,12 @@ class WordSerializer(serializers.ModelSerializer):
     # user has never reviewed. The viewset prefetches it into `user_progress`
     # (a list with 0 or 1 item) to avoid an N+1 query.
     progress = serializers.SerializerMethodField()
-    # The Word Bank groups by Level → part of speech (Phase 23.9). The level
+    # The Word Bank groups by Level → part of speech. The level
     # comes from the word's chapter (a chapter is one Lektion).
     cefr_level = serializers.CharField(source="chapter.cefr_level", read_only=True)
     # True for words from a Lektion at the user's own level that they haven't
-    # reached yet — shown blurred. The viewset supplies `locked_chapter_ids`.
+    # reached yet; the UI shows them blurred. The viewset supplies
+    # `locked_chapter_ids`.
     locked = serializers.SerializerMethodField()
 
     class Meta:

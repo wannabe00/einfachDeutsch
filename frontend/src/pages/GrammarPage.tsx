@@ -6,17 +6,15 @@ import { Link } from "react-router-dom"
 import { fetchGrammarRules } from "@/api/grammar"
 import type { GrammarRule } from "@/types"
 import { GRAMMAR_CATEGORIES, grammarCategoryLabel } from "@/lib/labels"
-import { sectionColor } from "@/lib/sections"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 import { GrammarCard } from "@/components/grammar/GrammarCard"
 import { Button } from "@/components/ui/button"
 
 /*
- * Grammar v2 (Phase 23.10). Grouped **Level → topic** — no Lektion numbers.
- * Level-gating is server-side (only ≤ your level is returned); a topic at your
- * own level stays locked until the lesson that teaches it is done, and the
- * "next topic" banner points at whichever unlocks first.
+ * Grammar topics grouped by level, then by topic. The API only returns your
+ * level and below. A topic at your own level stays locked until you finish the
+ * lesson that teaches it; the banner points at the next one to unlock.
  */
 export default function GrammarPage() {
   const [openId, setOpenId] = useState<number | null>(null)
@@ -129,7 +127,7 @@ export default function GrammarPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search grammar — e.g. accusative, sein, plurals…"
+          placeholder="Search grammar, e.g. accusative, sein, plurals"
           className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
@@ -139,21 +137,21 @@ export default function GrammarPage() {
           {query ? `No topics match “${query}”.` : "No grammar topics yet."}
         </p>
       ) : (
-        levels.map(([level, levelRules], i) => (
-          <LevelSection key={level} level={level} rules={levelRules} index={i} onOpen={setOpenId} />
+        levels.map(([level, levelRules]) => (
+          <LevelSection key={level} level={level} rules={levelRules} onOpen={setOpenId} />
         ))
       )}
     </div>
   )
 }
 
-/** "Next topic" indicator — what unlocks next, and the lesson that does it. */
+/** The next topic to unlock, and the lesson that unlocks it. */
 function NextTopic({ rule }: { rule: GrammarRule }) {
   const lesson = rule.unlock_lesson!
   return (
     <Link
       to={`/path/${lesson.unit_id}`}
-      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-b from-surface-2 to-surface p-4 shadow-lg shadow-black/40 transition-transform hover:-translate-y-0.5"
+      className="group flex items-center gap-4 rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
     >
       <span
         className="flex size-12 shrink-0 items-center justify-center rounded-xl text-white"
@@ -177,15 +175,12 @@ function NextTopic({ rule }: { rule: GrammarRule }) {
 function LevelSection({
   level,
   rules,
-  index,
   onOpen,
 }: {
   level: string
   rules: GrammarRule[]
-  index: number
   onOpen: (id: number) => void
 }) {
-  const accent = sectionColor(index)
   const groups = GRAMMAR_CATEGORIES.map((c) => ({
     ...c,
     items: rules.filter((r) => r.category === c.value),
@@ -194,7 +189,7 @@ function LevelSection({
   return (
     <section>
       <div className="mb-3 flex items-baseline gap-3">
-        <h2 className="text-xl font-bold" style={{ color: accent }}>
+        <h2 className="text-xl font-bold">
           {level}
         </h2>
         <span className="text-sm text-muted-foreground">{rules.length} topics</span>
@@ -202,7 +197,7 @@ function LevelSection({
 
       <div className="flex flex-col gap-4">
         {groups.map((g) => (
-          <SectionCard key={g.value} accent={accent}>
+          <Card key={g.value}>
             <div className="p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {g.label} <span className="text-muted-foreground/60">({g.items.length})</span>
@@ -215,7 +210,7 @@ function LevelSection({
                     <button
                       key={rule.id}
                       onClick={() => onOpen(rule.id)}
-                      className="rounded-xl border border-border bg-surface px-4 py-3 text-left font-medium transition-colors hover:border-primary/50"
+                      className="rounded-xl border border-border bg-surface px-4 py-3 text-left font-medium transition-colors hover:bg-surface-2"
                     >
                       {rule.title}
                     </button>
@@ -223,7 +218,7 @@ function LevelSection({
                 )}
               </div>
             </div>
-          </SectionCard>
+          </Card>
         ))}
       </div>
     </section>

@@ -1,9 +1,9 @@
-"""Lesson-unlock schedule + streak/freeze-token engine (Phase 15).
+"""Lesson-unlock schedule + streak/freeze-token engine.
 
 New lessons unlock only on scheduled weekdays (default Mon/Wed/Fri); reviews are
-available any day. A streak breaks only when a *scheduled* day is missed and no
-freeze token is left — otherwise a freeze is auto-consumed. All knobs live in
-settings (LESSON_UNLOCK_WEEKDAYS, STREAK_*).
+available any day. A streak breaks only when a scheduled day is missed and no
+freeze token is left; otherwise a freeze is used up automatically. The settings
+are LESSON_UNLOCK_WEEKDAYS and STREAK_*.
 """
 
 from __future__ import annotations
@@ -43,10 +43,8 @@ def _missed_scheduled(last_active: date, today: date) -> int:
 
 
 def register_activity(user, today: date | None = None):
-    """Record that the user practiced today; update streak + freeze tokens.
-
-    Best-effort: callers wrap this so a failure never breaks the core action.
-    """
+    """Record that the user practiced today and update the streak and freeze
+    tokens. Most callers want `record_activity`, which can't raise."""
     from .models import StreakRecord
 
     today = today or date.today()
@@ -102,3 +100,12 @@ def streak_status(user) -> dict:
         "next_unlock_date": next_unlock_date(today).isoformat(),
         "unlock_weekdays": sorted(unlock_weekdays()),
     }
+
+
+def record_activity(user):
+    """`register_activity` for use inside request handlers: a streak problem
+    must never break the review or exercise the user just did."""
+    try:
+        register_activity(user)
+    except Exception:  # noqa: BLE001
+        pass

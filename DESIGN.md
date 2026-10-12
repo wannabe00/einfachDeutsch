@@ -1,6 +1,33 @@
-# German Learning Platform — Design System
+# einfachDeutsch design system
 
-> Read before building any UI brick. Every page must follow these rules. Tokens map to Tailwind v3 CSS variables in `src/index.css`. Keep this doc and the tokens in sync.
+> Read before building any UI. Tokens live as CSS variables in `frontend/src/index.css`; keep this doc and the tokens in sync.
+
+## Current rules (2026-10-12). These override anything older below.
+
+The sections further down (v2, v3, v1) are kept as history. Where they disagree
+with this list, this list wins.
+
+- **One dark theme.** All tokens are on `:root`; there is no light theme and no
+  theme provider.
+- **Fonts:** Space Grotesk for headings (`h1`-`h4`, `font-grotesk`), IBM Plex
+  Sans for everything else. No Inter.
+- **Cards:** the `Card` component, `StatCard`, or `rounded-xl border border-border
+  bg-surface`. Solid surfaces only: no gradient backgrounds, no glow blobs
+  (`blur-3xl` circles), no coloured top stripes, no glassmorphism
+  (`backdrop-blur`, translucent panels), no hover lift. Hover changes the
+  background (`hover:bg-surface-2`) or the border.
+- **Photos** stay on the landing hero sections and the Dashboard hero. A dark
+  gradient scrim over a photo, for legible text, is fine.
+- **Colour:** red (`primary` / `--brand`) is the only accent. Unit section colours
+  are used only on the path (nodes, unit badges), never to tint headings. der /
+  die / das colours are for grammatical gender only.
+- **Icons** are for actions and state (arrows, chevrons, lock, check/cross, close,
+  streak flame, crown next to a count). No decorative icon in a tinted square on
+  cards, headings or feature lists.
+- **Contrast:** body text uses `foreground` or `muted-foreground`; don't go below
+  `text-white/70` on photos. Disabled controls may use `opacity-50`.
+- **Copy:** plain and specific. No em dashes in UI text, no emoji, no hype ("No
+  mercy", "Perfect!"), and don't claim content that isn't there yet (A1 only).
 
 ---
 
@@ -116,9 +143,8 @@ never hardcode values), accessibility (AA contrast, focus rings, reduced motion,
 > unchanged. Applies to all in-app pages.
 
 ## Direction: "dark + depth" (not flat black)
-- Keep a **dark base** but give it life: **layered gradients**, soft **glows**,
-  subtle **imagery/illustration**, and **rounder, chunkier cards** with a hint of
-  elevation — not hairline outlines on flat black.
+- *(Superseded 2026-10-12: the gradients, glows and elevated cards described
+  here were removed. See "Current rules" at the top.)*
 - **Per-unit section colours:** each path unit gets its own accent (a small
   curated palette) so the path reads as colourful, Duolingo-like sections — while
   the global brand accent (**German-flag red `--brand`**) still drives primary

@@ -1,30 +1,17 @@
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Sparkles, Zap } from "lucide-react"
 
 import { fetchPremiumStatus, startTrial } from "@/api/premium"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
-import { SectionCard } from "@/components/ui/SectionCard"
+import { Card } from "@/components/ui/Card"
 
-/*
- * The premium upsell (Phase 23.7). Mirrors `LockedFeature` (which gates on
- * *login*) but gates on *premium*: AI Assistant, AI explanations and Recite are
- * the paid tier per Spec v3, since they spend the owner's Gemini quota.
- *
- * The backend is the real gate (`IsPremium` → 403); this is only the UI, so
- * showing the content blurred behind it is safe.
+/**
+ * Shown in place of a premium-only page (AI Assistant, Recite) for free users.
+ * The API returns 403 for these anyway; this just explains why and offers the
+ * trial.
  */
-export function PremiumLock({
-  children,
-  title = "Premium feature",
-  description,
-}: {
-  /** Shown blurred behind the upsell, so users see what they're missing. */
-  children?: ReactNode
-  title?: string
-  description?: string
-}) {
+export function PremiumLock() {
   const { user, refreshUser } = useAuth()
   const qc = useQueryClient()
   const [busy, setBusy] = useState(false)
@@ -52,64 +39,34 @@ export function PremiumLock({
   }
 
   return (
-    <div className="relative min-h-[60vh]">
-      {children && (
-        <div aria-hidden className="pointer-events-none select-none opacity-40 blur-[3px]">
-          {children}
-        </div>
-      )}
+    <div className="flex justify-center pt-10">
+      <Card className="w-full max-w-md p-8 text-center">
+        <h2 className="text-2xl font-bold">This is a Premium feature</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Premium includes:</p>
 
-      <div className="absolute inset-0 flex items-start justify-center pt-10">
-        <div className="w-full max-w-md">
-          <SectionCard accent="hsl(var(--brand))" glow>
-            <div className="p-8 text-center">
-              <span
-                className="mx-auto flex size-12 items-center justify-center rounded-xl"
-                style={{ background: "hsl(var(--brand)/0.15)", color: "hsl(var(--brand))" }}
-              >
-                <Sparkles className="size-6" />
-              </span>
-              <h2 className="mt-4 text-2xl font-bold">{title}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {description ??
-                  "The AI Assistant, AI explanations and Recite are part of Premium — along with unlimited energy."}
-              </p>
+        <ul className="mx-auto mt-3 w-fit list-disc space-y-1 pl-5 text-left text-sm">
+          <li>Unlimited energy on the path</li>
+          <li>The AI Assistant and AI explanations</li>
+          <li>Recite: read a text, retell it aloud, get feedback</li>
+        </ul>
 
-              <ul className="mx-auto mt-5 w-fit space-y-1.5 text-left text-sm">
-                <Perk icon={<Zap className="size-4" />}>Unlimited energy</Perk>
-                <Perk icon={<Sparkles className="size-4" />}>AI Assistant &amp; explanations</Perk>
-                <Perk icon={<Sparkles className="size-4" />}>Recite — speak &amp; get scored</Perk>
-              </ul>
+        {status?.trial_available ? (
+          <>
+            <Button className="mt-6 w-full" disabled={busy} onClick={handleTrial}>
+              {busy ? "Starting…" : `Start ${status.trial_days}-day free trial`}
+            </Button>
+            <p className="mt-2 text-xs text-muted-foreground">
+              No card needed. Payments aren’t live yet.
+            </p>
+          </>
+        ) : (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Paid plans aren’t live yet. Premium is granted manually for now.
+          </p>
+        )}
 
-              {status?.trial_available ? (
-                <>
-                  <Button className="mt-6 w-full" disabled={busy} onClick={handleTrial}>
-                    {busy ? "Starting…" : `Start ${status.trial_days}-day free trial`}
-                  </Button>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    No card needed. Payments aren’t live yet.
-                  </p>
-                </>
-              ) : (
-                <p className="mt-6 text-sm text-muted-foreground">
-                  Paid plans aren’t live yet — premium is granted manually for now.
-                </p>
-              )}
-
-              {error && <p className="mt-3 text-sm text-[hsl(var(--danger))]">{error}</p>}
-            </div>
-          </SectionCard>
-        </div>
-      </div>
+        {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+      </Card>
     </div>
-  )
-}
-
-function Perk({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <li className="flex items-center gap-2 text-muted-foreground">
-      <span style={{ color: "hsl(var(--brand))" }}>{icon}</span>
-      {children}
-    </li>
   )
 }

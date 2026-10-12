@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 
 /*
- * The answer control for one exercise — shared by the lesson player (23.5) and
- * the level exam (23.14) so the two can't drift apart. Purely presentational:
- * it owns no answer state and does no grading (that's server-side).
+ * The answer control for one exercise, shared by the lesson player and the level
+ * exam so they behave the same. It holds no state and grades nothing; grading
+ * happens on the server.
  */
 export function ExerciseInput({
   content,
@@ -67,7 +67,7 @@ export function ExerciseInput({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(order.filter((_, j) => j !== i))}
-                className="rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium ring-1 ring-white/10"
+                className="rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium ring-1 ring-border"
               >
                 {token}
               </button>

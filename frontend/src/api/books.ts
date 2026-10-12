@@ -6,7 +6,7 @@ export async function fetchBooks(): Promise<Book[]> {
   return data
 }
 
-export interface NewChapter {
+interface NewChapter {
   number: number
   title: string
   description?: string

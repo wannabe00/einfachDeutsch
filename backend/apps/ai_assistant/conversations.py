@@ -1,4 +1,4 @@
-"""Conversation endpoints (Phase 23.13).
+"""Conversation endpoints.
 
 ChatGPT-style history for the AI Assistant: list / new / resume / rename /
 delete, with both turns persisted server-side so a chat survives a refresh.
@@ -74,8 +74,8 @@ def conversation_messages(request, pk: int):
     if not text:
         return Response({"detail": "Message can't be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Prior turns become the model's context (before saving the new message, so
-    # it isn't duplicated — llm.chat takes it as the separate `message` arg).
+    # Earlier turns become the model's context. Read them before saving the new
+    # message so it isn't sent twice; llm.chat takes it as `message`.
     history = [
         {"role": m.role, "content": m.content}
         for m in convo.messages.all().order_by("-created_at", "-id")[:HISTORY_TURNS][::-1]

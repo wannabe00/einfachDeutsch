@@ -32,7 +32,7 @@ class Command(BaseCommand):
         if existing.exists() and not options["reset"]:
             self.stdout.write(
                 self.style.WARNING(
-                    "Menschen books already exist — pass --reset to rebuild. Skipping."
+                    "Menschen books already exist. Pass --reset to rebuild. Skipping."
                 )
             )
             return

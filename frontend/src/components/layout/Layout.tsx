@@ -5,9 +5,8 @@ import { TopBar } from "./TopBar"
 import { AIPanelProvider } from "@/contexts/AIPanelContext"
 import { AIPanel } from "@/components/ai/AIPanel"
 
-/* App shell (Design v2 — Cinematic). Navigation lives entirely in the top bar
-   (desktop dropdowns) and the mobile drawer it owns — there's no left rail — so
-   the main column spans the full width beneath it. */
+/* App shell. All navigation is in the top bar (and its mobile drawer), so the
+   main column takes the full width below it. */
 export function Layout({ children }: { children?: ReactNode }) {
   return (
     <AIPanelProvider>

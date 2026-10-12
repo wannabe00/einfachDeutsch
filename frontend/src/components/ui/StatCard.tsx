@@ -1,30 +1,24 @@
-import type { LucideIcon } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 
 interface StatCardProps {
-  icon: LucideIcon
-  value: number
+  value: number | string
   label: string
-  accent?: boolean
+  /** Draw attention to this stat (e.g. reviews due today). */
+  highlight?: boolean
+  className?: string
 }
 
-export function StatCard({ icon: Icon, value, label, accent }: StatCardProps) {
+export function StatCard({ value, label, highlight, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-xl border bg-surface p-5 shadow-sm",
-        accent ? "border-accent" : "border-border",
+        "rounded-xl border bg-surface px-4 py-3",
+        highlight ? "border-primary/60" : "border-border",
+        className,
       )}
     >
-      <Icon
-        className={cn("size-5", accent ? "text-accent" : "text-muted-foreground")}
-        aria-hidden="true"
-      />
-      <span className="text-3xl font-bold tracking-tight text-foreground">
-        {value}
-      </span>
-      <span className="text-sm text-muted-foreground">{label}</span>
+      <p className="font-grotesk text-2xl font-bold tabular-nums">{value}</p>
+      <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
     </div>
   )
 }

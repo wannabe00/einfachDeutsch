@@ -19,8 +19,8 @@ const CONFIRM: Record<Action, string> = {
 }
 
 /** Reset progress, deactivate, or permanently delete the account. Each action
-    requires the account password (server-enforced, AUDIT S2) and surfaces real
-    errors instead of silently reporting success (B2). */
+    needs the account password (checked by the server) and shows the real error
+    if it fails. */
 export function DangerZoneSection() {
   const { logout } = useAuth()
   const navigate = useNavigate()

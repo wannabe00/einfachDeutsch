@@ -1,11 +1,11 @@
-"""Chat history (Phase 23.13).
+"""Chat history.
 
-ChatGPT-style per-user conversations so the AI Assistant can be resumed instead
-of vanishing on refresh. Per-user data (never shared), and premium-gated like the
-rest of AI — see accounts.permissions.IsPremium.
+Saved per-user conversations, so an AI Assistant chat survives a refresh and
+can be resumed. Premium only, like the rest of AI (see
+accounts.permissions.IsPremium).
 
-The one-shot `/ai/chat/` endpoint stays for the AI slide-over panel, which asks
-throwaway questions and has nothing to resume.
+The one-shot `/ai/chat/` endpoint is separate: it serves the slide-over panel,
+which asks one-off questions and saves nothing.
 """
 
 from django.conf import settings
@@ -24,15 +24,15 @@ class Conversation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # Most recently used first — the sidebar order.
+        # Most recently used first, matching the sidebar.
         ordering = ["-updated_at", "-id"]
 
     def __str__(self):
         return f"{self.user}: {self.title or 'Untitled'}"
 
     def apply_auto_title(self, first_message: str) -> None:
-        """Title an untitled conversation from its first message (no AI call —
-        it would cost a request per chat for a cosmetic string)."""
+        """Title an untitled conversation from its first message. No AI call:
+        that would cost a request per chat just for a label."""
         if self.title:
             return
         text = " ".join((first_message or "").split())

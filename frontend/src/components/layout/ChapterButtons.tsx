@@ -32,7 +32,7 @@ export function ChapterButtons({
     cn(
       "flex min-h-[78px] flex-col gap-0.5 rounded-xl border p-3 text-left transition-colors",
       active
-        ? "border-accent bg-accent text-accent-foreground shadow-sm"
+        ? "border-accent bg-accent text-accent-foreground"
         : "border-border bg-surface text-foreground hover:border-accent hover:shadow-sm",
     )
 

@@ -7,14 +7,10 @@ from rest_framework.reverse import reverse
 
 @api_view(["GET"])
 def api_root(request, format=None):
-    """Entry point for the browsable API.
-
-    App endpoints are registered here as their bricks land
-    (books in Phase 2, vocabulary in Phase 3, etc.).
-    """
+    """Landing page of DRF's browsable API."""
     return Response(
         {
-            "message": "German Learning Platform API",
+            "message": "einfachDeutsch API",
             "endpoints": {
                 "books": reverse("book-list", request=request, format=format),
             },

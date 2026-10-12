@@ -34,7 +34,7 @@ The app is being rebuilt into a **Duolingo-style guided path**. These decisions 
 - **Book→path mapping (locked):** **one Lektion = one `Unit`**; each Lektion is sliced into as many **~6-item day-sized `Lesson`s** as its Kursbuch+Arbeitsbuch content needs (a 4-page Lektion is far more than one day). **A1 = 24 Units** (A1.1 = Lektionen 1–12, A1.2 = Lektionen 13–24; each book = 4 Module × 3 Lektionen). Module grouping is *not* modelled — units carry the Lektion theme.
 - **Data:** **additive** — new path/energy/premium/conversation models sit alongside existing SRS/streak/level models; **retire the thin Menschen seed** as real curriculum lands. Money stored as integer cents.
 - **AI history:** ChatGPT-style per-user `Conversation` + `Message` models (resume/new/rename/delete, auto-titled). Premium-gated.
-- **Visual:** friendlier **"dark + depth"** (gradients/glow/imagery, rounder cards, per-unit section colors) — see `DESIGN.md` → "Design v3". **Keep der/die/das color+shape + German-flag-red accent.** Gamification = **XP + per-lesson crowns + streak** (leagues later).
+- **Visual:** one dark theme, flat solid cards, red as the only accent, per-unit colours on the path only. No gradients, glows, glassmorphism or decorative icons. See `DESIGN.md` → "Current rules". **Keep der/die/das color+shape + German-flag-red accent.** Gamification = **XP + per-lesson crowns + streak** (leagues later).
 
 ### Backend (Django)
 - DB/secrets stay in the backend only — never touch them from the frontend directly.
@@ -55,7 +55,7 @@ The app is being rebuilt into a **Duolingo-style guided path**. These decisions 
 - `npx tsc --noEmit` must pass before any brick is done.
 
 ### AI integration
-- **Provider: Google Gemini** (switched from Claude — the project uses a free Gemini key). Model `gemini-2.5-flash`.
+- **Provider: Google Gemini** (the project uses a free Gemini key). Model `gemini-2.5-flash`.
 - The `GEMINI_API_KEY` lives in `backend/.env` only (never frontend).
 - All LLM calls are in `apps/ai_assistant/llm.py` — views call those functions, they don't build prompts inline.
 - If the key is missing, functions raise `AIConfigError` and endpoints return a graceful **503**; the frontend degrades without crashing. Keep this contract.

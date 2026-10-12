@@ -4,15 +4,13 @@ import { Tv } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /*
- * Artwork for a watch suggestion (Phase 23.11).
- *
- * If the suggestion has an `image_url` we show it; otherwise we DRAW the source
- * rather than fetching a logo. That's deliberate:
- *   - the prod CSP only allows images from 'self', data:, images.unsplash.com
- *     and res.cloudinary.com, so a hotlinked channel logo is blocked in prod;
- *   - channel logos belong to their owners, and their URLs rot.
- * A generated tile is stable, free, and always on-brand. Set `image_url` to a
- * Cloudinary asset you control to override it.
+ * Artwork for a video suggestion. If the suggestion has an `image_url` we show
+ * it; otherwise we draw a tile for the platform instead of fetching a logo,
+ * because:
+ *   - the production CSP only allows images from 'self', data:,
+ *     images.unsplash.com and res.cloudinary.com, so hotlinked logos break;
+ *   - channel logos belong to their owners, and their URLs change.
+ * Set `image_url` to a Cloudinary image you control to override the tile.
  */
 
 /** Deterministic hue per platform, so a source always looks the same. */
@@ -48,7 +46,7 @@ export function SourceArt({
     return (
       <img
         src={imageUrl}
-        alt={`${title} — ${platform}`}
+        alt={`${title} on ${platform}`}
         loading="lazy"
         onError={() => setFailed(true)}
         className={cn("size-full object-cover", className)}

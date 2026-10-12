@@ -105,7 +105,7 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
             {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
             {verdict && (
               <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
-                {verdict === "right" ? "✓ Perfect recall!" : `✗ ${sentence}`}
+                {verdict === "right" ? "Correct" : `Answer: ${sentence}`}
               </p>
             )}
             <Button type="submit">{verdict ? "Next" : "Check"}</Button>

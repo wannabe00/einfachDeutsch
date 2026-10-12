@@ -5,11 +5,9 @@ import { cn } from "@/lib/utils"
 import { dashboardItem, pathItem, aiItem, navGroups, type NavLeaf } from "./navItems"
 
 /*
- * Mobile navigation drawer — slides in from the left under the top bar. On phones
- * a drawer beats the desktop top bar (all items reachable with one thumb), so the
- * full nav lives here, grouped with section labels. Controlled by the top bar's
- * hamburger; closes on backdrop tap, Escape, or any link tap. While open it locks
- * body scroll so the page behind doesn't move.
+ * Mobile navigation drawer. Slides in from the left under the top bar, opened by
+ * its menu button. Closes on a backdrop tap, Escape or any link, and locks page
+ * scrolling while open.
  */
 export function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {

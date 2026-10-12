@@ -3,103 +3,62 @@
 @tailwind utilities;
 
 /*
- * Design tokens — see DESIGN.md. All values are HSL channels (no hsl() wrapper)
- * so Tailwind can compose them via hsl(var(--token)).
+ * Design tokens. Values are bare HSL channels so Tailwind can
+ * compose them as hsl(var(--token)) and apply opacity modifiers.
  *
- * The shadcn primitive variables (--primary, --secondary, --card, --ring, ...)
- * are derived from the DESIGN palette so shadcn components adopt the project's
- * look: primary actions use the accent blue, focus rings use accent, and the
- * destructive color maps to the danger token.
+ * The app has a single dark theme. Red (--brand / --primary) is the only
+ * accent for actions and focus; der/die/das keep their own colours.
  */
 @layer base {
   :root {
-    /* Editorial palette — light (cool slate + indigo accent) */
-    --background: 240 20% 99%;
-    --surface: 220 16% 96%;
-    --foreground: 224 22% 10%;
-    --muted-foreground: 220 9% 46%;
-    --border: 220 13% 90%;
-    --accent: 243 75% 59%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 243 72% 50%;
-    --success: 160 84% 31%;
-    --success-bg: 152 70% 95%;
-    --danger: 0 72% 51%;
-    --danger-bg: 0 86% 97%;
-    --warning: 32 95% 44%;
-    --warning-bg: 43 96% 95%;
-    --article-der: 215 80% 50%;
-    --article-die: 336 70% 56%;
-    --article-das: 32 95% 44%;
+    color-scheme: dark;
 
-    /* shadcn primitives */
-    --card: 0 0% 100%;
-    --card-foreground: 224 22% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 22% 10%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 224 22% 10%;
-    --muted: 220 16% 94%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --input: 220 13% 88%;
-    --ring: 243 75% 59%;
-    --radius: 0.75rem;
-    /* Landing brand accent — German-flag red now; swap to der-blue later. */
-    --brand: 353 88% 47%;
+    --background: 240 6% 5%;
+    --surface: 240 5% 9%;
+    --surface-2: 240 5% 12%;
+    --foreground: 40 10% 94%;
+    --muted-foreground: 240 5% 68%;
+    --border: 240 5% 19%;
+    --input: 240 5% 22%;
 
-    /* Design v3 "dark + depth" (Phase 23): a raised surface for elevated cards
-       and a per-unit "section" accent palette for the colourful path sections.
-       These cascade into `.dark` (the only in-app theme) unless overridden. */
-    --surface-2: 240 6% 13%;
-    --section-1: 210 90% 62%;
-    --section-2: 150 58% 50%;
-    --section-3: 264 82% 70%;
-    --section-4: 32 94% 56%;
-    --section-5: 174 62% 47%;
-    --section-6: 330 80% 65%;
-  }
-
-  .dark {
-    /* Cinematic palette (Design v2) — near-black canvas + German-flag-red accent.
-       The single accent (`--brand`) drives primary actions, links, focus, and
-       active nav; der/die/das keep their gender colours for vocab/charts. This
-       is the only theme (the app is dark-only). */
-    --background: 240 6% 4%;
-    --surface: 240 6% 8%;
-    --foreground: 220 16% 95%;
-    --muted-foreground: 240 6% 60%;
-    --border: 240 5% 15%;
+    --brand: 353 90% 55%;
     --accent: 353 90% 55%;
     --accent-foreground: 0 0% 100%;
     --accent-hover: 353 85% 48%;
+
     --success: 160 64% 52%;
     --success-bg: 160 50% 11%;
     --danger: 0 91% 71%;
     --danger-bg: 0 55% 12%;
     --warning: 43 96% 56%;
     --warning-bg: 40 80% 11%;
+
     --article-der: 213 90% 65%;
     --article-die: 336 74% 70%;
     --article-das: 43 96% 56%;
 
-    /* shadcn primitives (dark) — primary/ring map to the brand accent */
-    --card: 240 6% 8%;
-    --card-foreground: 220 16% 95%;
-    --popover: 240 6% 8%;
-    --popover-foreground: 220 16% 95%;
+    /* Path units cycle through these. */
+    --section-1: 210 90% 62%;
+    --section-2: 150 58% 50%;
+    --section-3: 264 82% 70%;
+    --section-4: 32 94% 56%;
+    --section-5: 174 62% 47%;
+    --section-6: 330 80% 65%;
+
+    /* shadcn primitives, mapped onto the palette above. */
+    --card: 240 5% 9%;
+    --card-foreground: 40 10% 94%;
+    --popover: 240 5% 9%;
+    --popover-foreground: 40 10% 94%;
     --primary: 353 90% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 13%;
-    --secondary-foreground: 220 16% 95%;
-    --muted: 240 5% 13%;
+    --secondary: 240 5% 14%;
+    --secondary-foreground: 40 10% 94%;
+    --muted: 240 5% 14%;
     --destructive: 0 91% 71%;
     --destructive-foreground: 0 0% 100%;
-    --input: 240 5% 15%;
     --ring: 353 90% 55%;
-    --brand: 353 90% 55%;
+    --radius: 0.75rem;
   }
 }
 
@@ -109,21 +68,14 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
     min-height: 100vh;
-    /* Subtle depth: a faint brand-red glow in the top-left, fading to canvas. */
-    background-image: radial-gradient(
-      1200px 600px at 0% 0%,
-      hsl(var(--brand) / 0.06),
-      transparent 60%
-    );
-    background-attachment: fixed;
   }
-  /* Cinematic headings — Space Grotesk (self-hosted) with tight tracking; body
-     copy stays Inter. Pages can still opt a heading out with `font-sans`. */
-  h1, h2, h3, h4 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Space Grotesk", system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 }

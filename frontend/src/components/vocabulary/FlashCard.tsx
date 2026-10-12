@@ -41,7 +41,7 @@ interface FlashCardProps {
 
 export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps) {
   // ReviewPage remounts this card per word (keyed on word.id), so input/verdict
-  // start fresh automatically — we only need to focus the input on mount.
+  // start fresh automatically; we only need to focus the input on mount.
   const [input, setInput] = useState("")
   const [verdict, setVerdict] = useState<Verdict>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -78,7 +78,7 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
   return (
     <div
       className={cn(
-        "mx-auto w-full max-w-[480px] rounded-xl border-2 p-8 shadow-sm transition-colors duration-150",
+        "mx-auto w-full max-w-[480px] rounded-xl border-2 p-8 transition-colors duration-150",
         borderClass,
         bgClass,
       )}
@@ -114,7 +114,7 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
             onClick={onSkip}
             className="mx-auto text-sm text-muted-foreground hover:text-accent"
           >
-            Skip — review later
+            Skip for now
           </button>
         </form>
       ) : (
@@ -131,9 +131,9 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
             )}
           >
             {verdict === "correct"
-              ? "✓ Correct!"
+              ? "Correct"
               : verdict === "close"
-                ? "Almost — check your spelling"
+                ? "Almost. Check your spelling."
                 : `The answer is: ${word.german}`}
           </p>
 
@@ -141,10 +141,10 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
           <div className="grid grid-cols-4 gap-2">
             {(
               [
-                { label: "Again", quality: 0, hint: "tomorrow", className: "border-danger/40 bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))] hover:bg-[hsl(var(--danger-bg))]" },
-                { label: "Hard", quality: 2, hint: "3 days", className: "border-warning/40 bg-[hsl(var(--warning-bg))] text-[hsl(var(--warning))] hover:bg-[hsl(var(--warning-bg))]" },
-                { label: "Good", quality: 4, hint: "1 week", className: "border-accent/40 bg-blue-50 text-accent dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40" },
-                { label: "Easy", quality: 5, hint: "2+ weeks", className: "border-success/40 bg-[hsl(var(--success-bg))] text-[hsl(var(--success))] hover:bg-[hsl(var(--success-bg))]" },
+                { label: "Again", quality: 0, hint: "tomorrow", className: "border-danger/40 bg-danger-bg text-danger" },
+                { label: "Hard", quality: 2, hint: "3 days", className: "border-warning/40 bg-warning-bg text-warning" },
+                { label: "Good", quality: 4, hint: "1 week", className: "border-article-der/40 bg-article-der/10 text-article-der" },
+                { label: "Easy", quality: 5, hint: "2+ weeks", className: "border-success/40 bg-success-bg text-success" },
               ] as const
             ).map(({ label, quality, hint, className }) => (
               <button

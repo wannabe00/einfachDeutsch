@@ -20,7 +20,8 @@ export default function ReviewPage() {
   })
 
   const allChapters: Chapter[] = books?.flatMap((b) => b.chapters) ?? []
-  const chapterTitle = (id: number) => allChapters.find((c) => c.id === id)?.title ?? "—"
+  const chapterTitle = (id: number) =>
+    allChapters.find((c) => c.id === id)?.title ?? "Unknown chapter"
 
   if (!session.started) {
     return <StartScreen books={books} counts={counts} onSelect={session.setSelection} />

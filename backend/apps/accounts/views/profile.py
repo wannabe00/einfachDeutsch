@@ -21,7 +21,7 @@ from ..throttles import OnboardingThrottle
 User = get_user_model()
 USERNAME_COOLDOWN_DAYS = 30
 
-# Only these keys may live in UserProfile.preferences (S7 — no arbitrary JSON).
+# The only keys allowed in UserProfile.preferences, so it can't hold arbitrary JSON.
 ALLOWED_PREFERENCE_KEYS = {
     "daily_goal",
     "reminder_time",
@@ -118,7 +118,7 @@ def upload_avatar(request):
             transformation=[{"width": 256, "height": 256, "crop": "fill", "gravity": "face"}],
         )
         url = result.get("secure_url", "")
-    except Exception:  # noqa: BLE001 — any upload/provider failure
+    except Exception:  # noqa: BLE001 - any upload or provider failure
         return Response({"detail": "Upload failed. Please try again."}, status=502)
 
     profile = request.user.profile

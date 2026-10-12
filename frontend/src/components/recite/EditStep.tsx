@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 
-/** Step 1 — paste/type the German text to retell. */
+/** Step 1: paste or type the German text to retell. */
 export function EditStep({
   sourceText,
   onChange,

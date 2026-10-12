@@ -1,8 +1,8 @@
-"""Speech→text for recitation, behind a swappable interface (Phase 16.2).
+"""Speech→text for recitation, behind a swappable interface.
 
 Default impl uses Gemini multimodal (the project's free key). A paid Whisper /
 Azure transcriber can be dropped in later by implementing `Transcriber` and
-returning it from `get_transcriber()` — no caller changes needed.
+returning it from `get_transcriber()`. Callers don't need to change.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ class GeminiTranscriber(Transcriber):
             model=MODEL,
             contents=[
                 "Transcribe this German speech to text, verbatim. "
-                "Output ONLY the transcription — no commentary, no quotes.",
+                "Output ONLY the transcription, with no commentary and no quotes.",
                 types.Part.from_bytes(data=audio, mime_type=mime_type),
             ],
         )

@@ -93,7 +93,7 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
         </div>
         {verdict && (
           <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
-            {verdict === "right" ? "✓ Perfect!" : `✗ ${round.words.join(" ")}`}
+            {verdict === "right" ? "Correct" : `Answer: ${round.words.join(" ")}`}
           </p>
         )}
         <Button onClick={check} disabled={!verdict && built.length === 0}>
