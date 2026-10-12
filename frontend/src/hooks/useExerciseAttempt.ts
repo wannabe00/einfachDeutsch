@@ -24,7 +24,6 @@ export function useExerciseAttempt(exercise: Exercise) {
   const [text, setText] = useState("")
   const [list, setList] = useState<string[]>([])
   const [map, setMap] = useState<Record<string, string>>({})
-  const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
   const [result, setResult] = useState<AttemptResult | null>(null)
   const [aiFeedback, setAiFeedback] = useState("")
   const { guard } = useGuestLimit()
@@ -72,8 +71,6 @@ export function useExerciseAttempt(exercise: Exercise) {
     setList,
     map,
     setMap,
-    selectedLeft,
-    setSelectedLeft,
     result,
     aiFeedback,
     aiPending: aiMutation.isPending,

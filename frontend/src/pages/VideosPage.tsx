@@ -4,7 +4,7 @@ import { ExternalLink, Lock } from "lucide-react"
 import { fetchVideoSuggestions } from "@/api/videos"
 import type { CEFRLevel, ShowSuggestion } from "@/types"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { SourceArt } from "@/components/videos/SourceArt"
 
 /*

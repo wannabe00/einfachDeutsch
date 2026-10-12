@@ -7,7 +7,7 @@ import { fetchGrammarRules } from "@/api/grammar"
 import type { GrammarRule } from "@/types"
 import { GRAMMAR_CATEGORIES, grammarCategoryLabel } from "@/lib/labels"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 import { GrammarCard } from "@/components/grammar/GrammarCard"
 import { Button } from "@/components/ui/button"
 

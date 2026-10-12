@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import ReactMarkdown from "react-markdown"
 import { Check, Crown, X, Zap } from "lucide-react"
 
 import { answerItem, completeLesson, fetchLesson } from "@/api/curriculum"
@@ -16,7 +15,8 @@ import type {
 import { resolveAccent } from "@/lib/sections"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
+import { Markdown } from "@/components/ui/Markdown"
 import { ExerciseInput } from "@/components/exercises/ExerciseInput"
 import { isAnswered } from "@/lib/exercises"
 
@@ -142,9 +142,7 @@ function ItemStep({
             Grammar
           </p>
           <h2 className="mt-1 text-xl font-bold">{c.title}</h2>
-          <div className="mt-3 space-y-1 text-sm text-muted-foreground [&_strong]:text-foreground">
-            <ReactMarkdown>{c.content}</ReactMarkdown>
-          </div>
+          <Markdown className="mt-3 text-muted-foreground">{c.content}</Markdown>
           {c.example_sentences && (
             <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
               {c.example_sentences.split("\n").filter(Boolean).map((ex) => (
@@ -215,7 +213,7 @@ function ExerciseStep({
           <p className="mt-3 text-xs text-muted-foreground">Hint: {content.hint}</p>
         )}
 
-        {feedback && <Feedback feedback={feedback} />}
+        {feedback && <Feedback feedback={feedback} type={content.type} />}
 
         <div className="mt-6">
           {feedback ? (
@@ -231,8 +229,17 @@ function ExerciseStep({
   )
 }
 
-function Feedback({ feedback }: { feedback: AnswerResult }) {
-  const solution = Array.isArray(feedback.solution) ? feedback.solution.join(" ") : feedback.solution
+function formatSolution(solution: AnswerResult["solution"], type: string): string {
+  if (!Array.isArray(solution)) return solution
+  if (solution.some(Array.isArray)) {
+    return (solution as [string, string][]).map(([l, r]) => `${l} = ${r}`).join(", ")
+  }
+  // Word-bank answers are separate gap fillers; sentence order is one sentence.
+  return (solution as string[]).join(type === "word_bank" ? ", " : " ")
+}
+
+function Feedback({ feedback, type }: { feedback: AnswerResult; type: string }) {
+  const solution = formatSolution(feedback.solution, type)
   return (
     <div
       className={cn(

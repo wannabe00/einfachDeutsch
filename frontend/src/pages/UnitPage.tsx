@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import ReactMarkdown from "react-markdown"
 import { ArrowLeft } from "lucide-react"
 
 import { fetchUnit } from "@/api/curriculum"
@@ -8,7 +7,8 @@ import type { UnitGrammar, UnitWord } from "@/types"
 import { resolveAccent } from "@/lib/sections"
 import { grammarCategoryLabel } from "@/lib/labels"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
+import { Markdown } from "@/components/ui/Markdown"
 import { LessonTrail } from "@/components/path/LessonTrail"
 
 /*
@@ -68,9 +68,7 @@ function GrammarPanel({ rule }: { rule: UnitGrammar }) {
           {grammarCategoryLabel(rule.category)}
         </p>
         <h3 className="mt-1 text-lg font-bold">{rule.title}</h3>
-        <div className="prose-sm mt-2 space-y-1 text-sm text-muted-foreground [&_strong]:text-foreground">
-          <ReactMarkdown>{rule.content}</ReactMarkdown>
-        </div>
+        <Markdown className="mt-2 text-muted-foreground">{rule.content}</Markdown>
         {examples.length > 0 && (
           <ul className="mt-3 space-y-1 border-t border-border pt-3">
             {examples.map((ex) => (

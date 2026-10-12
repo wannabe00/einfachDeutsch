@@ -98,8 +98,6 @@ export function ExerciseCard({ exercise }: { exercise: Exercise }) {
               value={a.map}
               onChange={a.setMap}
               disabled={disabled}
-              selectedLeft={a.selectedLeft}
-              setSelectedLeft={a.setSelectedLeft}
             />
           )}
           {!a.result && (
