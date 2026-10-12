@@ -7,12 +7,14 @@ each holding the unit's words, grammar and exercises, plus the path itself:
 units, lessons and lesson items.
 
 Safe to re-run. Rows are matched on natural keys (and a stable `source` for
-exercises), so a second run updates rather than duplicates. Anything an earlier
-run created that the content no longer contains is deleted, so editing the
-content files and re-seeding leaves no leftovers.
+exercises): existing rows are updated, missing ones created, and rows the
+content no longer has are deleted, so editing the content and re-seeding
+leaves no leftovers. It also removes the old "Menschen A1.1" / "Menschen A1.2"
+books, which this content replaces.
 
-It also removes the old "Menschen A1.1" / "Menschen A1.2" books, which this
-content replaces.
+The work is done in bulk: existing rows are read once per table, compared in
+Python, and only real changes are written, in batches. Against a remote
+database (Neon) that is a few hundred queries instead of tens of thousands.
 """
 
 from django.core.management.base import BaseCommand
@@ -28,6 +30,7 @@ from apps.vocabulary.models import Word
 BOOK_TITLE = "einfachDeutsch — A1"
 SOURCE_PREFIX = "seed-a1-"
 LEGACY_BOOKS = ("Menschen A1.1", "Menschen A1.2")
+BATCH = 500
 
 
 def exercise_fields(item: dict) -> dict:
@@ -59,7 +62,7 @@ def exercise_fields(item: dict) -> dict:
 
 
 def word_fields(word: tuple) -> tuple[str, dict]:
-    """(german, defaults) for a `(english, german, pos[, notes])` tuple."""
+    """(german, fields) for a `(english, german, pos[, notes])` tuple."""
     english, german, part_of_speech, *rest = word
     return german, {
         "english": english,
@@ -68,121 +71,233 @@ def word_fields(word: tuple) -> tuple[str, dict]:
     }
 
 
+def sync(model, existing: dict, desired: dict, key_of) -> dict:
+    """Make the table match `desired` ({key: field values}) in bulk.
+
+    `existing` maps keys to rows already in the database. Missing rows are
+    created, rows whose values differ are updated, and the rest are left alone.
+    Returns {key: row} for every desired key. Field values use attribute names
+    (`chapter_id`), so foreign keys are compared by id without extra queries.
+    """
+    to_create, to_update, changed_fields = [], [], set()
+    for key, values in desired.items():
+        row = existing.get(key)
+        if row is None:
+            to_create.append(model(**values))
+            continue
+        diff = [f for f, v in values.items() if getattr(row, f) != v]
+        if diff:
+            for f in diff:
+                setattr(row, f, values[f])
+            to_update.append(row)
+            changed_fields.update(diff)
+
+    created = model.objects.bulk_create(to_create, batch_size=BATCH)
+    if to_update:
+        names = sorted(f.removesuffix("_id") if f.endswith("_id") else f for f in changed_fields)
+        model.objects.bulk_update(to_update, names, batch_size=BATCH)
+
+    rows = {key: existing[key] for key in desired if key in existing}
+    rows.update({key_of(row): row for row in created})
+    return rows
+
+
+def delete_ids(model, ids) -> int:
+    """Delete rows by id (with their cascades). Returns how many were asked for."""
+    ids = list(ids)
+    if ids:
+        model.objects.filter(id__in=ids).delete()
+    return len(ids)
+
+
 class Command(BaseCommand):
     help = "Seed the A1 learning path. Safe to re-run."
 
     def handle(self, *args, **options):
-        counts = dict.fromkeys(
-            ["units", "lessons", "items", "words", "grammar", "exercises", "removed"], 0
-        )
-
         with transaction.atomic():
             legacy = Book.objects.filter(title__in=LEGACY_BOOKS)
-            if legacy.exists():
-                self.stdout.write(f"Removing old books: {', '.join(b.title for b in legacy)}")
+            titles = list(legacy.values_list("title", flat=True))
+            if titles:
+                self.stdout.write(f"Removing old books: {', '.join(titles)}")
                 legacy.delete()
 
             book, _ = Book.objects.get_or_create(
-                title=BOOK_TITLE,
-                defaults={"description": "The A1 learning path."},
+                title=BOOK_TITLE, defaults={"description": "The A1 learning path."}
             )
-
-            for u in A1_UNITS:
-                self._seed_unit(book, u, counts)
-
-            self._remove_leftovers(book, counts)
+            counts = self._seed(book)
 
         self.stdout.write(self.style.SUCCESS("Seeded the A1 learning path:"))
         for k, v in counts.items():
             self.stdout.write(f"  {k}: {v}")
 
-    def _seed_unit(self, book, u, counts):
-        chapter, _ = Chapter.objects.update_or_create(
-            book=book,
-            number=u["order"],
-            defaults={"title": u["title"], "description": u["theme"], "cefr_level": A1_LEVEL},
-        )
+    def _seed(self, book) -> dict:
+        removed = 0
+        units_spec = {u["order"]: u for u in A1_UNITS}
 
-        words = {}
-        for w in u["words"]:
-            german, defaults = word_fields(w)
-            words[german], _ = Word.objects.update_or_create(
-                chapter=chapter, german=german, defaults=defaults
-            )
-        Word.objects.filter(chapter=chapter).exclude(german__in=words).delete()
-        counts["words"] += len(words)
-
-        rules = {}
-        for g in u["grammar"]:
-            rules[g["title"]], _ = GrammarRule.objects.update_or_create(
-                chapter=chapter,
-                title=g["title"],
-                defaults={
-                    "category": g["category"],
-                    "content": g["content"],
-                    "example_sentences": g["examples"],
-                },
-            )
-        GrammarRule.objects.filter(chapter=chapter).exclude(title__in=rules).delete()
-        counts["grammar"] += len(rules)
-
-        unit, _ = Unit.objects.update_or_create(
-            cefr_level=A1_LEVEL,
-            order=u["order"],
-            defaults={
-                "title": u["title"],
-                "theme": u["theme"],
-                "accent_color": u["accent_color"],
-                "chapter": chapter,
-            },
-        )
-        counts["units"] += 1
-
-        for lspec in u["lessons"]:
-            lesson, _ = Lesson.objects.update_or_create(
-                unit=unit,
-                order=lspec["order"],
-                defaults={"title": lspec["title"], "xp_reward": lspec.get("xp", 10)},
-            )
-            counts["lessons"] += 1
-
-            for idx, item in enumerate(lspec["items"]):
-                defaults = {
-                    "kind": item["kind"],
-                    "exercise": None,
-                    "word": None,
-                    "grammar_rule": None,
+        # ---- chapters (one per unit) ----
+        chapters = sync(
+            Chapter,
+            {c.number: c for c in Chapter.objects.filter(book=book)},
+            {
+                n: {
+                    "book_id": book.id,
+                    "number": n,
+                    "title": u["title"],
+                    "description": u["theme"],
+                    "cefr_level": A1_LEVEL,
                 }
-                if item["kind"] == "exercise":
-                    source = f"{SOURCE_PREFIX}u{u['order']}-l{lspec['order']}-{idx}"
-                    defaults["exercise"], _ = Exercise.objects.update_or_create(
-                        source=source, defaults={"chapter": chapter, **exercise_fields(item)}
-                    )
-                    counts["exercises"] += 1
-                elif item["kind"] == "review":
-                    defaults["word"] = words[item["word"]]
-                elif item["kind"] == "grammar":
-                    defaults["grammar_rule"] = rules[item["grammar"]]
-                LessonItem.objects.update_or_create(lesson=lesson, order=idx, defaults=defaults)
-                counts["items"] += 1
-
-            LessonItem.objects.filter(lesson=lesson, order__gte=len(lspec["items"])).delete()
-
-        unit.lessons.filter(order__gt=len(u["lessons"])).delete()
-
-    def _remove_leftovers(self, book, counts):
-        """Delete what earlier runs created but the content no longer has."""
-
-        def remove(qs):
-            counts["removed"] += qs.count()
-            qs.delete()
-
-        remove(Unit.objects.filter(cefr_level=A1_LEVEL, order__gt=len(A1_UNITS)))
-        remove(Chapter.objects.filter(book=book, number__gt=len(A1_UNITS)))
-        # Only after units and lessons are gone do we know which exercises are unused.
-        used = set(
-            LessonItem.objects.filter(exercise__isnull=False).values_list(
-                "exercise__source", flat=True
-            )
+                for n, u in units_spec.items()
+            },
+            key_of=lambda c: c.number,
         )
-        remove(Exercise.objects.filter(source__startswith=SOURCE_PREFIX).exclude(source__in=used))
+        chapter_ids = [c.id for c in chapters.values()]
+
+        # ---- words ----
+        desired_words = {}
+        for n, u in units_spec.items():
+            for w in u["words"]:
+                german, fields = word_fields(w)
+                desired_words[(chapters[n].id, german)] = {
+                    "chapter_id": chapters[n].id,
+                    "german": german,
+                    **fields,
+                }
+        existing_words = {
+            (w.chapter_id, w.german): w for w in Word.objects.filter(chapter_id__in=chapter_ids)
+        }
+        words = sync(Word, existing_words, desired_words, lambda w: (w.chapter_id, w.german))
+        removed += delete_ids(
+            Word, (w.id for k, w in existing_words.items() if k not in desired_words)
+        )
+
+        # ---- grammar rules ----
+        desired_rules = {
+            (chapters[n].id, g["title"]): {
+                "chapter_id": chapters[n].id,
+                "title": g["title"],
+                "category": g["category"],
+                "content": g["content"],
+                "example_sentences": g["examples"],
+            }
+            for n, u in units_spec.items()
+            for g in u["grammar"]
+        }
+        existing_rules = {
+            (r.chapter_id, r.title): r
+            for r in GrammarRule.objects.filter(chapter_id__in=chapter_ids)
+        }
+        rules = sync(GrammarRule, existing_rules, desired_rules, lambda r: (r.chapter_id, r.title))
+        removed += delete_ids(
+            GrammarRule, (r.id for k, r in existing_rules.items() if k not in desired_rules)
+        )
+
+        # ---- units ----
+        existing_units = {u.order: u for u in Unit.objects.filter(cefr_level=A1_LEVEL)}
+        units = sync(
+            Unit,
+            existing_units,
+            {
+                n: {
+                    "cefr_level": A1_LEVEL,
+                    "order": n,
+                    "title": u["title"],
+                    "theme": u["theme"],
+                    "accent_color": u["accent_color"],
+                    "chapter_id": chapters[n].id,
+                }
+                for n, u in units_spec.items()
+            },
+            key_of=lambda u: u.order,
+        )
+        removed += delete_ids(
+            Unit, (u.id for n, u in existing_units.items() if n not in units_spec)
+        )
+        removed += delete_ids(
+            Chapter,
+            Chapter.objects.filter(book=book, number__gt=len(A1_UNITS)).values_list(
+                "id", flat=True
+            ),
+        )
+
+        # ---- lessons ----
+        desired_lessons = {
+            (units[n].id, les["order"]): {
+                "unit_id": units[n].id,
+                "order": les["order"],
+                "title": les["title"],
+                "xp_reward": les.get("xp", 10),
+            }
+            for n, u in units_spec.items()
+            for les in u["lessons"]
+        }
+        unit_ids = [u.id for u in units.values()]
+        existing_lessons = {
+            (les.unit_id, les.order): les for les in Lesson.objects.filter(unit_id__in=unit_ids)
+        }
+        lessons = sync(
+            Lesson, existing_lessons, desired_lessons, lambda les: (les.unit_id, les.order)
+        )
+        removed += delete_ids(
+            Lesson, (les.id for k, les in existing_lessons.items() if k not in desired_lessons)
+        )
+
+        # ---- exercises (keyed by a stable source) ----
+        desired_exercises, item_specs = {}, []
+        for n, u in units_spec.items():
+            for les in u["lessons"]:
+                for idx, item in enumerate(les["items"]):
+                    source = None
+                    if item["kind"] == "exercise":
+                        source = f"{SOURCE_PREFIX}u{n}-l{les['order']}-{idx}"
+                        desired_exercises[source] = {
+                            "source": source,
+                            "chapter_id": chapters[n].id,
+                            **exercise_fields(item),
+                        }
+                    item_specs.append((n, les["order"], idx, item, source))
+        existing_exercises = {
+            e.source: e for e in Exercise.objects.filter(source__startswith=SOURCE_PREFIX)
+        }
+        exercises = sync(Exercise, existing_exercises, desired_exercises, lambda e: e.source)
+
+        # ---- lesson items ----
+        desired_items = {}
+        for n, lorder, idx, item, source in item_specs:
+            lesson = lessons[(units[n].id, lorder)]
+            chapter_id = chapters[n].id
+            desired_items[(lesson.id, idx)] = {
+                "lesson_id": lesson.id,
+                "order": idx,
+                "kind": item["kind"],
+                "exercise_id": exercises[source].id if source else None,
+                "word_id": words[(chapter_id, item["word"])].id
+                if item["kind"] == "review"
+                else None,
+                "grammar_rule_id": rules[(chapter_id, item["grammar"])].id
+                if item["kind"] == "grammar"
+                else None,
+            }
+        lesson_ids = [les.id for les in lessons.values()]
+        existing_items = {
+            (i.lesson_id, i.order): i for i in LessonItem.objects.filter(lesson_id__in=lesson_ids)
+        }
+        sync(LessonItem, existing_items, desired_items, lambda i: (i.lesson_id, i.order))
+        removed += delete_ids(
+            LessonItem, (i.id for k, i in existing_items.items() if k not in desired_items)
+        )
+
+        # Exercises from earlier runs that the content no longer has.
+        removed += delete_ids(
+            Exercise,
+            (e.id for s, e in existing_exercises.items() if s not in desired_exercises),
+        )
+
+        return {
+            "units": len(units),
+            "lessons": len(lessons),
+            "items": len(desired_items),
+            "words": len(words),
+            "grammar": len(rules),
+            "exercises": len(exercises),
+            "removed": removed,
+        }
