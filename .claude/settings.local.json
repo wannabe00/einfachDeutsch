@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(/Users/levankobakhidze/Desktop/einfachDeutsch/backend/venv/bin/python manage.py check)"
-    ]
-  }
-}
