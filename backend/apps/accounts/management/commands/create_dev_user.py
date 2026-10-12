@@ -1,15 +1,16 @@
-"""Create (or reset) a ready-to-use local account for development.
+"""Create (or reset) a ready-to-use username/password account.
 
 Accounts are normally created through Google or GitHub, which usually isn't set
-up on localhost. This command creates a username/password user with onboarding
-already done (profile_complete and level_set), so you can log in at `/login` and
-go straight into the app.
+up on localhost. This command creates a user with onboarding already done
+(profile_complete and level_set), so you can log in at `/login` and go straight
+into the app. Re-running updates the same user.
 
     python manage.py create_dev_user
     python manage.py create_dev_user --username tester --password hunter2 --level A2
     python manage.py create_dev_user --superuser        # also gets Django admin
+    python manage.py create_dev_user --premium          # premium with no end date
 
-For local development only. Re-running updates the same user (idempotent).
+Against production, always pass your own --password.
 """
 
 from django.contrib.auth import get_user_model
@@ -38,6 +39,11 @@ class Command(BaseCommand):
             "--superuser",
             action="store_true",
             help="Also grant staff + superuser (Django admin access).",
+        )
+        parser.add_argument(
+            "--premium",
+            action="store_true",
+            help="Grant premium with no end date (unlimited energy, AI, Recite).",
         )
 
     def handle(self, *args, **options):
@@ -68,6 +74,9 @@ class Command(BaseCommand):
         profile.cefr_level = level
         profile.profile_complete = True
         profile.level_set = True
+        if options["premium"]:
+            profile.is_premium = True
+            profile.premium_until = None  # no end date = premium until revoked
         profile.save()
 
         action = "Created" if created else "Updated"
@@ -77,4 +86,6 @@ class Command(BaseCommand):
         self.stdout.write(f"  level:    {level}")
         if options["superuser"]:
             self.stdout.write("  admin:    yes (/admin)")
+        if options["premium"]:
+            self.stdout.write("  premium:  yes")
         self.stdout.write("Log in at /login (username + password).")
