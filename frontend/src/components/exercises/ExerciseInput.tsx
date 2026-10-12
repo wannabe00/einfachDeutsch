@@ -1,6 +1,7 @@
 import type { ExerciseContent } from "@/types"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { MatchingInput, WordBankInput } from "@/components/exercises/inputs"
 
 /*
  * The answer control for one exercise, shared by the lesson player and the level
@@ -87,6 +88,32 @@ export function ExerciseInput({
             </button>
           ))}
         </div>
+      </div>
+    )
+  }
+
+  if (content.type === "matching") {
+    return (
+      <div className="mt-5">
+        <MatchingInput
+          payload={content.payload}
+          value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, string>) : {}}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      </div>
+    )
+  }
+
+  if (content.type === "word_bank") {
+    return (
+      <div className="mt-5">
+        <WordBankInput
+          payload={content.payload}
+          value={Array.isArray(value) ? (value as string[]) : []}
+          onChange={onChange}
+          disabled={disabled}
+        />
       </div>
     )
   }

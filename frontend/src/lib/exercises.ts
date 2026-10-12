@@ -9,5 +9,13 @@ export function isAnswered(content: ExerciseContent, value: unknown): boolean {
   if (content.type === "sentence_order") {
     return Array.isArray(value) && value.length === (content.payload.tokens?.length ?? 0)
   }
+  if (content.type === "matching") {
+    const map = value && typeof value === "object" && !Array.isArray(value) ? value : {}
+    return (content.payload.left ?? []).every((l) => l in map)
+  }
+  if (content.type === "word_bank") {
+    const gaps = (content.payload.text ?? "").split("___").length - 1
+    return Array.isArray(value) && value.length === gaps && value.every((v) => !!v)
+  }
   return typeof value === "string" && value.trim().length > 0
 }

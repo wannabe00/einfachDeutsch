@@ -443,7 +443,14 @@ export interface ExerciseContent {
   prompt: string
   hint: string
   /** Solution keys are stripped server-side; holds e.g. options / tokens. */
-  payload: { options?: string[]; tokens?: string[]; text?: string; bank?: string[] }
+  payload: {
+    options?: string[]
+    tokens?: string[]
+    text?: string
+    bank?: string[]
+    left?: string[]
+    right?: string[]
+  }
 }
 
 export interface ReviewContent {
@@ -481,7 +488,8 @@ export interface LessonDetail {
 
 export interface AnswerResult {
   correct: boolean
-  solution: string | string[]
+  /** A string, a list (sentence order, word bank) or [left, right] pairs (matching). */
+  solution: string | string[] | [string, string][]
   explanation: string
 }
 

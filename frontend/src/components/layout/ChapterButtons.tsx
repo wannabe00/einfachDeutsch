@@ -14,13 +14,6 @@ interface ChapterButtonsProps {
 
 const GRID = "grid grid-cols-2 gap-2.5 sm:grid-cols-3"
 
-/** Split "Lektion 11 — Topic" into ["Lektion 11", "Topic"]. */
-function splitTitle(title: string): [string, string] {
-  const idx = title.indexOf("—")
-  if (idx === -1) return [title.trim(), ""]
-  return [title.slice(0, idx).trim(), title.slice(idx + 1).trim()]
-}
-
 export function ChapterButtons({
   books,
   selected,
@@ -33,7 +26,7 @@ export function ChapterButtons({
       "flex min-h-[78px] flex-col gap-0.5 rounded-xl border p-3 text-left transition-colors",
       active
         ? "border-accent bg-accent text-accent-foreground"
-        : "border-border bg-surface text-foreground hover:border-accent hover:shadow-sm",
+        : "border-border bg-surface text-foreground hover:bg-surface-2",
     )
 
   return (
@@ -60,7 +53,6 @@ export function ChapterButtons({
             {book.chapters.map((c) => {
               const b = badge?.(c.id)
               const active = selected === c.id
-              const [label, topic] = splitTitle(c.title)
               return (
                 <button
                   key={c.id}
@@ -69,13 +61,9 @@ export function ChapterButtons({
                   title={c.title}
                 >
                   <span className="text-sm font-semibold leading-tight">
-                    {label}
+                    Lektion {c.number}
                   </span>
-                  {topic && (
-                    <span className="line-clamp-2 text-xs opacity-70">
-                      {topic}
-                    </span>
-                  )}
+                  <span className="line-clamp-2 text-xs opacity-70">{c.title}</span>
                   {b !== undefined && b !== 0 ? (
                     <span className="mt-auto pt-1 text-xs">
                       <span className="font-bold">{b}</span> due

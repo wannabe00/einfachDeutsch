@@ -1,24 +1,27 @@
+import { useState } from "react"
+
 import type { ExercisePayload } from "@/types"
 import { cn } from "@/lib/utils"
 
+/**
+ * Tap an item on the left, then its partner on the right. Tapping a matched
+ * left item again lets you change its partner. Right-hand items can repeat
+ * (e.g. several nouns all matching "der"), so they never get used up.
+ */
 export function MatchingInput({
   payload,
   value,
   onChange,
   disabled,
-  selectedLeft,
-  setSelectedLeft,
 }: {
   payload: ExercisePayload
   value: Record<string, string>
   onChange: (v: Record<string, string>) => void
   disabled: boolean
-  selectedLeft: string | null
-  setSelectedLeft: (v: string | null) => void
 }) {
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
   const left = payload.left ?? []
   const right = payload.right ?? []
-  const usedRights = new Set(Object.values(value))
 
   function pickRight(r: string) {
     if (!selectedLeft) return
@@ -36,18 +39,14 @@ export function MatchingInput({
             disabled={disabled}
             onClick={() => setSelectedLeft(selectedLeft === l ? null : l)}
             className={cn(
-              "flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+              "flex flex-col items-start rounded-lg border px-3 py-2 text-left text-sm transition-colors",
               selectedLeft === l
-                ? "border-accent bg-accent/10"
-                : "border-border bg-background hover:border-accent",
+                ? "border-primary bg-primary/10"
+                : "border-border bg-background hover:bg-surface-2",
             )}
           >
-            <span className="text-foreground">{l}</span>
-            {value[l] && (
-              <span className="ml-2 rounded bg-muted px-1.5 text-xs text-muted-foreground">
-                {value[l]}
-              </span>
-            )}
+            <span>{l}</span>
+            {value[l] && <span className="mt-0.5 text-xs text-muted-foreground">→ {value[l]}</span>}
           </button>
         ))}
       </div>
@@ -59,11 +58,8 @@ export function MatchingInput({
             disabled={disabled || !selectedLeft}
             onClick={() => pickRight(r)}
             className={cn(
-              "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-              usedRights.has(r)
-                ? "border-border bg-surface text-muted-foreground"
-                : "border-border bg-background text-foreground hover:border-accent",
-              !selectedLeft && "opacity-60",
+              "rounded-lg border border-border bg-background px-3 py-2 text-left text-sm transition-colors",
+              selectedLeft ? "hover:bg-surface-2" : "text-muted-foreground",
             )}
           >
             {r}
