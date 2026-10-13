@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import EnergyState, Lesson, LessonItem, PathLessonProgress, Unit
+from .models import EnergyState, Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
 
 
 class LessonInline(admin.TabularInline):
@@ -33,6 +33,12 @@ class LessonAdmin(admin.ModelAdmin):
 class PathLessonProgressAdmin(admin.ModelAdmin):
     list_display = ("user", "lesson", "completed_at", "crown", "best_score")
     list_filter = ("crown",)
+    search_fields = ("user__username",)
+
+
+@admin.register(LessonDraft)
+class LessonDraftAdmin(admin.ModelAdmin):
+    list_display = ("user", "lesson", "step", "updated_at")
     search_fields = ("user__username",)
 
 

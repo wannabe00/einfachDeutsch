@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -243,7 +243,7 @@ LEKTION_13 = unit(
     "Wegbeschreibung und Dativ",
     L13_WORDS,
     L13_RULES,
-    interleave(L13_LESSONS, vocab_lessons(L13_WORDS, "Wörter")),
+    sections(L13_LESSONS, vocab_lessons(L13_WORDS, "Wörter")),
 )
 
 
@@ -477,7 +477,7 @@ LEKTION_14 = unit(
     "Wohnen, sein und ihr",
     L14_WORDS,
     L14_RULES,
-    interleave(L14_LESSONS, vocab_lessons(L14_WORDS, "Wörter")),
+    sections(L14_LESSONS, vocab_lessons(L14_WORDS, "Wörter")),
 )
 
 
@@ -694,7 +694,7 @@ LEKTION_15 = unit(
     "Stadtviertel und Dativ",
     L15_WORDS,
     L15_RULES,
-    interleave(L15_LESSONS, vocab_lessons(L15_WORDS, "Wörter")),
+    sections(L15_LESSONS, vocab_lessons(L15_WORDS, "Wörter")),
 )
 
 

@@ -18,6 +18,11 @@ urlpatterns = [
         name="curriculum-lesson-answer",
     ),
     url_path(
+        "curriculum/lessons/<int:lesson_id>/restart/",
+        views.lesson_restart,
+        name="curriculum-lesson-restart",
+    ),
+    url_path(
         "curriculum/lessons/<int:lesson_id>/complete/",
         views.lesson_complete,
         name="curriculum-lesson-complete",

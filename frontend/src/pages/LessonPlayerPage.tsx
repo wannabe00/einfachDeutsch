@@ -3,12 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Check, Crown, X, Zap } from "lucide-react"
 
-import { answerItem, completeLesson, fetchLesson } from "@/api/curriculum"
+import { answerItem, completeLesson, fetchLesson, restartLesson } from "@/api/curriculum"
 import type {
   AnswerResult,
   CompleteResult,
   ExerciseContent,
   GrammarContent,
+  LessonDetail,
   LessonItemDTO,
   PartContent,
   PartSolution,
@@ -27,31 +28,46 @@ import { isAnswered } from "@/lib/exercises"
  * graded by the server, which returns whether it was right and the solution
  * (the solution is never sent beforehand). On finish the server re-grades
  * everything, awards XP and a crown, and spends energy only on a first pass.
+ *
+ * Every checked answer is also saved on the server, so a lesson that's left
+ * halfway opens where it stopped.
  */
 export default function LessonPlayerPage() {
   const { unitId, lessonId } = useParams()
   const id = Number(lessonId)
-  const navigate = useNavigate()
-  const qc = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["lesson", id],
     queryFn: () => fetchLesson(id),
     enabled: Number.isFinite(id),
     retry: false,
+    // Never start from a cached copy: the saved position may have moved.
+    gcTime: 0,
   })
-
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<{ item_id: number; answer: unknown }[]>([])
-  const [result, setResult] = useState<CompleteResult | null>(null)
 
   if (isLoading) return <Centered>Loading lesson…</Centered>
   if (error) return <OutOfEnergy unitId={unitId} />
   if (!data) return <Centered>Couldn’t load this lesson.</Centered>
+  return <Player lesson={data} unitId={unitId} />
+}
 
-  // Bound after the guard because TS doesn't carry the narrowing into closures.
-  const lesson = data
+function Player({ lesson, unitId }: { lesson: LessonDetail; unitId?: string }) {
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const resumeAt = Math.max(0, Math.min(lesson.saved?.step ?? 0, lesson.items.length - 1))
+  const [step, setStep] = useState(resumeAt)
+  const [resumed, setResumed] = useState(resumeAt > 0)
+  // Answers given in this sitting; earlier ones are already on the server.
+  const [answers, setAnswers] = useState<{ item_id: number; answer: unknown }[]>([])
+  const [result, setResult] = useState<CompleteResult | null>(null)
   const accent = resolveAccent(lesson.accent_color, 0)
+
+  async function startOver() {
+    await restartLesson(lesson.id)
+    setAnswers([])
+    setStep(0)
+    setResumed(false)
+  }
 
   if (result) {
     return <Summary result={result} accent={accent} unitId={unitId} lessonTitle={lesson.title} />
@@ -97,10 +113,20 @@ export default function LessonPlayerPage() {
         </span>
       </div>
 
+      {resumed && (
+        <p className="text-center text-sm text-muted-foreground">
+          Picked up where you left off.{" "}
+          <button onClick={startOver} className="font-medium text-foreground underline">
+            Start over
+          </button>
+        </p>
+      )}
+
       <ItemStep key={item.id} item={item} lessonId={lesson.id} accent={accent} onNext={handleNext} />
 
       <p className="text-center text-xs text-muted-foreground">
-        Quitting is free. Energy is only spent when you finish.
+        Your answers are saved, so you can stop and come back. Energy is only spent when you
+        finish.
       </p>
     </div>
   )

@@ -497,6 +497,9 @@ export interface LessonDetail {
   accent_color: string
   items: LessonItemDTO[]
   is_new: boolean
+  /** Set when the lesson was started and left: where to pick up. The answers
+      stay on the server, which counts them when the lesson is finished. */
+  saved: { step: number; answers: Record<string, unknown> } | null
 }
 
 /** A string, a list (sentence order, word bank) or [left, right] pairs (matching). */

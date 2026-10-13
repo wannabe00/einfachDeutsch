@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -329,7 +329,7 @@ LEKTION_1 = unit(
     "Begrüßung und Herkunft",
     L1_WORDS,
     L1_RULES,
-    interleave(L1_LESSONS, vocab_lessons(L1_WORDS, "Wörter")),
+    sections(L1_LESSONS, vocab_lessons(L1_WORDS, "Wörter")),
 )
 
 
@@ -686,7 +686,7 @@ LEKTION_2 = unit(
     "Beruf, Wohnort, Zahlen",
     L2_WORDS,
     L2_RULES,
-    interleave(L2_LESSONS, vocab_lessons(L2_WORDS, "Wörter")),
+    sections(L2_LESSONS, vocab_lessons(L2_WORDS, "Wörter")),
 )
 
 
@@ -1041,7 +1041,7 @@ LEKTION_3 = unit(
     "Familie und Sprachen",
     L3_WORDS,
     L3_RULES,
-    interleave(L3_LESSONS, vocab_lessons(L3_WORDS, "Wörter")),
+    sections(L3_LESSONS, vocab_lessons(L3_WORDS, "Wörter")),
 )
 
 

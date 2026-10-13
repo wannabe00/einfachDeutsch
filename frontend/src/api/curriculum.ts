@@ -57,7 +57,13 @@ export async function answerItem(
   return data
 }
 
-/** Finish the lesson. The server re-grades every answer and awards XP and a crown. */
+/** Forget a started lesson's saved answers, to start it over. */
+export async function restartLesson(lessonId: number): Promise<void> {
+  await apiClient.delete(`/curriculum/lessons/${lessonId}/restart/`)
+}
+
+/** Finish the lesson. The server re-grades every answer (including ones saved
+    before a resume) and awards XP and a crown. */
 export async function completeLesson(
   lessonId: number,
   answers: { item_id: number; answer: unknown }[],

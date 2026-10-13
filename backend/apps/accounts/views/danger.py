@@ -61,7 +61,7 @@ def delete_account(request):
 @permission_classes([IsAuthenticated])
 def reset_progress(request):
     """Clear all of the user's learning progress (keeps the account)."""
-    from apps.curriculum.models import LevelExamAttempt, PathLessonProgress
+    from apps.curriculum.models import LessonDraft, LevelExamAttempt, PathLessonProgress
     from apps.exercises.models import ExerciseAttempt
     from apps.history.models import UserHistoryProgress
     from apps.vocabulary.models import ReviewLog, WordProgress
@@ -78,6 +78,7 @@ def reset_progress(request):
     ExerciseAttempt.objects.filter(user=user).delete()
     UserHistoryProgress.objects.filter(user=user).delete()
     PathLessonProgress.objects.filter(user=user).delete()
+    LessonDraft.objects.filter(user=user).delete()
     LevelExamAttempt.objects.filter(user=user).delete()
     StreakRecord.objects.filter(user=user).delete()
     return Response({"detail": "Progress reset."})

@@ -11,7 +11,9 @@ from apps.curriculum.models import Lesson, LessonItem, PathLessonProgress, Unit
 from apps.exercises.models import Exercise
 
 
-class MultiPartTests(TestCase):
+class LessonFixture(TestCase):
+    """One lesson: a four-part article group, then a single fill-in."""
+
     def setUp(self):
         chapter = Chapter.objects.create(book=Book.objects.create(title="T"), number=1, title="L1")
         unit = Unit.objects.create(cefr_level="A1", order=1, title="L1", chapter=chapter)
@@ -40,6 +42,8 @@ class MultiPartTests(TestCase):
     def url(self, action=""):
         return f"/api/curriculum/lessons/{self.lesson.id}/{action}"
 
+
+class MultiPartTests(LessonFixture):
     def test_lesson_sends_parts_without_answers(self):
         items = self.api.get(self.url()).json()["items"]
         content = items[0]["content"]
@@ -93,3 +97,31 @@ class MultiPartTests(TestCase):
             format="json",
         ).json()
         self.assertEqual((res["correct"], res["total"]), (4, 5))
+
+
+class SavedProgressTests(LessonFixture):
+    """A lesson can be left and resumed; finishing it clears what was saved."""
+
+    def check(self, item, answer):
+        self.api.post(self.url("answer/"), {"item_id": item.id, "answer": answer}, format="json")
+
+    def test_checked_answers_are_saved_and_returned(self):
+        self.assertIsNone(self.api.get(self.url()).json()["saved"])
+        self.check(self.group_item, ["der", "die", "das", "der"])
+
+        saved = self.api.get(self.url()).json()["saved"]
+        self.assertEqual(saved["step"], 1)
+        self.assertEqual(saved["answers"], {str(self.group_item.id): ["der", "die", "das", "der"]})
+
+    def test_complete_uses_saved_answers_and_clears_them(self):
+        self.check(self.group_item, ["der", "die", "das", "der"])
+        # After resuming, the client only sends what it answered since.
+        answers = [{"item_id": self.single_item.id, "answer": "bin"}]
+        res = self.api.post(self.url("complete/"), {"answers": answers}, format="json").json()
+        self.assertEqual((res["correct"], res["total"]), (5, 5))
+        self.assertIsNone(self.api.get(self.url()).json()["saved"])
+
+    def test_restart_forgets_saved_answers(self):
+        self.check(self.group_item, ["der", "die", "das", "der"])
+        self.api.delete(self.url("restart/"))
+        self.assertIsNone(self.api.get(self.url()).json()["saved"])

@@ -11,8 +11,10 @@ production.
 ## Features
 
 - **Learning path.** Levels are split into units (one per textbook Lektion) and
-  units into lessons of about six items. Progress within a level is linear, and
-  content above your level is never shown. A1 is being written now.
+  each unit into 2-3 lessons (vocabulary, grammar, communication and review),
+  with similar exercises grouped on one screen. A lesson can be left and
+  resumed. Progress within a level is linear, and content above your level is
+  never shown. A1 is complete.
 - **Energy.** Free users have 3 energy, a new lesson costs 1, and it refills
   one every 4 hours. Redoing lessons, review and everything else is free.
 - **Level exam.** Finishing a level's path unlocks an exam; passing it moves you

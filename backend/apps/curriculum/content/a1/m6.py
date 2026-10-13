@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -243,7 +243,7 @@ LEKTION_16 = unit(
     "Im Hotel, Termine",
     L16_WORDS,
     L16_RULES,
-    interleave(L16_LESSONS, vocab_lessons(L16_WORDS, "Wörter")),
+    sections(L16_LESSONS, vocab_lessons(L16_WORDS, "Wörter")),
 )
 
 
@@ -472,7 +472,7 @@ LEKTION_17 = unit(
     "Pläne und Wünsche",
     L17_WORDS,
     L17_RULES,
-    interleave(L17_LESSONS, vocab_lessons(L17_WORDS, "Wörter")),
+    sections(L17_LESSONS, vocab_lessons(L17_WORDS, "Wörter")),
 )
 
 
@@ -731,7 +731,7 @@ LEKTION_18 = unit(
     "Gesundheit und Ratschläge",
     L18_WORDS,
     L18_RULES,
-    interleave(L18_LESSONS, vocab_lessons(L18_WORDS, "Wörter")),
+    sections(L18_LESSONS, vocab_lessons(L18_WORDS, "Wörter")),
 )
 
 

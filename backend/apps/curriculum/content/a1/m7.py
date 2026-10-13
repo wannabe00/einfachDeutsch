@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -234,7 +234,7 @@ LEKTION_19 = unit(
     "Aussehen, Charakter, war und hatte",
     L19_WORDS,
     L19_RULES,
-    interleave(L19_LESSONS, vocab_lessons(L19_WORDS, "Wörter")),
+    sections(L19_LESSONS, vocab_lessons(L19_WORDS, "Wörter")),
 )
 
 
@@ -443,7 +443,7 @@ LEKTION_20 = unit(
     "Haushalt und Imperativ",
     L20_WORDS,
     L20_RULES,
-    interleave(L20_LESSONS, vocab_lessons(L20_WORDS, "Wörter")),
+    sections(L20_LESSONS, vocab_lessons(L20_WORDS, "Wörter")),
 )
 
 
@@ -678,7 +678,7 @@ LEKTION_21 = unit(
     "Regeln, müssen und dürfen",
     L21_WORDS,
     L21_RULES,
-    interleave(L21_LESSONS, vocab_lessons(L21_WORDS, "Wörter")),
+    sections(L21_LESSONS, vocab_lessons(L21_WORDS, "Wörter")),
 )
 
 

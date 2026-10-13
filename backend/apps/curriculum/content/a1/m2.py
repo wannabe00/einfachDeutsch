@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -296,7 +296,7 @@ LEKTION_4 = unit(
     "Möbel und Preise",
     L4_WORDS,
     L4_RULES,
-    interleave(L4_LESSONS, vocab_lessons(L4_WORDS, "Wörter")),
+    sections(L4_LESSONS, vocab_lessons(L4_WORDS, "Wörter")),
 )
 
 
@@ -571,7 +571,7 @@ LEKTION_5 = unit(
     "Gegenstände, Farben, Plural",
     L5_WORDS,
     L5_RULES,
-    interleave(L5_LESSONS, vocab_lessons(L5_WORDS, "Wörter")),
+    sections(L5_LESSONS, vocab_lessons(L5_WORDS, "Wörter")),
 )
 
 
@@ -827,7 +827,7 @@ LEKTION_6 = unit(
     "Büro und Akkusativ",
     L6_WORDS,
     L6_RULES,
-    interleave(L6_LESSONS, vocab_lessons(L6_WORDS, "Wörter")),
+    sections(L6_LESSONS, vocab_lessons(L6_WORDS, "Wörter")),
 )
 
 

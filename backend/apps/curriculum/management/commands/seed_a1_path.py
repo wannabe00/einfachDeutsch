@@ -224,8 +224,10 @@ class Command(BaseCommand):
         )
 
         # ---- lessons ----
+        # Keyed by title as well as position: a lesson whose title changes is a
+        # different lesson, so it's replaced and its old progress goes with it.
         desired_lessons = {
-            (units[n].id, les["order"]): {
+            (units[n].id, les["order"], les["title"]): {
                 "unit_id": units[n].id,
                 "order": les["order"],
                 "title": les["title"],
@@ -236,13 +238,18 @@ class Command(BaseCommand):
         }
         unit_ids = [u.id for u in units.values()]
         existing_lessons = {
-            (les.unit_id, les.order): les for les in Lesson.objects.filter(unit_id__in=unit_ids)
+            (les.unit_id, les.order, les.title): les
+            for les in Lesson.objects.filter(unit_id__in=unit_ids)
         }
-        lessons = sync(
-            Lesson, existing_lessons, desired_lessons, lambda les: (les.unit_id, les.order)
-        )
+        # Delete first: a replaced lesson still holds its (unit, order) slot.
         removed += delete_ids(
             Lesson, (les.id for k, les in existing_lessons.items() if k not in desired_lessons)
+        )
+        lessons = sync(
+            Lesson,
+            {k: les for k, les in existing_lessons.items() if k in desired_lessons},
+            desired_lessons,
+            lambda les: (les.unit_id, les.order, les.title),
         )
 
         # ---- exercises (keyed by a stable source) ----
@@ -258,7 +265,7 @@ class Command(BaseCommand):
                             "chapter_id": chapters[n].id,
                             **exercise_fields(item),
                         }
-                    item_specs.append((n, les["order"], idx, item, source))
+                    item_specs.append((n, (les["order"], les["title"]), idx, item, source))
         existing_exercises = {
             e.source: e for e in Exercise.objects.filter(source__startswith=SOURCE_PREFIX)
         }
@@ -266,8 +273,8 @@ class Command(BaseCommand):
 
         # ---- lesson items ----
         desired_items = {}
-        for n, lorder, idx, item, source in item_specs:
-            lesson = lessons[(units[n].id, lorder)]
+        for n, (lorder, ltitle), idx, item, source in item_specs:
+            lesson = lessons[(units[n].id, lorder, ltitle)]
             chapter_id = chapters[n].id
             desired_items[(lesson.id, idx)] = {
                 "lesson_id": lesson.id,
@@ -292,15 +299,16 @@ class Command(BaseCommand):
 
         # ---- words each lesson teaches ----
         Taught = Lesson.words.through
-        desired_taught = {
-            (lessons[(units[n].id, les["order"])].id, words[(chapters[n].id, german)].id): {
-                "lesson_id": lessons[(units[n].id, les["order"])].id,
-                "word_id": words[(chapters[n].id, german)].id,
-            }
-            for n, u in units_spec.items()
-            for les in u["lessons"]
-            for german in les["teaches"]
-        }
+        desired_taught = {}
+        for n, u in units_spec.items():
+            for les in u["lessons"]:
+                lesson_id = lessons[(units[n].id, les["order"], les["title"])].id
+                for german in les["teaches"]:
+                    word_id = words[(chapters[n].id, german)].id
+                    desired_taught[(lesson_id, word_id)] = {
+                        "lesson_id": lesson_id,
+                        "word_id": word_id,
+                    }
         existing_taught = {
             (t.lesson_id, t.word_id): t for t in Taught.objects.filter(lesson_id__in=lesson_ids)
         }
