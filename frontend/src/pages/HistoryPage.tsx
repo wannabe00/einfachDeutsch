@@ -25,7 +25,7 @@ export default function HistoryPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="German history"
-        subtitle="Short reads on German history, each followed by a quick quiz."
+        subtitle="German history in simple German, with an English translation and a quiz."
       />
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>

@@ -63,12 +63,20 @@ export interface RecitationResult {
 export interface ShowSuggestion {
   id: number
   title: string
+  /** What it is. */
   description: string
+  /** Who it's for. */
+  audience: string
+  /** Format and length, e.g. "Episodes of 10-20 minutes, weekly." */
+  format: string
+  /** e.g. "Free" or "Netflix subscription". */
+  cost: string
+  /** How to use it for learning. */
+  tips: string[]
   url: string
   platform: string
   cefr_level: CEFRLevel
-  /** Optional artwork. When blank the UI draws a platform tile. Must be on a
-      CSP-allowed host (Cloudinary or Unsplash); see SourceArt. */
+  /** A YouTube thumbnail, or blank for a drawn platform tile (see SourceArt). */
   image_url: string
 }
 
@@ -127,6 +135,10 @@ export interface HistoryLessonDetail {
   body_de: string
   quiz: HistoryQuizQuestion[]
   completed: boolean
+  /** A picture bundled with the app (`/history/...jpg`), or blank. */
+  image_url: string
+  /** Who made the picture and where it's from. */
+  image_credit: string
 }
 
 export interface HistoryCompleteResult {
@@ -236,38 +248,15 @@ export interface GrammarRule {
   cefr_level: CEFRLevel
 }
 
-export type ExerciseType =
-  | "translation"
-  | "fill_blank"
-  | "article"
-  | "conjugation"
-  | "free_text"
-  | "multiple_choice"
-  | "matching"
-  | "sentence_order"
-  | "word_bank"
-  | "group"
-
 /** Solution-stripped payload shapes the UI receives (varies by type). */
 export interface ExercisePayload {
   options?: string[] // multiple_choice
   left?: string[] // matching
-  right?: string[] // matching (shuffled)
+  right?: string[] // matching (sorted)
   tokens?: string[] // sentence_order
   text?: string // word_bank ("Ich ___ in ___.")
   bank?: string[] // word_bank
-}
-
-export interface Exercise {
-  id: number
-  chapter: number
-  exercise_type: ExerciseType
-  prompt: string
-  payload: ExercisePayload
-  hint: string
-  explanation: string
-  source: string
-  // correct_answer is deliberately absent: the API never sends it before an attempt.
+  parts?: PartContent[] // group: the parts shown together on one screen
 }
 
 export type GrammarCategory =
@@ -433,17 +422,8 @@ export interface PartContent {
   type: string
   prompt: string
   hint: string
-  /** Solution keys are stripped server-side; holds e.g. options / tokens. */
-  payload: {
-    options?: string[]
-    tokens?: string[]
-    text?: string
-    bank?: string[]
-    left?: string[]
-    right?: string[]
-    /** group: the parts shown together on one screen. */
-    parts?: PartContent[]
-  }
+  /** Solution keys are stripped server-side. */
+  payload: ExercisePayload
 }
 
 export interface ExerciseContent extends PartContent {

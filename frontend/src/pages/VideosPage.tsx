@@ -75,39 +75,53 @@ export default function VideosPage() {
   )
 }
 
-function SuggestionCard({ suggestion }: { suggestion: ShowSuggestion }) {
+function SuggestionCard({ suggestion: s }: { suggestion: ShowSuggestion }) {
   return (
-    <a
-      href={suggestion.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block"
-    >
-      <Card className="h-full transition-colors group-hover:border-muted-foreground/50">
-        <div className="flex h-full gap-4 p-4">
-          <div className="size-20 shrink-0 overflow-hidden rounded-xl">
-            <SourceArt
-              platform={suggestion.platform}
-              imageUrl={suggestion.image_url || undefined}
-              title={suggestion.title}
-            />
-          </div>
-          <div className="flex min-w-0 flex-col">
-            <div className="flex items-center gap-1.5">
-              <h3 className="truncate font-bold">{suggestion.title}</h3>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-            {suggestion.platform && (
-              <span className="mt-0.5 w-fit rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {suggestion.platform}
-              </span>
-            )}
-            <p className="mt-1.5 line-clamp-3 text-sm text-muted-foreground">
-              {suggestion.description}
-            </p>
-          </div>
+    <Card className="flex h-full flex-col overflow-hidden">
+      <a href={s.url} target="_blank" rel="noopener noreferrer" className="block aspect-video">
+        <SourceArt platform={s.platform} imageUrl={s.image_url || undefined} title={s.title} />
+      </a>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <div>
+          <h3 className="text-lg font-bold">{s.title}</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {[s.platform, s.cefr_level, s.cost].filter(Boolean).join(" · ")}
+          </p>
         </div>
-      </Card>
-    </a>
+        <p className="text-sm">{s.description}</p>
+        <dl className="grid gap-1 text-sm">
+          {s.audience && (
+            <div>
+              <dt className="inline font-medium">For: </dt>
+              <dd className="inline text-muted-foreground">{s.audience}</dd>
+            </div>
+          )}
+          {s.format && (
+            <div>
+              <dt className="inline font-medium">Format: </dt>
+              <dd className="inline text-muted-foreground">{s.format}</dd>
+            </div>
+          )}
+        </dl>
+        {s.tips.length > 0 && (
+          <div>
+            <p className="text-sm font-medium">How to learn with it</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
+              {s.tips.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <a
+          href={s.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-auto inline-flex w-fit items-center gap-1.5 pt-1 text-sm font-medium text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          Open on {s.platform} <ExternalLink className="size-3.5" />
+        </a>
+      </div>
+    </Card>
   )
 }

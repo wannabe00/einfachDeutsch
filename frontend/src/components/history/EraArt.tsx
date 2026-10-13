@@ -1,14 +1,11 @@
 import { useState } from "react"
-import { Landmark } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 /*
- * Artwork for a history article card. Works like `SourceArt` on Videos, for the
- * same reasons: the production CSP only allows images from 'self', data:,
- * images.unsplash.com and res.cloudinary.com, and historical photos are often
- * under copyright. So when `image_url` is blank we draw a tile for the era, and
- * when it's set (to an image the owner controls) we show it with a fallback.
+ * The picture for a history lesson. The pictures are public-domain images
+ * bundled with the app (`public/history/`), which keeps the CSP strict. When a
+ * lesson has none, or it fails to load, a plain tile names the era instead.
  */
 
 /** Deterministic hue per era, so an era always looks the same. */
@@ -22,11 +19,14 @@ export function EraArt({
   era,
   imageUrl,
   title,
+  fit = "cover",
   className,
 }: {
   era: string
   imageUrl?: string
   title: string
+  /** "cover" fills a card (cropped near the top); "contain" shows it whole. */
+  fit?: "cover" | "contain"
   className?: string
 }) {
   const [failed, setFailed] = useState(false)
@@ -38,7 +38,11 @@ export function EraArt({
         alt={title}
         loading="lazy"
         onError={() => setFailed(true)}
-        className={cn("size-full object-cover", className)}
+        className={cn(
+          "size-full",
+          fit === "cover" ? "object-cover object-[50%_25%]" : "object-contain",
+          className,
+        )}
       />
     )
   }
@@ -47,12 +51,9 @@ export function EraArt({
   return (
     <div
       className={cn("flex size-full flex-col items-center justify-center gap-1.5", className)}
-      style={{
-        background: `linear-gradient(140deg, hsl(${hue} 45% 26%), hsl(${(hue + 35) % 360} 40% 14%))`,
-      }}
+      style={{ background: `hsl(${hue} 30% 20%)` }}
       aria-hidden="true"
     >
-      <Landmark className="size-6 text-white/45" />
       {era && (
         <span className="px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-white/70">
           {era}
