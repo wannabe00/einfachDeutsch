@@ -524,3 +524,10 @@ export interface CompleteResult {
   spent_energy: boolean
   energy: PathEnergy
 }
+
+/** The Dashboard's short review of the unit finished most recently. */
+export interface LastUnitReview {
+  /** Null until a whole unit is finished. */
+  unit: { id: number; order: number; title: string } | null
+  words: Word[]
+}

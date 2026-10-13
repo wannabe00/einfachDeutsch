@@ -17,6 +17,9 @@ from .models import ReviewLog, Word, WordProgress
 from .serializers import WordProgressSerializer, WordSerializer
 from .srs import calculate_next_review
 
+# Words in the Dashboard's "review last unit" session.
+LAST_UNIT_REVIEW_SIZE = 20
+
 
 def current_user(request):
     """The authenticated user, or None for a guest."""
@@ -27,8 +30,10 @@ def due_words_for(user, chapter_id=None):
     """Words due for review for `user`.
 
     A word is due if the user has a progress row scheduled on/before today, OR
-    the user has never reviewed it (new words are due). For a guest (user=None)
-    every word is new, so all words are due.
+    the user has never reviewed it (new words are due). Only learned words
+    (see curriculum.learned) are ever due, so review never runs ahead of the
+    path. For a guest (user=None) every word at the lowest level is due, as a
+    trial.
 
     Words above the user's level are never due, or review would leak content
     from higher levels.
@@ -40,6 +45,10 @@ def due_words_for(user, chapter_id=None):
         qs = qs.filter(chapter_id=chapter_id)
     if user is None:
         return qs
+    # Imported here so the vocabulary app doesn't hard-depend on curriculum.
+    from apps.curriculum.learned import learned_word_ids
+
+    qs = qs.filter(id__in=learned_word_ids(user))
     seen = WordProgress.objects.filter(user=user).values("word_id")
     due_seen = WordProgress.objects.filter(user=user, next_review__lte=today).values("word_id")
     return qs.filter(Q(pk__in=due_seen) | ~Q(pk__in=seen))
@@ -103,6 +112,37 @@ class WordViewSet(viewsets.ModelViewSet):
         words = self._with_user_progress(due_words_for(user, chapter))
         serializer = self.get_serializer(words, many=True)
         return Response(serializer.data)
+
+    @action(
+        detail=False, methods=["get"], url_path="last-unit", permission_classes=[IsAuthenticated]
+    )
+    def last_unit(self, request):
+        """A short review of the unit finished most recently: its learned
+        words, due ones first. `unit` is null until a whole unit is done."""
+        from apps.curriculum.learned import last_completed_unit, learned_word_ids
+
+        unit = last_completed_unit(request.user)
+        if unit is None or unit.chapter_id is None:
+            return Response({"unit": None, "words": []})
+
+        today = date.today()
+        words = self._with_user_progress(
+            Word.objects.select_related("chapter").filter(
+                chapter_id=unit.chapter_id, id__in=learned_word_ids(request.user)
+            )
+        )
+
+        def next_review(word):
+            records = word.user_progress
+            return records[0].next_review if records else today
+
+        picked = sorted(words, key=lambda w: (next_review(w), w.id))[:LAST_UNIT_REVIEW_SIZE]
+        return Response(
+            {
+                "unit": {"id": unit.id, "order": unit.order, "title": unit.title},
+                "words": self.get_serializer(picked, many=True).data,
+            }
+        )
 
     @action(detail=False, methods=["get"], url_path="due-counts")
     def due_counts(self, request):

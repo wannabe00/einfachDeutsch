@@ -1,22 +1,28 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { fetchDueWords, reviewWord } from "@/api/vocabulary"
+import { fetchDueWords, fetchLastUnitReview, reviewWord } from "@/api/vocabulary"
 import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { ReviewQuality, Word } from "@/types"
 
-// `null` = choosing; "all" = every chapter; number = a specific chapter id.
-type Selection = number | "all" | null
+// `null` = choosing; "all" = every chapter; number = a specific chapter id;
+// "last-unit" = the Dashboard's review of the unit finished most recently.
+export type Selection = number | "all" | "last-unit" | null
+
+function fetchSelection(selection: Exclude<Selection, null>): Promise<Word[]> {
+  if (selection === "last-unit") return fetchLastUnitReview().then((r) => r.words)
+  return fetchDueWords(selection === "all" ? undefined : selection)
+}
 
 /**
  * The SRS review session state machine: fetches the due queue for the chosen
  * chapter, tracks per-session stats, records ratings (skips requeue without a
  * review), and reports completion. The page just renders what this returns.
  */
-export function useReviewSession() {
+export function useReviewSession(initial: Selection = null) {
   const qc = useQueryClient()
   const { guard } = useGuestLimit()
-  const [selection, setSelection] = useState<Selection>(null)
+  const [selection, setSelection] = useState<Selection>(initial)
   const [queue, setQueue] = useState<Word[]>([])
   const [total, setTotal] = useState(0)
   const [stats, setStats] = useState({ answered: 0, correct: 0, again: 0 })
@@ -25,7 +31,7 @@ export function useReviewSession() {
   const started = selection !== null
   const { data: dueWords, isLoading } = useQuery({
     queryKey: ["due-words", selection],
-    queryFn: () => fetchDueWords(selection === "all" ? undefined : (selection as number)),
+    queryFn: () => fetchSelection(selection!),
     enabled: started,
     staleTime: 0,
   })
@@ -55,7 +61,7 @@ export function useReviewSession() {
 
   function finishIfEmpty(remaining: Word[]) {
     if (remaining.length === 0) {
-      for (const key of ["due-words", "words", "stats", "due-counts"]) {
+      for (const key of ["due-words", "words", "stats", "due-counts", "last-unit"]) {
         qc.invalidateQueries({ queryKey: [key] })
       }
       setDone(true)

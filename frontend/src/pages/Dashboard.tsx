@@ -10,6 +10,7 @@ import { ReviewActivityChart } from "@/components/charts/ReviewActivityChart"
 import { StreakBanner } from "@/components/dashboard/StreakBanner"
 import { GamificationRow } from "@/components/dashboard/GamificationRow"
 import { ContinuePath } from "@/components/dashboard/ContinuePath"
+import { LastUnitReview } from "@/components/dashboard/LastUnitReview"
 
 // Replace with an image in /public whenever you like. If it fails to load,
 // the hero falls back to a plain dark surface.
@@ -91,7 +92,10 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <ContinuePath />
+      <div className="flex flex-col gap-3">
+        <ContinuePath />
+        <LastUnitReview />
+      </div>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
