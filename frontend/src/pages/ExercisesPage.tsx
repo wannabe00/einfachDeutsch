@@ -242,7 +242,8 @@ function TaskStep({
             disabled={!!feedback}
             autoFocus
             onSubmit={check}
-            results={task.type === "group" ? feedback?.parts : undefined}
+            results={feedback?.parts}
+            solution={feedback?.solution}
           />
         </div>
         {feedback && <AnswerFeedback feedback={feedback} content={task} />}

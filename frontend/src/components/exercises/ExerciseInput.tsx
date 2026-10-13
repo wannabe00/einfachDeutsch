@@ -1,40 +1,55 @@
 import { Check, X } from "lucide-react"
 
-import type { PartContent } from "@/types"
+import type { PartContent, PartSolution } from "@/types"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { MatchingInput, WordBankInput } from "@/components/exercises/inputs"
 
 /*
- * The answer control for one exercise, shared by the lesson player and the level
- * exam so they behave the same. It holds no state and grades nothing; grading
- * happens on the server. A multi-part ("group") exercise renders each part with
- * this same control, and its value is a list with one answer per part.
+ * The answer control for one exercise, shared by the lesson player, practice
+ * and the level exam so they behave the same. It holds no state and grades
+ * nothing; grading happens on the server. A multi-part ("group") exercise
+ * renders each part with this same control, and its value is a list with one
+ * answer per part.
+ *
+ * Colours: a chosen answer that hasn't been checked yet uses the neutral
+ * "choice" colour. After checking (`results`, plus `solution` where the
+ * control can show more detail), right is green and wrong is red. Green and
+ * red mean nothing else here.
  */
+
+const RIGHT = "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))]"
+const WRONG = "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))]"
+const CHOSEN = "border-[hsl(var(--choice))] bg-[hsl(var(--choice-bg))]"
+
 export function ExerciseInput({
   content,
   value,
   onChange,
   disabled = false,
-  accent = "hsl(var(--brand))",
   autoFocus = false,
   onSubmit,
   results,
+  solution,
 }: {
   content: PartContent
   value: unknown
   onChange: (value: unknown) => void
   disabled?: boolean
-  accent?: string
   autoFocus?: boolean
   /** Enter on a text answer (e.g. "check"/"next"). */
   onSubmit?: () => void
-  /** After checking a group: whether each part was right. */
+  /** After checking: whether each part was right (one entry for a single exercise). */
   results?: boolean[]
+  /** After checking: the solution, one per part for a group. */
+  solution?: PartSolution | PartSolution[]
 }) {
+  const verdict = results?.[0]
+
   if (content.type === "group") {
     const parts = content.payload.parts ?? []
     const values = Array.isArray(value) ? value : []
+    const solutions = Array.isArray(solution) ? (solution as PartSolution[]) : []
     return (
       <ol className="flex flex-col gap-3">
         {parts.map((part, i) => {
@@ -68,9 +83,10 @@ export function ExerciseInput({
                     onChange(next)
                   }}
                   disabled={disabled}
-                  accent={accent}
                   autoFocus={autoFocus && i === 0}
                   onSubmit={onSubmit}
+                  results={result === undefined ? undefined : [result]}
+                  solution={solutions[i]}
                 />
               </div>
             </li>
@@ -82,23 +98,36 @@ export function ExerciseInput({
 
   if (content.type === "multiple_choice") {
     const picked = typeof value === "string" ? value : null
+    const right = typeof solution === "string" ? solution : null
     return (
       <div className="grid gap-2">
-        {(content.payload.options ?? []).map((option) => (
-          <button
-            key={option}
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(option)}
-            className={cn(
-              "min-h-[56px] rounded-2xl px-4 py-3 text-left text-base font-semibold transition-colors",
-              picked === option ? "text-white" : "bg-surface-2 hover:bg-border",
-            )}
-            style={picked === option ? { background: accent } : undefined}
-          >
-            {option}
-          </button>
-        ))}
+        {(content.payload.options ?? []).map((option) => {
+          const checked = verdict !== undefined
+          const isRight = checked && option === (right ?? (verdict ? picked : null))
+          const isWrong = checked && option === picked && !verdict
+          return (
+            <button
+              key={option}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(option)}
+              className={cn(
+                "flex min-h-[56px] items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-left text-base font-semibold transition-colors",
+                isRight
+                  ? RIGHT
+                  : isWrong
+                    ? WRONG
+                    : picked === option
+                      ? CHOSEN
+                      : "border-transparent bg-surface-2 hover:bg-border",
+              )}
+            >
+              {option}
+              {isRight && <Check className="size-5 shrink-0 text-[hsl(var(--success))]" />}
+              {isWrong && <X className="size-5 shrink-0 text-[hsl(var(--danger))]" />}
+            </button>
+          )
+        })}
       </div>
     )
   }
@@ -112,7 +141,12 @@ export function ExerciseInput({
     )
     return (
       <div>
-        <div className="min-h-[60px] rounded-2xl border-2 border-dashed border-border p-2">
+        <div
+          className={cn(
+            "min-h-[60px] rounded-2xl border-2 p-2",
+            verdict === true ? RIGHT : verdict === false ? WRONG : "border-dashed border-border",
+          )}
+        >
           <div className="flex flex-wrap gap-2">
             {order.map((token, i) => (
               <button
@@ -151,6 +185,7 @@ export function ExerciseInput({
         value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, string>) : {}}
         onChange={onChange}
         disabled={disabled}
+        solution={Array.isArray(solution) ? (solution as [string, string][]) : undefined}
       />
     )
   }
@@ -162,6 +197,7 @@ export function ExerciseInput({
         value={Array.isArray(value) ? (value as string[]) : []}
         onChange={onChange}
         disabled={disabled}
+        solution={Array.isArray(solution) ? (solution as string[]) : undefined}
       />
     )
   }
@@ -172,6 +208,10 @@ export function ExerciseInput({
       value={typeof value === "string" ? value : ""}
       disabled={disabled}
       placeholder="Your answer…"
+      className={cn(
+        verdict === true && "border-2 border-[hsl(var(--success))] disabled:opacity-100",
+        verdict === false && "border-2 border-[hsl(var(--danger))] disabled:opacity-100",
+      )}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter") onSubmit?.()

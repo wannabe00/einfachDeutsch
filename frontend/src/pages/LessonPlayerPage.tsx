@@ -113,7 +113,7 @@ function Player({ lesson, unitId }: { lesson: LessonDetail; unitId?: string }) {
       )}
 
       <div className="flex flex-1 flex-col justify-center">
-        <ItemStep key={item.id} item={item} lessonId={lesson.id} accent={accent} onNext={handleNext} />
+        <ItemStep key={item.id} item={item} lessonId={lesson.id} onNext={handleNext} />
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
@@ -127,12 +127,10 @@ function Player({ lesson, unitId }: { lesson: LessonDetail; unitId?: string }) {
 function ItemStep({
   item,
   lessonId,
-  accent,
   onNext,
 }: {
   item: LessonItemDTO
   lessonId: number
-  accent: string
   onNext: (answer?: unknown) => void
 }) {
   if (item.kind === "review") {
@@ -179,7 +177,6 @@ function ItemStep({
       content={item.content as ExerciseContent}
       itemId={item.id}
       lessonId={lessonId}
-      accent={accent}
       onNext={onNext}
     />
   )
@@ -189,13 +186,11 @@ function ExerciseStep({
   content,
   itemId,
   lessonId,
-  accent,
   onNext,
 }: {
   content: ExerciseContent
   itemId: number
   lessonId: number
-  accent: string
   onNext: (answer: unknown) => void
 }) {
   const [answer, setAnswer] = useState<unknown>(
@@ -223,10 +218,10 @@ function ExerciseStep({
             value={answer}
             onChange={setAnswer}
             disabled={!!feedback}
-            accent={accent}
             autoFocus
             onSubmit={check}
-            results={content.type === "group" ? feedback?.parts : undefined}
+            results={feedback?.parts}
+            solution={feedback?.solution}
           />
         </div>
 

@@ -100,6 +100,17 @@ export interface HistoryLessonSummary {
   image_url: string
 }
 
+/** What a history card needs; both built-in and AI-written lessons have it. */
+export type HistoryCard = Omit<HistoryLessonSummary, "order">
+
+/** One turn of the "ask for a lesson" conversation. */
+export interface LessonGuideReply {
+  /** ask: a follow-up question; ready: `topic` is agreed; refuse: off-topic. */
+  status: "ask" | "ready" | "refuse"
+  reply: string
+  topic: string
+}
+
 /* ---- AI chat history (ai_assistant/serializers.py) ---- */
 
 export interface ConversationMessage {
@@ -139,6 +150,8 @@ export interface HistoryLessonDetail {
   image_url: string
   /** Who made the picture and where it's from. */
   image_credit: string
+  /** AI-written lessons only: what the user asked for. */
+  topic?: string
 }
 
 export interface HistoryCompleteResult {

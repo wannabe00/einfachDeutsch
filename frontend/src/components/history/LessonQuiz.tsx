@@ -1,26 +1,26 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
-import { completeHistoryLesson } from "@/api/history"
 import type { HistoryCompleteResult, HistoryQuizQuestion } from "@/types"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-/** Multiple-choice quiz for a history lesson: collects answers, submits for
-    server grading, then reveals correct/wrong per option + the score. */
+/** Multiple-choice quiz for a history lesson: collects answers, submits them
+    with `onSubmit` for server grading, then reveals right/wrong per option and
+    the score. */
 export function LessonQuiz({
-  lessonId,
   quiz,
+  onSubmit,
 }: {
-  lessonId: number
   quiz: HistoryQuizQuestion[]
+  onSubmit: (answers: Record<string, string>) => Promise<HistoryCompleteResult>
 }) {
   const qc = useQueryClient()
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<HistoryCompleteResult | null>(null)
 
   const submit = useMutation({
-    mutationFn: () => completeHistoryLesson(lessonId, answers),
+    mutationFn: () => onSubmit(answers),
     onSuccess: (r) => {
       setResult(r)
       qc.invalidateQueries({ queryKey: ["history"] })

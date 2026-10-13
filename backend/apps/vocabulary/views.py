@@ -48,8 +48,7 @@ def due_words_for(user, chapter_id=None):
     A word is due if the user has a progress row scheduled on/before today, OR
     the user has never reviewed it (new words are due). Only learned words
     (see curriculum.learned) are ever due, so review never runs ahead of the
-    path. For a guest (user=None) every word at the lowest level is due, as a
-    trial.
+    path. A guest (user=None) has learned nothing, so nothing is due.
 
     Words above the user's level are never due, or review would leak content
     from higher levels.
@@ -60,7 +59,7 @@ def due_words_for(user, chapter_id=None):
     if chapter_id:
         qs = qs.filter(chapter_id=chapter_id)
     if user is None:
-        return qs
+        return qs.none()
     # Imported here so the vocabulary app doesn't hard-depend on curriculum.
     from apps.curriculum.learned import learned_word_ids
 
@@ -311,8 +310,7 @@ class StatsView(APIView):
         )
 
         if user is None:
-            due_today = Word.objects.count()  # everything is new for a guest
-            words_learned = mastered_total = reviewed_today = 0
+            due_today = words_learned = mastered_total = reviewed_today = 0
         else:
             from apps.curriculum.learned import learned_word_ids
 

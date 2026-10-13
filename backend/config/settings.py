@@ -295,6 +295,10 @@ RECITATION_DAILY_CAP = int(os.getenv("RECITATION_DAILY_CAP", "5"))
 RECITATION_MAX_AUDIO_SECONDS = int(os.getenv("RECITATION_MAX_AUDIO_SECONDS", "120"))
 RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
 
+# ---- AI-written history lessons (premium) ----
+# Most lessons one user may have the AI write per day.
+HISTORY_AI_DAILY_LIMIT = int(os.getenv("HISTORY_AI_DAILY_LIMIT", "5"))
+
 # ---- Video / show suggestions ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
 VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
