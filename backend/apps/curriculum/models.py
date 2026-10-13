@@ -53,6 +53,9 @@ class Lesson(models.Model):
     order = models.PositiveIntegerField(default=0)  # position within the unit
     title = models.CharField(max_length=200)
     xp_reward = models.PositiveIntegerField(default=10)
+    # The words this lesson introduces. Finishing the lesson marks them learned
+    # (see curriculum.learned). Each of a unit's words is taught by one lesson.
+    words = models.ManyToManyField("vocabulary.Word", blank=True, related_name="taught_in")
 
     class Meta:
         ordering = ["unit", "order"]

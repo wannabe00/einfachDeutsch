@@ -27,9 +27,9 @@ class WordSerializer(serializers.ModelSerializer):
     # The Word Bank groups by Level → part of speech. The level
     # comes from the word's chapter (a chapter is one Lektion).
     cefr_level = serializers.CharField(source="chapter.cefr_level", read_only=True)
-    # True for words from a Lektion at the user's own level that they haven't
-    # reached yet; the UI shows them blurred. The viewset supplies
-    # `locked_chapter_ids`.
+    # True for words the user hasn't learned yet (see curriculum.learned); the
+    # UI shows them blurred. The viewset supplies `learned_word_ids` for
+    # signed-in users; guests see nothing locked.
     locked = serializers.SerializerMethodField()
 
     class Meta:
@@ -54,4 +54,5 @@ class WordSerializer(serializers.ModelSerializer):
         return None
 
     def get_locked(self, obj) -> bool:
-        return obj.chapter_id in self.context.get("locked_chapter_ids", set())
+        learned = self.context.get("learned_word_ids")
+        return learned is not None and obj.id not in learned

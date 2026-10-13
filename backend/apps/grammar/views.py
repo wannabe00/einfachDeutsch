@@ -4,7 +4,6 @@ from apps.accounts.levels import visible_levels_for
 
 from .models import GrammarRule
 from .serializers import GrammarRuleSerializer
-from .unlocking import grammar_unlock_map
 
 
 class GrammarRuleViewSet(viewsets.ModelViewSet):
@@ -27,6 +26,13 @@ class GrammarRuleViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
-        user = self.request.user if self.request.user.is_authenticated else None
-        ctx["grammar_unlock"] = grammar_unlock_map(user)
+        if self.request.user.is_authenticated:
+            # Imported here so the grammar app doesn't hard-depend on curriculum.
+            from apps.curriculum.learned import learned_rule_ids, teaching_lessons
+
+            learned = learned_rule_ids(self.request.user)
+            ctx["learned_rule_ids"] = learned
+            ctx["teaching_lessons"] = teaching_lessons(
+                self.get_queryset().exclude(id__in=learned).values_list("id", flat=True)
+            )
         return ctx
