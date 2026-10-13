@@ -1,4 +1,6 @@
-import type { ExerciseContent } from "@/types"
+import { Check, X } from "lucide-react"
+
+import type { PartContent } from "@/types"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { MatchingInput, WordBankInput } from "@/components/exercises/inputs"
@@ -6,7 +8,8 @@ import { MatchingInput, WordBankInput } from "@/components/exercises/inputs"
 /*
  * The answer control for one exercise, shared by the lesson player and the level
  * exam so they behave the same. It holds no state and grades nothing; grading
- * happens on the server.
+ * happens on the server. A multi-part ("group") exercise renders each part with
+ * this same control, and its value is a list with one answer per part.
  */
 export function ExerciseInput({
   content,
@@ -16,8 +19,9 @@ export function ExerciseInput({
   accent = "hsl(var(--brand))",
   autoFocus = false,
   onSubmit,
+  results,
 }: {
-  content: ExerciseContent
+  content: PartContent
   value: unknown
   onChange: (value: unknown) => void
   disabled?: boolean
@@ -25,11 +29,61 @@ export function ExerciseInput({
   autoFocus?: boolean
   /** Enter on a text answer (e.g. "check"/"next"). */
   onSubmit?: () => void
+  /** After checking a group: whether each part was right. */
+  results?: boolean[]
 }) {
+  if (content.type === "group") {
+    const parts = content.payload.parts ?? []
+    const values = Array.isArray(value) ? value : []
+    return (
+      <ol className="flex flex-col gap-3">
+        {parts.map((part, i) => {
+          const result = results?.[i]
+          return (
+            <li
+              key={i}
+              className={cn(
+                "rounded-xl border p-3",
+                result === undefined && "border-border",
+                result === true && "border-[hsl(var(--success))]",
+                result === false && "border-[hsl(var(--danger))]",
+              )}
+            >
+              <p className="flex items-baseline gap-2 text-sm font-medium">
+                <span className="tabular-nums text-muted-foreground">{i + 1}.</span>
+                <span className="flex-1">
+                  {part.prompt}
+                  {part.hint && <span className="ml-2 text-muted-foreground">({part.hint})</span>}
+                </span>
+                {result === true && <Check className="size-4 text-[hsl(var(--success))]" />}
+                {result === false && <X className="size-4 text-[hsl(var(--danger))]" />}
+              </p>
+              <div className="mt-2">
+                <ExerciseInput
+                  content={part}
+                  value={values[i]}
+                  onChange={(v) => {
+                    const next = parts.map((_, j) => values[j])
+                    next[i] = v
+                    onChange(next)
+                  }}
+                  disabled={disabled}
+                  accent={accent}
+                  autoFocus={autoFocus && i === 0}
+                  onSubmit={onSubmit}
+                />
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    )
+  }
+
   if (content.type === "multiple_choice") {
     const picked = typeof value === "string" ? value : null
     return (
-      <div className="mt-5 grid gap-2">
+      <div className="grid gap-2">
         {(content.payload.options ?? []).map((option) => (
           <button
             key={option}
@@ -59,7 +113,7 @@ export function ExerciseInput({
       (t) => order.filter((o) => o === t).length < tokens.filter((x) => x === t).length,
     )
     return (
-      <div className="mt-5">
+      <div>
         <div className="min-h-14 rounded-xl border-2 border-dashed border-border p-2">
           <div className="flex flex-wrap gap-2">
             {order.map((token, i) => (
@@ -94,33 +148,28 @@ export function ExerciseInput({
 
   if (content.type === "matching") {
     return (
-      <div className="mt-5">
-        <MatchingInput
-          payload={content.payload}
-          value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, string>) : {}}
-          onChange={onChange}
-          disabled={disabled}
-        />
-      </div>
+      <MatchingInput
+        payload={content.payload}
+        value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, string>) : {}}
+        onChange={onChange}
+        disabled={disabled}
+      />
     )
   }
 
   if (content.type === "word_bank") {
     return (
-      <div className="mt-5">
-        <WordBankInput
-          payload={content.payload}
-          value={Array.isArray(value) ? (value as string[]) : []}
-          onChange={onChange}
-          disabled={disabled}
-        />
-      </div>
+      <WordBankInput
+        payload={content.payload}
+        value={Array.isArray(value) ? (value as string[]) : []}
+        onChange={onChange}
+        disabled={disabled}
+      />
     )
   }
 
   return (
     <Input
-      className="mt-5"
       autoFocus={autoFocus}
       value={typeof value === "string" ? value : ""}
       disabled={disabled}

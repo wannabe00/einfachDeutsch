@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { fetchExamStatus, startExam, submitExam } from "@/api/curriculum"
-import type { ExamResult, ExerciseContent } from "@/types"
+import type { ExamQuestion, ExamResult } from "@/types"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -28,9 +28,9 @@ export default function ExamPage() {
   const { refreshUser } = useAuth()
 
   const { data: status, isLoading } = useQuery({ queryKey: ["exam"], queryFn: fetchExamStatus })
-  const [questions, setQuestions] = useState<ExerciseContent[] | null>(null)
+  const [questions, setQuestions] = useState<ExamQuestion[] | null>(null)
   const [attemptId, setAttemptId] = useState<number | null>(null)
-  const [answers, setAnswers] = useState<Record<number, unknown>>({})
+  const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<ExamResult | null>(null)
 
@@ -63,7 +63,7 @@ export default function ExamPage() {
   if (questions && questions.length > 0) {
     const q = questions[step]
     // Only complete answers count; a half-built sentence isn't answered yet.
-    const answered = questions.filter((x) => isAnswered(x, answers[x.exercise_id])).length
+    const answered = questions.filter((x) => isAnswered(x, answers[x.question_id])).length
     const last = step === questions.length - 1
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -85,14 +85,17 @@ export default function ExamPage() {
               {status.level} exam · question {step + 1}
             </p>
             <p className="mt-2 text-lg font-semibold">{q.prompt}</p>
-            <ExerciseInput
-              content={q}
-              value={answers[q.exercise_id] ?? (q.type === "sentence_order" ? [] : "")}
-              onChange={(v) => setAnswers((a) => ({ ...a, [q.exercise_id]: v }))}
-              accent={BRAND}
-              autoFocus
-              onSubmit={() => !last && setStep(step + 1)}
-            />
+            <div className="mt-5">
+              <ExerciseInput
+                key={q.question_id}
+                content={q}
+                value={answers[q.question_id] ?? (q.type === "sentence_order" ? [] : "")}
+                onChange={(v) => setAnswers((a) => ({ ...a, [q.question_id]: v }))}
+                accent={BRAND}
+                autoFocus
+                onSubmit={() => !last && setStep(step + 1)}
+              />
+            </div>
           </div>
         </Card>
 

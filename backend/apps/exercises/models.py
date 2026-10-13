@@ -17,6 +17,8 @@ class Exercise(models.Model):
         ("matching", "Match Pairs"),
         ("sentence_order", "Put Words in Order"),
         ("word_bank", "Fill Blanks from a Word Bank"),
+        # Several parts on one screen, each an exercise of the types above.
+        ("group", "Several Parts"),
     ]
 
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name="exercises")
@@ -29,6 +31,10 @@ class Exercise(models.Model):
     #   sentence_order:  {"tokens": [...], "answer": ["correct","order"]}
     #   word_bank:       {"text": "Ich ___ in ___.", "bank": [...],
     #                     "answers": ["wohne", "Berlin"]}
+    #   group:           {"parts": [{"type": "article", "prompt": "___ Tisch",
+    #                                "hint": "", "answer": "der"}, ...]}
+    #                    (each part holds its own answer fields, see
+    #                     curriculum.grading.parts_of)
     payload = models.JSONField(default=dict, blank=True)
     hint = models.TextField(blank=True)
     explanation = models.TextField(blank=True)

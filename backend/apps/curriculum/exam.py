@@ -11,6 +11,10 @@ Notes:
   * The question set is stored when the attempt starts and graded against on
     submit, so a client can't swap in easier questions.
   * Only types with one clear answer are sampled (no free_text, which needs AI).
+  * A multi-part exercise isn't asked whole: each of its parts is a question
+    of its own, so every question is one screen and weighs the same. A
+    question is referred to as "12" (an exercise) or "12:3" (part 3 of
+    exercise 12).
 """
 
 import random
@@ -42,6 +46,7 @@ GRADABLE_TYPES = [
     "sentence_order",
     "word_bank",
     "matching",
+    "group",
 ]
 
 
@@ -60,6 +65,32 @@ def _level_exercise_qs(level: str):
     ).distinct()
 
 
+def _question_refs(level: str) -> list[str]:
+    """Every question the exam can ask at `level`: whole exercises and the
+    parts of multi-part ones."""
+    qs = _level_exercise_qs(level)
+    refs = [str(i) for i in qs.exclude(exercise_type="group").values_list("id", flat=True)]
+    for ex in qs.filter(exercise_type="group"):
+        refs += [f"{ex.id}:{i}" for i in range(len(grading.parts_of(ex)))]
+    return refs
+
+
+def _resolve(ref, exercises: dict) -> dict | None:
+    """The part a question ref points at, or None if it no longer exists."""
+    ex_id, _, index = str(ref).partition(":")
+    ex = exercises.get(int(ex_id))
+    if ex is None:
+        return None
+    parts = grading.parts_of(ex)
+    i = int(index or 0)
+    return parts[i] if i < len(parts) else None
+
+
+def _exercises_for(refs) -> dict:
+    ids = {int(str(r).partition(":")[0]) for r in refs}
+    return {e.id: e for e in Exercise.objects.filter(id__in=ids)}
+
+
 def exam_status(user) -> dict:
     """What the path page needs: progress toward the exam, and whether it's open."""
     level = user.profile.cefr_level
@@ -73,7 +104,7 @@ def exam_status(user) -> dict:
         .count()
     )
     ratio = (completed / total) if total else 0.0
-    pool = _level_exercise_qs(level).count()
+    pool = len(_question_refs(level))
 
     last = LevelExamAttempt.objects.filter(
         user=user, cefr_level=level, completed_at__isnull=False
@@ -109,20 +140,21 @@ def start_attempt(user) -> tuple[LevelExamAttempt, list[dict]]:
         raise ExamError("Finish your level's path first.")
 
     level = user.profile.cefr_level
-    ids = list(_level_exercise_qs(level).values_list("id", flat=True))
-    picked = random.sample(ids, min(QUESTION_COUNT, len(ids)))
+    refs = _question_refs(level)
+    picked = random.sample(refs, min(QUESTION_COUNT, len(refs)))
 
     attempt = LevelExamAttempt.objects.create(user=user, cefr_level=level, question_ids=picked)
-    # Preserve the sampled order rather than the DB's.
-    by_id = {e.id: e for e in Exercise.objects.filter(id__in=picked)}
-    questions = [grading.public_exercise(by_id[i]) for i in picked if i in by_id]
+    exercises = _exercises_for(picked)
+    questions = [
+        {"question_id": ref, **grading.public_part(_resolve(ref, exercises))} for ref in picked
+    ]
     return attempt, questions
 
 
 def submit_attempt(user, attempt_id: int, answers: dict) -> dict:
     """Grade a frozen attempt, promote on a pass, and report the outcome.
 
-    `answers` maps exercise_id → answer. Anything not in the attempt's frozen
+    `answers` maps question_id → answer. Anything not in the attempt's frozen
     question set is ignored; missing answers simply score zero.
     """
     attempt = LevelExamAttempt.objects.filter(user=user, pk=attempt_id).first()
@@ -131,14 +163,13 @@ def submit_attempt(user, attempt_id: int, answers: dict) -> dict:
     if attempt.completed_at:
         raise ExamError("This attempt has already been submitted.")
 
-    exercises = {e.id: e for e in Exercise.objects.filter(id__in=attempt.question_ids)}
+    exercises = _exercises_for(attempt.question_ids)
     total = len(attempt.question_ids) or 1
-    correct = sum(
-        1
-        for qid in attempt.question_ids
-        if qid in exercises
-        and grading.grade(exercises[qid], answers.get(str(qid), answers.get(qid)))
-    )
+    correct = 0
+    for ref in attempt.question_ids:
+        part = _resolve(ref, exercises)
+        if part is not None and grading.grade_part(part, answers.get(str(ref))):
+            correct += 1
     score = correct / total
     passed = score >= PASS_THRESHOLD
 

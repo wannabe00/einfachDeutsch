@@ -10,6 +10,8 @@ import type {
   ExerciseContent,
   GrammarContent,
   LessonItemDTO,
+  PartContent,
+  PartSolution,
   ReviewContent,
 } from "@/types"
 import { resolveAccent } from "@/lib/sections"
@@ -182,7 +184,9 @@ function ExerciseStep({
   accent: string
   onNext: (answer: unknown) => void
 }) {
-  const [answer, setAnswer] = useState<unknown>(content.type === "sentence_order" ? [] : "")
+  const [answer, setAnswer] = useState<unknown>(
+    content.type === "sentence_order" || content.type === "group" ? [] : "",
+  )
   const [feedback, setFeedback] = useState<AnswerResult | null>(null)
   const ready = isAnswered(content, answer)
 
@@ -199,21 +203,24 @@ function ExerciseStep({
         </p>
         <p className="mt-2 text-lg font-semibold">{content.prompt}</p>
 
-        <ExerciseInput
-          content={content}
-          value={answer}
-          onChange={setAnswer}
-          disabled={!!feedback}
-          accent={accent}
-          autoFocus
-          onSubmit={check}
-        />
+        <div className="mt-5">
+          <ExerciseInput
+            content={content}
+            value={answer}
+            onChange={setAnswer}
+            disabled={!!feedback}
+            accent={accent}
+            autoFocus
+            onSubmit={check}
+            results={content.type === "group" ? feedback?.parts : undefined}
+          />
+        </div>
 
         {content.hint && !feedback && (
           <p className="mt-3 text-xs text-muted-foreground">Hint: {content.hint}</p>
         )}
 
-        {feedback && <Feedback feedback={feedback} type={content.type} />}
+        {feedback && <Feedback feedback={feedback} content={content} />}
 
         <div className="mt-6">
           {feedback ? (
@@ -229,7 +236,7 @@ function ExerciseStep({
   )
 }
 
-function formatSolution(solution: AnswerResult["solution"], type: string): string {
+function formatSolution(solution: PartSolution, type: string): string {
   if (!Array.isArray(solution)) return solution
   if (solution.some(Array.isArray)) {
     return (solution as [string, string][]).map(([l, r]) => `${l} = ${r}`).join(", ")
@@ -238,8 +245,26 @@ function formatSolution(solution: AnswerResult["solution"], type: string): strin
   return (solution as string[]).join(type === "word_bank" ? ", " : " ")
 }
 
-function Feedback({ feedback, type }: { feedback: AnswerResult; type: string }) {
-  const solution = formatSolution(feedback.solution, type)
+/** "Answer: …" lines for what was wrong: the whole answer for a single
+    exercise, or one line per wrong part of a group. */
+function wrongAnswers(feedback: AnswerResult, content: PartContent): string[] {
+  if (content.type !== "group") {
+    return [formatSolution(feedback.solution as PartSolution, content.type)]
+  }
+  const parts = content.payload.parts ?? []
+  const solutions = feedback.solution as PartSolution[]
+  return parts.flatMap((part, i) =>
+    feedback.parts[i] ? [] : [`${i + 1}. ${formatSolution(solutions[i], part.type)}`],
+  )
+}
+
+function Feedback({ feedback, content }: { feedback: AnswerResult; content: PartContent }) {
+  const right = feedback.parts.filter(Boolean).length
+  const verdict = feedback.correct
+    ? "Richtig!"
+    : feedback.parts.length > 1
+      ? `${right} of ${feedback.parts.length} right`
+      : "Not quite"
   return (
     <div
       className={cn(
@@ -251,13 +276,14 @@ function Feedback({ feedback, type }: { feedback: AnswerResult; type: string }) 
     >
       <p className="flex items-center gap-2 font-semibold">
         {feedback.correct ? <Check className="size-4" /> : <X className="size-4" />}
-        {feedback.correct ? "Richtig!" : "Not quite"}
+        {verdict}
       </p>
-      {!feedback.correct && (
-        <p className="mt-1 text-sm text-foreground">
-          Answer: <span className="font-semibold">{solution}</span>
-        </p>
-      )}
+      {!feedback.correct &&
+        wrongAnswers(feedback, content).map((line) => (
+          <p key={line} className="mt-1 text-sm text-foreground">
+            Answer: <span className="font-semibold">{line}</span>
+          </p>
+        ))}
       {feedback.explanation && (
         <p className="mt-1 text-sm text-muted-foreground">{feedback.explanation}</p>
       )}

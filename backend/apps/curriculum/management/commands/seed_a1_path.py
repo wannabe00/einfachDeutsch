@@ -55,6 +55,10 @@ def exercise_fields(item: dict) -> dict:
         }
     elif etype == "matching":
         fields["payload"] = {"pairs": item["pairs"]}
+    elif etype == "group":
+        fields["payload"] = {
+            "parts": [{k: v for k, v in p.items() if k != "kind"} for p in item["parts"]]
+        }
     else:  # translation, fill_blank, article, conjugation
         fields["payload"] = {}
         fields["correct_answer"] = item["answer"]
