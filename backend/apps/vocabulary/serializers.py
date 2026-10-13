@@ -27,10 +27,11 @@ class WordSerializer(serializers.ModelSerializer):
     # The Word Bank groups by Level → part of speech. The level
     # comes from the word's chapter (a chapter is one Lektion).
     cefr_level = serializers.CharField(source="chapter.cefr_level", read_only=True)
-    # True for words the user hasn't learned yet (see curriculum.learned); the
-    # UI shows them blurred. The viewset supplies `learned_word_ids` for
-    # signed-in users; guests see nothing locked.
-    locked = serializers.SerializerMethodField()
+    # The Word Bank groups words by topic: the unit (Lektion) that teaches them,
+    # or the chapter a user added them to.
+    topic = serializers.SerializerMethodField()
+    # Nouns note their plural as "Pl. die Tische"; split out for display.
+    plural = serializers.SerializerMethodField()
 
     class Meta:
         model = Word
@@ -44,7 +45,8 @@ class WordSerializer(serializers.ModelSerializer):
             "progress",
             "cefr_level",
             "part_of_speech",
-            "locked",
+            "topic",
+            "plural",
         ]
 
     def get_progress(self, obj):
@@ -53,6 +55,13 @@ class WordSerializer(serializers.ModelSerializer):
             return WordProgressSerializer(records[0]).data
         return None
 
-    def get_locked(self, obj) -> bool:
-        learned = self.context.get("learned_word_ids")
-        return learned is not None and obj.id not in learned
+    def get_topic(self, obj):
+        # `chapter__units` is prefetched by the viewset.
+        unit = next(iter(obj.chapter.units.all()), None)
+        if unit is None:
+            return {"key": f"c{obj.chapter_id}", "title": obj.chapter.title, "order": None}
+        return {"key": f"u{unit.id}", "title": unit.title, "order": unit.order}
+
+    def get_plural(self, obj) -> str:
+        notes = obj.notes or ""
+        return notes.removeprefix("Pl.").strip() if notes.startswith("Pl.") else ""

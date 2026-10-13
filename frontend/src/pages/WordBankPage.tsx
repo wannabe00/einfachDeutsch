@@ -1,71 +1,119 @@
 import { useMemo, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { Lock, Plus, Search, Sparkles } from "lucide-react"
+import { ChevronDown, Lock, Plus, Search, Sparkles } from "lucide-react"
 
 import { fetchWords } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
 import type { Chapter, Word } from "@/types"
-import { PARTS_OF_SPEECH, partOfSpeechLabel } from "@/lib/labels"
 import { cn } from "@/lib/utils"
+import { wordStatus, wordStrength, type WordStatus } from "@/lib/wordStrength"
 import { useAuth } from "@/contexts/AuthContext"
 import { useAIPanel } from "@/contexts/AIPanelContext"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { ArticleBadge } from "@/components/vocabulary/ArticleBadge"
 import { WordForm } from "@/components/vocabulary/WordForm"
 import { CSVImportButton } from "@/components/vocabulary/CSVImportButton"
 import { PasteWordsButton } from "@/components/vocabulary/PasteWordsButton"
 
 /*
- * Words grouped by level, then by part of speech. The API only returns your
- * level and below; words from a Lektion at your level that you haven't reached
- * yet come back `locked` and are shown blurred.
+ * The words you've learned, grouped by topic (the unit that taught them) in
+ * learning order. Filter by part of speech, article and how well you know a
+ * word, search, and send the filtered words to a flashcard session.
  */
+
+const KINDS = [
+  { value: "noun", label: "Nouns" },
+  { value: "verb", label: "Verbs" },
+  { value: "adjective", label: "Adjectives" },
+  { value: "phrase", label: "Phrases" },
+]
+const ARTICLES = ["der", "die", "das"]
+const STATUSES: { value: WordStatus; label: string }[] = [
+  { value: "new", label: "New" },
+  { value: "learning", label: "Learning" },
+  { value: "known", label: "Known" },
+]
+// Words sent to one "Practise these" session, weakest first.
+const PRACTICE_LIMIT = 30
+
+interface Topic {
+  key: string
+  title: string
+  words: Word[]
+}
+
+function toggle(list: string[], value: string): string[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
+}
+
 export default function WordBankPage() {
   const { user } = useAuth()
   const { openPanel } = useAIPanel()
+  const navigate = useNavigate()
   const [showForm, setShowForm] = useState(false)
   const [query, setQuery] = useState("")
+  const [kinds, setKinds] = useState<string[]>([])
+  const [articles, setArticles] = useState<string[]>([])
+  const [statuses, setStatuses] = useState<string[]>([])
+  // Topics the user opened or closed; by default only the newest is open.
+  const [toggled, setToggled] = useState<string[]>([])
 
   const { data: books } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
   const { data: words, isLoading } = useQuery({
     queryKey: ["words", "all"],
     queryFn: () => fetchWords(),
   })
-
   const allChapters: Chapter[] = books?.flatMap((b) => b.chapters) ?? []
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return words ?? []
-    return (words ?? []).filter((w) =>
-      `${w.german} ${w.english}`.toLowerCase().includes(q),
+    return (words ?? []).filter(
+      (w) =>
+        (!q || `${w.german} ${w.english} ${w.plural}`.toLowerCase().includes(q)) &&
+        (!kinds.length || kinds.includes(w.part_of_speech)) &&
+        (!articles.length || articles.includes(w.german.split(" ")[0])) &&
+        (!statuses.length || statuses.includes(wordStatus(w))),
     )
-  }, [words, query])
+  }, [words, query, kinds, articles, statuses])
 
-  // Level → part of speech. Levels descend so your current level leads.
-  const levels = useMemo(() => {
-    const byLevel = new Map<string, Word[]>()
+  // Topics in learning order: by level, then by place on the path; words you
+  // added to a chapter of your own come last.
+  const topics = useMemo(() => {
+    const byKey = new Map<string, Topic & { sort: [string, number] }>()
     for (const w of filtered) {
-      const list = byLevel.get(w.cefr_level) ?? []
-      list.push(w)
-      byLevel.set(w.cefr_level, list)
+      const t = w.topic
+      if (!byKey.has(t.key)) {
+        byKey.set(t.key, {
+          key: t.key,
+          title: t.order ? `${w.cefr_level} · Lektion ${t.order}: ${t.title}` : t.title,
+          words: [],
+          sort: [w.cefr_level, t.order ?? Number.MAX_SAFE_INTEGER],
+        })
+      }
+      byKey.get(t.key)!.words.push(w)
     }
-    return [...byLevel.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+    return [...byKey.values()].sort(
+      (a, b) => a.sort[0].localeCompare(b.sort[0]) || a.sort[1] - b.sort[1],
+    )
   }, [filtered])
 
-  const lockedCount = filtered.filter((w) => w.locked).length
+  const narrowed = !!query.trim() || kinds.length + articles.length + statuses.length > 0
+  const newest = topics.filter((t) => t.key.startsWith("u")).at(-1)?.key
+  const isOpen = (key: string) => narrowed || (key === newest) !== toggled.includes(key)
+
+  function practise() {
+    const weakestFirst = [...filtered].sort((a, b) => wordStrength(a) - wordStrength(b))
+    navigate("/review", { state: { words: weakestFirst.slice(0, PRACTICE_LIMIT) } })
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Word Bank"
-        subtitle={
-          <>
-            {words?.length ?? 0} words up to your level
-            {lockedCount > 0 && ` · ${lockedCount} still locked`}
-          </>
-        }
+        subtitle={`${words?.length ?? 0} words learned`}
         actions={
           <>
             <GenerateWithAI
@@ -106,89 +154,184 @@ export default function WordBankPage() {
         </Card>
       )}
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search in German or English"
-          className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search in German or English"
+            className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <ChipGroup options={KINDS} selected={kinds} onToggle={(v) => setKinds(toggle(kinds, v))} />
+          <ChipGroup
+            options={ARTICLES.map((a) => ({ value: a, label: a }))}
+            selected={articles}
+            onToggle={(v) => setArticles(toggle(articles, v))}
+          />
+          <ChipGroup
+            options={STATUSES}
+            selected={statuses}
+            onToggle={(v) => setStatuses(toggle(statuses, v))}
+          />
+        </div>
+        {filtered.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {narrowed ? `${filtered.length} of ${words?.length ?? 0} words` : " "}
+            </p>
+            <Button variant="secondary" onClick={practise}>
+              Practise {narrowed ? "these" : "your weakest"} (
+              {Math.min(filtered.length, PRACTICE_LIMIT)})
+            </Button>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
         <Centered>Loading your words…</Centered>
-      ) : levels.length === 0 ? (
-        <Centered>{query ? `No words match “${query}”.` : "No words yet."}</Centered>
+      ) : !words?.length ? (
+        <Empty signedIn={!!user} />
+      ) : topics.length === 0 ? (
+        <Centered>No words match these filters.</Centered>
       ) : (
-        levels.map(([level, levelWords]) => (
-          <LevelSection key={level} level={level} words={levelWords} />
-        ))
+        <div className="flex flex-col gap-3">
+          {topics.map((t) => (
+            <TopicSection
+              key={t.key}
+              topic={t}
+              open={isOpen(t.key)}
+              onToggle={() => setToggled(toggle(toggled, t.key))}
+            />
+          ))}
+        </div>
       )}
     </div>
   )
 }
 
-function LevelSection({ level, words }: { level: string; words: Word[] }) {
-  const groups = PARTS_OF_SPEECH.map((p) => ({
-    ...p,
-    items: words.filter((w) => w.part_of_speech === p.value),
-  })).filter((g) => g.items.length > 0)
-
+function ChipGroup({
+  options,
+  selected,
+  onToggle,
+}: {
+  options: { value: string; label: string }[]
+  selected: string[]
+  onToggle: (value: string) => void
+}) {
   return (
-    <section>
-      <div className="mb-3 flex items-baseline gap-3">
-        <h2 className="text-xl font-bold">
-          {level}
-        </h2>
-        <span className="text-sm text-muted-foreground">{words.length} words</span>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        {groups.map((g) => (
-          <Card key={g.value}>
-            <div className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {partOfSpeechLabel(g.value)}{" "}
-                <span className="text-muted-foreground/60">({g.items.length})</span>
-              </p>
-              <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
-                {g.items.map((w) => (
-                  <WordItem key={w.id} word={w} />
-                ))}
-              </ul>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </section>
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((o) => {
+        const on = selected.includes(o.value)
+        return (
+          <button
+            key={o.value}
+            onClick={() => onToggle(o.value)}
+            aria-pressed={on}
+            className={cn(
+              "rounded-full border px-3 py-1 text-sm transition-colors",
+              on
+                ? "border-primary bg-primary/15 text-foreground"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {o.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
-function WordItem({ word }: { word: Word }) {
-  const learned = (word.progress?.repetitions ?? 0) > 0
-
-  if (word.locked) {
-    return (
-      <li
-        className="flex items-baseline justify-between gap-3 border-b border-border/60 py-1"
-        title="Reach this lesson on your path to unlock"
-      >
-        <span className="select-none blur-[4px]" aria-hidden>
-          {word.german}
-        </span>
-        <Lock className="size-3 shrink-0 text-muted-foreground" />
-      </li>
-    )
-  }
-
+function TopicSection({
+  topic,
+  open,
+  onToggle,
+}: {
+  topic: Topic
+  open: boolean
+  onToggle: () => void
+}) {
   return (
-    <li className="flex items-baseline justify-between gap-3 border-b border-border/60 py-1">
-      <span className={cn("font-medium", learned && "text-[hsl(var(--success))]")}>
-        {word.german}
-      </span>
-      <span className="shrink-0 text-sm text-muted-foreground">{word.english}</span>
+    <Card>
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+      >
+        <span className="min-w-0 truncate font-semibold">{topic.title}</span>
+        <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+          {topic.words.length}
+          <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
+        </span>
+      </button>
+      {open && (
+        <ul className="grid gap-x-6 border-t border-border px-5 py-3 sm:grid-cols-2">
+          {topic.words.map((w) => (
+            <WordRow key={w.id} word={w} />
+          ))}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
+function WordRow({ word }: { word: Word }) {
+  // The coloured badge carries the article, so the noun is shown without it.
+  const [first, ...rest] = word.german.split(" ")
+  const bare = ARTICLES.includes(first) && rest.length ? rest.join(" ") : word.german
+  return (
+    <li className="flex items-center justify-between gap-3 border-b border-border/60 py-2 last:border-0">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-medium">
+          <ArticleBadge german={word.german} />
+          <span className="truncate">{bare}</span>
+        </p>
+        <p className="truncate text-sm text-muted-foreground">
+          {word.english}
+          {word.plural && <span className="ml-2 text-xs">Pl. {word.plural}</span>}
+        </p>
+      </div>
+      <StrengthMeter word={word} />
     </li>
+  )
+}
+
+/** Four bars: how well you know the word, from your flashcard reviews. */
+function StrengthMeter({ word }: { word: Word }) {
+  const strength = wordStrength(word)
+  const label = { new: "New", learning: "Learning", known: "Known" }[wordStatus(word)]
+  return (
+    <span className="flex shrink-0 items-end gap-0.5" title={label} aria-label={label}>
+      {[1, 2, 3, 4].map((n) => (
+        <span
+          key={n}
+          className={cn(
+            "w-1.5 rounded-sm",
+            n <= strength ? "bg-[hsl(var(--success))]" : "bg-border",
+          )}
+          style={{ height: 4 + n * 3 }}
+        />
+      ))}
+    </span>
+  )
+}
+
+function Empty({ signedIn }: { signedIn: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-16 text-center">
+      <p className="font-medium">No words here yet.</p>
+      <p className="max-w-sm text-sm text-muted-foreground">
+        {signedIn
+          ? "Words appear here as you finish lessons on your path."
+          : "Sign in to collect the words from your lessons."}
+      </p>
+      <Button asChild variant="secondary">
+        <Link to={signedIn ? "/path" : "/login"}>{signedIn ? "Go to your path" : "Sign in"}</Link>
+      </Button>
+    </div>
   )
 }
 

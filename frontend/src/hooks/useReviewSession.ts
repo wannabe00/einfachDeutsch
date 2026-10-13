@@ -6,10 +6,12 @@ import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { ReviewQuality, Word } from "@/types"
 
 // `null` = choosing; "all" = every chapter; number = a specific chapter id;
-// "last-unit" = the Dashboard's review of the unit finished most recently.
-export type Selection = number | "all" | "last-unit" | null
+// "last-unit" = the Dashboard's review of the unit finished most recently;
+// `{ words }` = words picked elsewhere (the Word Bank's "Practise these").
+export type Selection = number | "all" | "last-unit" | { words: Word[] } | null
 
 function fetchSelection(selection: Exclude<Selection, null>): Promise<Word[]> {
+  if (typeof selection === "object") return Promise.resolve(selection.words)
   if (selection === "last-unit") return fetchLastUnitReview().then((r) => r.words)
   return fetchDueWords(selection === "all" ? undefined : selection)
 }

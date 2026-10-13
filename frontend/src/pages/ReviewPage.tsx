@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link, useSearchParams } from "react-router-dom"
+import { Link, useLocation, useSearchParams } from "react-router-dom"
 
 import { fetchDueCounts, type DueCounts } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
 import { useReviewSession } from "@/hooks/useReviewSession"
-import type { Book, Chapter } from "@/types"
+import type { Book, Chapter, Word } from "@/types"
 import { FlashCard } from "@/components/vocabulary/FlashCard"
 import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -13,11 +13,15 @@ import { Button } from "@/components/ui/button"
 /*
  * Flashcard review of learned words, scheduled by SM-2. Pick a chapter or
  * everything; `?scope=last-unit` (from the Dashboard) starts straight into a
- * short review of the unit finished most recently.
+ * short review of the unit finished most recently, and the Word Bank can send
+ * its own selection of words.
  */
 export default function ReviewPage() {
   const [params] = useSearchParams()
-  const session = useReviewSession(params.get("scope") === "last-unit" ? "last-unit" : null)
+  const picked = (useLocation().state as { words?: Word[] } | null)?.words
+  const session = useReviewSession(
+    picked?.length ? { words: picked } : params.get("scope") === "last-unit" ? "last-unit" : null,
+  )
   const { data: books } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
   const { data: counts } = useQuery({
     queryKey: ["due-counts"],
@@ -56,7 +60,9 @@ export default function ReviewPage() {
       ? "All chapters"
       : session.selection === "last-unit"
         ? "Your last unit"
-        : chapterTitle(session.selection as number)
+        : typeof session.selection === "object"
+          ? "Your Word Bank selection"
+          : chapterTitle(session.selection as number)
 
   return (
     <div>
