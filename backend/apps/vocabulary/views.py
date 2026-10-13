@@ -55,7 +55,7 @@ def due_words_for(user, chapter_id=None):
     from higher levels.
     """
     today = date.today()
-    qs = Word.objects.select_related("chapter")
+    qs = Word.objects.select_related("chapter").prefetch_related("chapter__units")
     qs = qs.filter(chapter__cefr_level__in=visible_levels_for(user))
     if chapter_id:
         qs = qs.filter(chapter_id=chapter_id)
@@ -102,24 +102,20 @@ class WordViewSet(viewsets.ModelViewSet):
         return qs
 
     def get_queryset(self):
-        qs = Word.objects.select_related("chapter")
+        qs = Word.objects.select_related("chapter").prefetch_related("chapter__units")
         # ≤-level rule: never expose vocabulary above the user's level.
         # Guests see the lowest level only.
         qs = qs.filter(chapter__cefr_level__in=visible_levels_for(self.request.user))
+        user = current_user(self.request)
+        if user is not None:
+            # Signed-in users only ever see words they've learned.
+            from apps.curriculum.learned import learned_word_ids
+
+            qs = qs.filter(id__in=learned_word_ids(user))
         chapter = self.request.query_params.get("chapter")
         if chapter:
             qs = qs.filter(chapter_id=chapter)
         return self._with_user_progress(qs)
-
-    def get_serializer_context(self):
-        ctx = super().get_serializer_context()
-        user = current_user(self.request)
-        if user is not None:
-            # Imported here so the vocabulary app doesn't hard-depend on curriculum.
-            from apps.curriculum.learned import learned_word_ids
-
-            ctx["learned_word_ids"] = learned_word_ids(user)
-        return ctx
 
     @action(detail=False, methods=["get"], url_path="due")
     def due(self, request):
@@ -134,8 +130,10 @@ class WordViewSet(viewsets.ModelViewSet):
         """Words for the drills: learned words only, weak ones more often, in
         random order. Guests get a random set from the lowest level."""
         user = current_user(request)
-        qs = Word.objects.select_related("chapter").filter(
-            chapter__cefr_level__in=visible_levels_for(request.user)
+        qs = (
+            Word.objects.select_related("chapter")
+            .prefetch_related("chapter__units")
+            .filter(chapter__cefr_level__in=visible_levels_for(request.user))
         )
         if user is None:
             words = list(qs.order_by("?")[:DRILL_POOL_SIZE])
@@ -169,9 +167,9 @@ class WordViewSet(viewsets.ModelViewSet):
 
         today = date.today()
         words = self._with_user_progress(
-            Word.objects.select_related("chapter").filter(
-                chapter_id=unit.chapter_id, id__in=learned_word_ids(request.user)
-            )
+            Word.objects.select_related("chapter")
+            .prefetch_related("chapter__units")
+            .filter(chapter_id=unit.chapter_id, id__in=learned_word_ids(request.user))
         )
 
         def next_review(word):

@@ -206,24 +206,23 @@ export interface Word {
   notes: string
   /** Per-user SM-2 state; null for new (unreviewed) words and for guests. */
   progress: WordProgress | null
-  /** From the word's chapter. The Word Bank groups by level, then part of speech. */
+  /** From the word's chapter. */
   cefr_level: CEFRLevel
   part_of_speech: PartOfSpeech
-  /** True for a Lektion at your own level that you haven't reached yet. */
-  locked: boolean
+  /** What the Word Bank groups by: the unit that teaches the word (`order` is
+      its place on the path), or the chapter you added it to (`order` null). */
+  topic: { key: string; title: string; order: number | null }
+  /** A noun's plural, e.g. "die Hunde"; empty when there is none. */
+  plural: string
 }
 
 /** Quality scale sent to the review endpoint: Again | Hard | Good | Easy. */
 export type ReviewQuality = 0 | 2 | 4 | 5
 
-/** The lesson that teaches a grammar topic, used for the "next topic" hint. */
-export interface GrammarUnlockLesson {
-  id: number
+/** The next grammar topic on your path and the lesson that teaches it. */
+export interface GrammarNext {
   title: string
-  unit_id: number
-  unit_title: string
-  unit_order: number
-  lesson_order: number
+  lesson: { title: string; unit_id: number; unit_order: number; unit_title: string }
 }
 
 export interface GrammarRule {
@@ -235,10 +234,6 @@ export interface GrammarRule {
   example_sentences: string
   /** From the rule's chapter. Grammar groups by level, then topic. */
   cefr_level: CEFRLevel
-  /** Locked until the lesson that teaches it is done. */
-  locked: boolean
-  /** Non-null only while locked. */
-  unlock_lesson: GrammarUnlockLesson | null
 }
 
 export type ExerciseType =
