@@ -2,13 +2,14 @@
 
 import io
 
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase
 
 from apps.books.models import Book, Chapter
 from apps.curriculum.content.a1 import A1_UNITS
-from apps.curriculum.models import Lesson, LessonItem, Unit
+from apps.curriculum.models import Lesson, LessonItem, PathLessonProgress, Unit
 from apps.exercises.models import Exercise
 from apps.vocabulary.models import Word
 
@@ -69,3 +70,15 @@ class SeedTests(TestCase):
         for item in LessonItem.objects.all():
             refs = [item.exercise_id, item.word_id, item.grammar_rule_id]
             self.assertEqual(sum(r is not None for r in refs), 1, item)
+
+    def test_a_replaced_lesson_takes_its_progress_with_it(self):
+        seed()
+        user = get_user_model().objects.create_user("anna", password="pw")
+        lesson = Lesson.objects.get(unit__order=1, order=1)
+        PathLessonProgress.objects.create(user=user, lesson=lesson)
+        # As if the content had a different first lesson before.
+        Lesson.objects.filter(pk=lesson.pk).update(title="Guten Tag!")
+
+        seed()
+        self.assertFalse(PathLessonProgress.objects.filter(user=user).exists())
+        self.assertEqual(Lesson.objects.get(unit__order=1, order=1).title, "Wortschatz")

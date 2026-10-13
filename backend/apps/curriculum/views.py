@@ -12,7 +12,7 @@ from apps.vocabulary.models import Word
 from . import energy as energy_lib
 from . import exam as exam_lib
 from . import gating, grading
-from .models import Lesson, LessonItem, PathLessonProgress, Unit
+from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
 from .serializers import (
     LessonDetailSerializer,
     PathUnitSerializer,
@@ -209,14 +209,16 @@ def lesson_detail(request, lesson_id: int):
 
     data = LessonDetailSerializer(lesson).data
     data["is_new"] = is_new
+    draft = LessonDraft.objects.filter(user=user, lesson=lesson).first()
+    data["saved"] = {"step": draft.step, "answers": draft.answers} if draft else None
     return Response(data)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def lesson_answer(request, lesson_id: int):
-    """Grade one item for immediate feedback. Records nothing; the real scoring
-    happens in `lesson_complete`."""
+    """Grade one item for immediate feedback, and save the answer so the lesson
+    can be resumed. The real scoring happens in `lesson_complete`."""
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)
 
@@ -224,7 +226,14 @@ def lesson_answer(request, lesson_id: int):
     if not item.exercise_id:
         return Response({"detail": "This item isn't gradable."}, status=status.HTTP_400_BAD_REQUEST)
 
-    parts = grading.grade_parts(item.exercise, request.data.get("answer"))
+    answer = request.data.get("answer")
+    draft, _ = LessonDraft.objects.get_or_create(user=user, lesson=lesson)
+    draft.answers[str(item.id)] = answer
+    position = [i.id for i in lesson.items.all()].index(item.id)
+    draft.step = max(draft.step, position + 1)
+    draft.save()
+
+    parts = grading.grade_parts(item.exercise, answer)
     return Response(
         {
             "correct": all(parts),
@@ -247,7 +256,10 @@ def lesson_complete(request, lesson_id: int):
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)
 
-    submitted = {a.get("item_id"): a.get("answer") for a in request.data.get("answers", [])}
+    # Answers saved along the way, overridden by anything sent now.
+    draft = LessonDraft.objects.filter(user=user, lesson=lesson).first()
+    submitted = {int(k): v for k, v in (draft.answers if draft else {}).items()}
+    submitted.update({a.get("item_id"): a.get("answer") for a in request.data.get("answers", [])})
     verdicts = [
         v
         for i in lesson.items.all()
@@ -278,6 +290,8 @@ def lesson_complete(request, lesson_id: int):
         progress.crown = max(progress.crown, 1)
         progress.xp_earned = lesson.xp_reward
     progress.save()
+    # Finished either way: a retry starts from the beginning.
+    LessonDraft.objects.filter(user=user, lesson=lesson).delete()
 
     return Response(
         {
@@ -291,6 +305,14 @@ def lesson_complete(request, lesson_id: int):
             "energy": _energy_payload(user),
         }
     )
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def lesson_restart(request, lesson_id: int):
+    """Forget a started lesson's saved answers, to start it over."""
+    LessonDraft.objects.filter(user=request.user, lesson_id=lesson_id).delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET"])

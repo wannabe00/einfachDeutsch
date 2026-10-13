@@ -7,13 +7,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -267,7 +267,7 @@ LEKTION_7 = unit(
     "Hobbys und Fähigkeiten",
     L7_WORDS,
     L7_RULES,
-    interleave(L7_LESSONS, vocab_lessons(L7_WORDS, "Wörter")),
+    sections(L7_LESSONS, vocab_lessons(L7_WORDS, "Wörter")),
 )
 
 
@@ -551,7 +551,7 @@ LEKTION_8 = unit(
     "Verabredungen und Uhrzeit",
     L8_WORDS,
     L8_RULES,
-    interleave(L8_LESSONS, vocab_lessons(L8_WORDS, "Wörter")),
+    sections(L8_LESSONS, vocab_lessons(L8_WORDS, "Wörter")),
 )
 
 
@@ -845,7 +845,7 @@ LEKTION_9 = unit(
     "Essen und Trinken",
     L9_WORDS,
     L9_RULES,
-    interleave(L9_LESSONS, vocab_lessons(L9_WORDS, "Wörter")),
+    sections(L9_LESSONS, vocab_lessons(L9_WORDS, "Wörter")),
 )
 
 

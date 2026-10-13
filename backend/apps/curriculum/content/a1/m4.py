@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -260,7 +260,7 @@ LEKTION_10 = unit(
     "Verkehrsmittel und trennbare Verben",
     L10_WORDS,
     L10_RULES,
-    interleave(L10_LESSONS, vocab_lessons(L10_WORDS, "Wörter")),
+    sections(L10_LESSONS, vocab_lessons(L10_WORDS, "Wörter")),
 )
 
 
@@ -542,7 +542,7 @@ LEKTION_11 = unit(
     "Perfekt mit haben",
     L11_WORDS,
     L11_RULES,
-    interleave(L11_LESSONS, vocab_lessons(L11_WORDS, "Wörter")),
+    sections(L11_LESSONS, vocab_lessons(L11_WORDS, "Wörter")),
 )
 
 
@@ -816,7 +816,7 @@ LEKTION_12 = unit(
     "Perfekt mit sein, Monate, Feste",
     L12_WORDS,
     L12_RULES,
-    interleave(L12_LESSONS, vocab_lessons(L12_WORDS, "Wörter")),
+    sections(L12_LESSONS, vocab_lessons(L12_WORDS, "Wörter")),
 )
 
 

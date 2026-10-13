@@ -9,7 +9,7 @@ from collections import Counter
 from django.test import SimpleTestCase
 
 from apps.curriculum.content.a1 import A1_UNITS
-from apps.curriculum.content.dsl import art, fill, group
+from apps.curriculum.content.dsl import DEFAULT_MAX_PARTS, art, fill, group
 from apps.curriculum.grading import grade, grade_parts, public_exercise, solution_of
 from apps.curriculum.management.commands.seed_a1_path import exercise_fields
 from apps.exercises.models import Exercise
@@ -18,7 +18,9 @@ from apps.vocabulary.pos import PART_OF_SPEECH_CHOICES
 
 POS = {value for value, _ in PART_OF_SPEECH_CHOICES}
 CATEGORIES = {value for value, _ in GrammarRule.CATEGORY_CHOICES}
-MAX_ITEMS_PER_LESSON = 12
+# A unit is 2-3 lessons of about 20-30 minutes; a screen is one item.
+LESSONS_PER_UNIT = (2, 3)
+MAX_SCREENS_PER_LESSON = 40
 
 
 def right_answer(item):
@@ -104,11 +106,11 @@ class ContentTests(SimpleTestCase):
         for u in A1_UNITS:
             words = {w[1] for w in u["words"]}
             rules = {g["title"] for g in u["grammar"]}
-            self.assertTrue(u["lessons"], u["title"])
+            self.assertIn(len(u["lessons"]), LESSONS_PER_UNIT, u["title"])
             for les in u["lessons"]:
                 where = f"unit {u['order']} / {les['title']}"
                 self.assertTrue(les["items"], where)
-                self.assertLessEqual(len(les["items"]), MAX_ITEMS_PER_LESSON, where)
+                self.assertLessEqual(len(les["items"]), MAX_SCREENS_PER_LESSON, where)
                 for item in les["items"]:
                     if item["kind"] == "review":
                         self.assertIn(item["word"], words, where)
@@ -129,6 +131,7 @@ class ContentTests(SimpleTestCase):
                 self.assertFalse(grade(ex, wrong_answer(item)), f"Wrong answer passes: {where}")
                 if item["type"] == "group":
                     self.assertGreaterEqual(len(item["parts"]), 2, where)
+                    self.assertLessEqual(len(item["parts"]), DEFAULT_MAX_PARTS, where)
                     self.assertFalse(any(grade_parts(ex, wrong_answer(item))), where)
                 if item["type"] == "multiple_choice":
                     self.assertEqual(len(item["options"]), len(set(item["options"])), where)

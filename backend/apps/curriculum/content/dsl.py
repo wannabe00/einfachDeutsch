@@ -205,11 +205,120 @@ def unit(order: int, title: str, theme: str, words, rules, lessons) -> dict:
     }
 
 
-def interleave(authored, vocab) -> list[dict]:
-    """Alternate hand-written lessons with generated vocabulary lessons, so new
-    words and grammar are practised side by side."""
+# ---- turning a Lektion into 2-3 lessons ---------------------------------------
+
+# What a group of same-type exercises asks for.
+GROUP_PROMPTS = {
+    "multiple_choice": "Choose the right answer.",
+    "fill_blank": "Fill in the missing word.",
+    "conjugation": "Write the right form of the verb.",
+    "translation": "Translate into German.",
+    "article": "Write the article: der, die or das.",
+    "sentence_order": "Put the words in order.",
+    "word_bank": "Fill the gaps.",
+}
+# Most parts per group, so one screen stays readable. Matching blocks are big
+# already and stay one per screen.
+MAX_PARTS = {"word_bank": 2, "sentence_order": 4, "translation": 6}
+DEFAULT_MAX_PARTS = 8
+# A third lesson smaller than this is folded into the Grammatik lesson.
+MIN_LESSON_PARTS = 15
+LESSON_XP = 30
+
+
+def _chunks(items: list, size: int) -> list[list]:
+    """Split into as few chunks of at most `size` as possible, evenly sized."""
+    count = -(-len(items) // size)
+    base, extra = divmod(len(items), count)
+    out, start = [], 0
+    for i in range(count):
+        end = start + base + (1 if i < extra else 0)
+        out.append(items[start:end])
+        start = end
+    return out
+
+
+def _grouped(exercises: list[dict]) -> list[dict]:
+    """Same-type exercises merged into multi-part groups, in the order each type
+    first appears. Existing groups are opened up and merged by type too."""
+    by_type: dict[str, list[dict]] = {}
+    for ex in exercises:
+        for part in ex["parts"] if ex["type"] == "group" else [ex]:
+            by_type.setdefault(part["type"], []).append(part)
+
     out = []
-    for i in range(max(len(authored), len(vocab))):
-        out.extend(authored[i : i + 1])
-        out.extend(vocab[i : i + 1])
+    for etype, parts in by_type.items():
+        if etype == "matching":
+            out.extend(parts)
+            continue
+        for chunk in _chunks(parts, MAX_PARTS.get(etype, DEFAULT_MAX_PARTS)):
+            if len(chunk) == 1:
+                out.append(chunk[0])
+                continue
+            if etype == "translation":
+                # Under "Translate into German." each part only needs the English.
+                chunk = [{**p, "prompt": p["prompt"].removeprefix("Translate: ")} for p in chunk]
+            out.append(group(GROUP_PROMPTS[etype], *chunk))
+    return out
+
+
+def _topic_blocks(sources: list[dict]) -> list[list[dict]]:
+    """Source lessons by topic: a lesson with a grammar explanation starts a
+    block, and lessons without one join the topic before them."""
+    blocks: list[list[dict]] = []
+    for src in sources:
+        starts_topic = any(i["kind"] == "grammar" for i in src["items"])
+        if starts_topic or not blocks:
+            blocks.append([src])
+        else:
+            blocks[-1].append(src)
+    return blocks
+
+
+def _lesson_from(title: str, blocks: list[list[dict]]) -> dict:
+    """One lesson made of blocks of source lessons. Each block shows its
+    flashcards and explanations first, then its exercises grouped by type."""
+    items = []
+    for block in blocks:
+        block_items = [i for s in block for i in s["items"]]
+        items += [i for i in block_items if i["kind"] != "exercise"]
+        items += _grouped([i for i in block_items if i["kind"] == "exercise"])
+    teaches = [g for block in blocks for s in block for g in s["teaches"]]
+    out = lesson(title, *items, teaches=teaches)
+    out["xp"] = LESSON_XP
+    return out
+
+
+def _parts(lessons: list[dict]) -> int:
+    return sum(
+        len(i.get("parts", [i])) for les in lessons for i in les["items"] if i["kind"] == "exercise"
+    )
+
+
+def sections(authored: list[dict], vocab: list[dict]) -> list[dict]:
+    """A Lektion's lessons as they're played: 2 or 3 lessons, like a class.
+
+    1. Wortschatz: the hand-written lessons before the first grammar topic,
+       then the unit's words, two batches at a time: matched, then drilled.
+    2. Grammatik: from the first lesson with a grammar explanation to the last
+       one, each topic followed by its practice.
+    3. Kommunikation und Wiederholung: everything after (dialogues, the
+       Lektion test, the Modul review). Folded into Grammatik when it's small.
+
+    Same-type exercises are grouped into multi-part exercises throughout.
+    """
+    has_rule = [any(i["kind"] == "grammar" for i in les["items"]) for les in authored]
+    first = has_rule.index(True)
+    last = len(has_rule) - 1 - has_rule[::-1].index(True)
+    words, rules, talk = authored[:first], authored[first : last + 1], authored[last + 1 :]
+
+    if _parts(talk) < MIN_LESSON_PARTS:
+        rules, talk = rules + talk, []
+    word_blocks = ([words] if words else []) + [vocab[i : i + 2] for i in range(0, len(vocab), 2)]
+    out = [
+        _lesson_from("Wortschatz", word_blocks),
+        _lesson_from("Grammatik", _topic_blocks(rules)),
+    ]
+    if talk:
+        out.append(_lesson_from("Kommunikation und Wiederholung", _topic_blocks(talk)))
     return out

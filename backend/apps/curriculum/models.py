@@ -1,11 +1,11 @@
 """The learning path.
 
 Shared content (Unit, Lesson, LessonItem) plus per-user progress
-(PathLessonProgress) and energy (EnergyState). As elsewhere in the project,
+(PathLessonProgress, LessonDraft) and energy (EnergyState). As elsewhere in the project,
 content has no per-user foreign keys.
 
-A book Lektion is a Unit here, not a Lesson. The seed command splits each
-Lektion into small Lessons of about six items.
+A book Lektion is a Unit here, not a Lesson. Each Lektion is played as 2-3
+Lessons (Wortschatz, Grammatik, Kommunikation und Wiederholung).
 """
 
 from django.conf import settings
@@ -47,7 +47,7 @@ class Unit(models.Model):
 
 
 class Lesson(models.Model):
-    """One lesson on the path: about six mixed items, sized for a day."""
+    """One lesson on the path: 20-30 minutes of cards and grouped exercises."""
 
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="lessons")
     order = models.PositiveIntegerField(default=0)  # position within the unit
@@ -134,6 +134,26 @@ class PathLessonProgress(models.Model):
     def __str__(self):
         state = "✓" if self.is_complete else "…"
         return f"{self.user} {state} {self.lesson}"
+
+
+class LessonDraft(models.Model):
+    """A lesson the user has started but not finished: the answers checked so
+    far and where to pick up. Removed when the lesson is finished."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="lesson_drafts"
+    )
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="drafts")
+    # {item_id (as a string, it's JSON): answer}
+    answers = models.JSONField(default=dict)
+    step = models.PositiveIntegerField(default=0)  # index of the next item to show
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("user", "lesson")]
+
+    def __str__(self):
+        return f"{self.user} … {self.lesson} (step {self.step})"
 
 
 class EnergyState(models.Model):

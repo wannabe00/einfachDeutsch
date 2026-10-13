@@ -6,13 +6,13 @@ from ..dsl import (
     conj,
     fill,
     grammar,
-    interleave,
     lesson,
     match,
     mc,
     order,
     review,
     rule,
+    sections,
     tr,
     unit,
     vocab_lessons,
@@ -217,7 +217,7 @@ LEKTION_22 = unit(
     "Kleidung, Komparativ und Superlativ",
     L22_WORDS,
     L22_RULES,
-    interleave(L22_LESSONS, vocab_lessons(L22_WORDS, "Wörter")),
+    sections(L22_LESSONS, vocab_lessons(L22_WORDS, "Wörter")),
 )
 
 
@@ -425,7 +425,7 @@ LEKTION_23 = unit(
     "Wetter und Urlaub",
     L23_WORDS,
     L23_RULES,
-    interleave(L23_LESSONS, vocab_lessons(L23_WORDS, "Wörter")),
+    sections(L23_LESSONS, vocab_lessons(L23_WORDS, "Wörter")),
 )
 
 
@@ -676,7 +676,7 @@ LEKTION_24 = unit(
     "Feste, würde, Datum",
     L24_WORDS,
     L24_RULES,
-    interleave(L24_LESSONS, vocab_lessons(L24_WORDS, "Wörter")),
+    sections(L24_LESSONS, vocab_lessons(L24_WORDS, "Wörter")),
 )
 
 
