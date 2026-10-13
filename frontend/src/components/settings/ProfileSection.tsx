@@ -49,7 +49,7 @@ export function ProfileSection() {
   return (
     <Section title="Profile">
       <div className="flex items-center gap-4">
-        <div className="flex size-16 items-center justify-center overflow-hidden rounded-full bg-accent/15 text-xl font-bold text-accent">
+        <div className="flex size-16 items-center justify-center overflow-hidden rounded-full bg-primary text-2xl font-extrabold text-primary-foreground">
           {user?.avatar_url ? (
             <img src={user.avatar_url} alt="" className="size-full object-cover" />
           ) : (
@@ -67,13 +67,13 @@ export function ProfileSection() {
               if (f) onAvatarPick(f)
             }}
           />
-          <Button variant="outline" size="sm" onClick={() => avatarInput.current?.click()}>
+          <Button variant="secondary" size="sm" onClick={() => avatarInput.current?.click()}>
             Change picture
           </Button>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <Field label="First name">
           <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
         </Field>
@@ -92,7 +92,7 @@ export function ProfileSection() {
       </div>
       {error && <Msg tone="danger">{error}</Msg>}
       {msg && <Msg tone="success">{msg}</Msg>}
-      <Button className="mt-3 self-start" onClick={saveProfile}>
+      <Button className="mt-5 self-start" onClick={saveProfile}>
         Save profile
       </Button>
     </Section>

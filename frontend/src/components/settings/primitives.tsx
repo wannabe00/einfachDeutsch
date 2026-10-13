@@ -15,14 +15,14 @@ export function Section({
   return (
     <section
       className={cn(
-        "flex flex-col rounded-xl border bg-surface p-5",
-        danger ? "border-[hsl(var(--danger))]/40" : "border-border",
+        "flex flex-col rounded-2xl bg-surface p-5 shadow-card sm:p-6",
+        danger && "ring-1 ring-[hsl(var(--danger))]/40",
       )}
     >
-      <h2 className={cn("text-sm font-semibold", danger && "text-[hsl(var(--danger))]")}>
+      <h2 className={cn("text-lg font-bold", danger && "text-[hsl(var(--danger))]")}>
         {title}
       </h2>
-      <div className="mt-3">{children}</div>
+      <div className="mt-4">{children}</div>
     </section>
   )
 }
@@ -30,7 +30,7 @@ export function Section({
 /** A labelled form field wrapper. */
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <label className="flex flex-col gap-1.5 text-sm font-medium text-muted-foreground">
       {label}
       {children}
     </label>
@@ -48,7 +48,7 @@ export function Toggle({
   onChange: (v: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5 text-sm">
+    <div className="flex min-h-[48px] items-center justify-between gap-3 py-1.5 text-[15px]">
       <span>{label}</span>
       <button
         type="button"
@@ -57,14 +57,14 @@ export function Toggle({
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-          checked ? "bg-accent" : "bg-border",
+          "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors",
+          checked ? "bg-[hsl(var(--success))]" : "bg-surface-2",
         )}
       >
         <span
           className={cn(
-            "inline-block size-4 rounded-full bg-white shadow transition-transform",
-            checked ? "translate-x-6" : "translate-x-1",
+            "inline-block size-6 rounded-full bg-white shadow transition-transform",
+            checked ? "translate-x-[22px]" : "translate-x-0.5",
           )}
         />
       </button>

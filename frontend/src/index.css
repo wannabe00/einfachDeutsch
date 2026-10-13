@@ -3,62 +3,146 @@
 @tailwind utilities;
 
 /*
- * Design tokens. Values are bare HSL channels so Tailwind can
- * compose them as hsl(var(--token)) and apply opacity modifiers.
+ * Design tokens (direction: DESIGN.md). Colour values are bare HSL channels so
+ * Tailwind can compose them as hsl(var(--token)) with opacity modifiers.
  *
- * The app has a single dark theme. Red (--brand / --primary) is the only
- * accent for actions and focus; der/die/das keep their own colours.
+ * Light and dark: light is the base, dark applies when the device prefers it
+ * (unless the user picked Light) or when the user picked Dark. The choice is
+ * stored by `lib/theme.ts` as `data-theme` on <html>.
+ *
+ * German red is the one accent for actions and focus. Units cycle through the
+ * six `--section-*` colours. der/die/das keep their own colours.
  */
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
 
-    --background: 240 6% 5%;
-    --surface: 240 5% 9%;
-    --surface-2: 240 5% 12%;
-    --foreground: 40 10% 94%;
-    --muted-foreground: 240 5% 68%;
-    --border: 240 5% 19%;
-    --input: 240 5% 22%;
+    --background: 240 11% 96%;
+    --surface: 0 0% 100%;
+    --surface-2: 240 9% 93%;
+    --foreground: 240 14% 4%;
+    --muted-foreground: 240 5% 40%;
+    --border: 240 6% 89%;
+    --input: 240 6% 84%;
 
-    --brand: 353 90% 55%;
-    --accent: 353 90% 55%;
+    --brand: 354 100% 42%;
+    --accent: 354 100% 42%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 353 85% 48%;
+    --accent-hover: 354 100% 36%;
 
-    --success: 160 64% 52%;
-    --success-bg: 160 50% 11%;
-    --danger: 0 91% 71%;
-    --danger-bg: 0 55% 12%;
-    --warning: 43 96% 56%;
-    --warning-bg: 40 80% 11%;
+    --success: 136 63% 31%;
+    --success-bg: 136 55% 92%;
+    --danger: 354 100% 42%;
+    --danger-bg: 354 100% 96%;
+    --warning: 32 100% 36%;
+    --warning-bg: 40 100% 92%;
 
-    --article-der: 213 90% 65%;
-    --article-die: 336 74% 70%;
-    --article-das: 43 96% 56%;
+    --article-der: 211 100% 42%;
+    --article-die: 336 75% 45%;
+    --article-das: 32 100% 36%;
 
-    /* Path units cycle through these. */
-    --section-1: 210 90% 62%;
-    --section-2: 150 58% 50%;
-    --section-3: 264 82% 70%;
-    --section-4: 32 94% 56%;
-    --section-5: 174 62% 47%;
-    --section-6: 330 80% 65%;
+    /* One colour per unit (Apple system colours). */
+    --section-1: 211 100% 52%;
+    --section-2: 35 100% 52%;
+    --section-3: 286 84% 64%;
+    --section-4: 135 64% 50%;
+    --section-5: 199 78% 55%;
+    --section-6: 349 100% 61%;
 
-    /* shadcn primitives, mapped onto the palette above. */
-    --card: 240 5% 9%;
-    --card-foreground: 40 10% 94%;
-    --popover: 240 5% 9%;
-    --popover-foreground: 40 10% 94%;
-    --primary: 353 90% 55%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 14% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 14% 4%;
+    --primary: 354 100% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 14%;
-    --secondary-foreground: 40 10% 94%;
-    --muted: 240 5% 14%;
-    --destructive: 0 91% 71%;
+    --secondary: 240 9% 93%;
+    --secondary-foreground: 240 14% 4%;
+    --muted: 240 9% 93%;
+    --destructive: 354 100% 42%;
     --destructive-foreground: 0 0% 100%;
-    --ring: 353 90% 55%;
-    --radius: 0.75rem;
+    --ring: 354 100% 42%;
+    --radius: 1rem;
+
+    /* Soft shadows instead of borders. */
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 36px rgb(0 0 0 / 0.11);
+    --glass: 240 11% 96% / 0.78;
+  }
+}
+
+/* Dark values, applied twice: by the device setting and by an explicit pick. */
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --background: 0 0% 0%;
+      --surface: 240 3% 11%;
+      --surface-2: 240 3% 18%;
+      --foreground: 240 9% 96%;
+      --muted-foreground: 240 4% 62%;
+      --border: 240 3% 20%;
+      --input: 240 3% 26%;
+      --brand: 3 100% 61%;
+      --accent: 3 100% 61%;
+      --accent-hover: 3 100% 55%;
+      --success: 135 64% 50%;
+      --success-bg: 135 45% 12%;
+      --danger: 3 100% 61%;
+      --danger-bg: 3 60% 13%;
+      --warning: 40 100% 55%;
+      --warning-bg: 40 80% 11%;
+      --article-der: 211 100% 64%;
+      --article-die: 336 80% 70%;
+      --article-das: 43 96% 56%;
+      --card: 240 3% 11%;
+      --card-foreground: 240 9% 96%;
+      --popover: 240 3% 14%;
+      --popover-foreground: 240 9% 96%;
+      --primary: 3 100% 61%;
+      --secondary: 240 3% 18%;
+      --secondary-foreground: 240 9% 96%;
+      --muted: 240 3% 18%;
+      --destructive: 3 100% 61%;
+      --ring: 3 100% 61%;
+      --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
+      --shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.1);
+      --glass: 0 0% 0% / 0.72;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --background: 0 0% 0%;
+    --surface: 240 3% 11%;
+    --surface-2: 240 3% 18%;
+    --foreground: 240 9% 96%;
+    --muted-foreground: 240 4% 62%;
+    --border: 240 3% 20%;
+    --input: 240 3% 26%;
+    --brand: 3 100% 61%;
+    --accent: 3 100% 61%;
+    --accent-hover: 3 100% 55%;
+    --success: 135 64% 50%;
+    --success-bg: 135 45% 12%;
+    --danger: 3 100% 61%;
+    --danger-bg: 3 60% 13%;
+    --warning: 40 100% 55%;
+    --warning-bg: 40 80% 11%;
+    --article-der: 211 100% 64%;
+    --article-die: 336 80% 70%;
+    --article-das: 43 96% 56%;
+    --card: 240 3% 11%;
+    --card-foreground: 240 9% 96%;
+    --popover: 240 3% 14%;
+    --popover-foreground: 240 9% 96%;
+    --primary: 3 100% 61%;
+    --secondary: 240 3% 18%;
+    --secondary-foreground: 240 9% 96%;
+    --muted: 240 3% 18%;
+    --destructive: 3 100% 61%;
+    --ring: 3 100% 61%;
+    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.1);
+    --glass: 0 0% 0% / 0.72;
   }
 }
 
@@ -67,15 +151,50 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    /* Long German compounds break rather than push past the screen edge. */
+    overflow-wrap: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
     min-height: 100vh;
   }
   h1,
   h2,
   h3,
   h4 {
-    font-family: "Space Grotesk", system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+}
+
+@layer utilities {
+  /* Frosted bar background (top bar, tab bar). */
+  .glass {
+    background: hsl(var(--glass));
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  /* A card that lifts slightly on hover. */
+  .lift {
+    transition:
+      transform 220ms ease,
+      box-shadow 220ms ease;
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }

@@ -40,7 +40,7 @@ export function CSVImportButton({ chapters, defaultChapterId }: CSVImportButtonP
       </Button>
 
       {open && (
-        <div className="mt-3 rounded-xl border border-border bg-surface p-4">
+        <div className="mt-3 rounded-2xl bg-surface shadow-card p-4">
           <p className="mb-2 text-sm text-muted-foreground">
             CSV columns: <code className="font-mono">english, german, notes</code>{" "}
             (notes optional). Rows duplicating an existing word in the chosen chapter are skipped.
@@ -49,7 +49,7 @@ export function CSVImportButton({ chapters, defaultChapterId }: CSVImportButtonP
             <select
               value={chapterId}
               onChange={(e) => setChapterId(Number(e.target.value))}
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
             >
               {chapters.map((c) => (
                 <option key={c.id} value={c.id}>

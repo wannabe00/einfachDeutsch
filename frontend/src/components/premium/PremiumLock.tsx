@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { Check, Crown } from "lucide-react"
 
 import { fetchPremiumStatus, startTrial } from "@/api/premium"
 import { useAuth } from "@/contexts/AuthContext"
@@ -40,19 +41,27 @@ export function PremiumLock() {
 
   return (
     <div className="flex justify-center pt-10">
-      <Card className="w-full max-w-md p-8 text-center">
-        <h2 className="text-2xl font-bold">This is a Premium feature</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Premium includes:</p>
-
-        <ul className="mx-auto mt-3 w-fit list-disc space-y-1 pl-5 text-left text-sm">
-          <li>Unlimited energy on the path</li>
-          <li>The AI Assistant and AI explanations</li>
-          <li>Recite: read a text, retell it aloud, get feedback</li>
+      <Card className="w-full max-w-md rounded-[28px] p-8 text-center">
+        <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <Crown className="size-8" aria-hidden="true" />
+        </span>
+        <h2 className="mt-5 text-3xl font-extrabold">This is a Premium feature</h2>
+        <ul className="mt-6 flex flex-col gap-2.5 rounded-2xl bg-surface-2/70 p-4 text-left text-[15px]">
+          {[
+            "Unlimited energy on the path",
+            "The AI Assistant and AI explanations",
+            "Recite: read a text, retell it aloud, get feedback",
+          ].map((perk) => (
+            <li key={perk} className="flex items-start gap-2.5">
+              <Check className="mt-0.5 size-[18px] shrink-0 text-success" aria-hidden="true" />
+              {perk}
+            </li>
+          ))}
         </ul>
 
         {status?.trial_available ? (
           <>
-            <Button className="mt-6 w-full" disabled={busy} onClick={handleTrial}>
+            <Button size="lg" className="mt-6 w-full" disabled={busy} onClick={handleTrial}>
               {busy ? "Starting…" : `Start ${status.trial_days}-day free trial`}
             </Button>
             <p className="mt-2 text-xs text-muted-foreground">
@@ -65,7 +74,7 @@ export function PremiumLock() {
           </p>
         )}
 
-        {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+        {error && <p className="mt-3 text-sm font-medium text-danger">{error}</p>}
       </Card>
     </div>
   )

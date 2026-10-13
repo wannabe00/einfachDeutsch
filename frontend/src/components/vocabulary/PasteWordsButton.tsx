@@ -53,7 +53,7 @@ export function PasteWordsButton({ chapters, defaultChapterId }: PasteWordsButto
       </Button>
 
       {open && (
-        <div className="mt-3 rounded-xl border border-border bg-surface p-4">
+        <div className="mt-3 rounded-2xl bg-surface shadow-card p-4">
           <p className="mb-2 text-sm text-muted-foreground">
             One word per line: <code className="font-mono">German - English</code>{" "}
             (separators <code className="font-mono">- , = tab</code> all work).
@@ -61,7 +61,7 @@ export function PasteWordsButton({ chapters, defaultChapterId }: PasteWordsButto
           <select
             value={chapterId}
             onChange={(e) => setChapterId(Number(e.target.value))}
-            className="mb-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="mb-2 min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
           >
             {chapters.map((c) => (
               <option key={c.id} value={c.id}>

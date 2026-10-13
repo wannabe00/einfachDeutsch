@@ -2,6 +2,7 @@ import { Check, RotateCcw, X } from "lucide-react"
 
 import type { RecitationResult } from "@/types"
 import { Button } from "@/components/ui/button"
+import { ProgressRing } from "@/components/lektion/ProgressRing"
 
 /** Step 3: the feedback (coverage, covered and missed points, grammar,
     pronunciation, transcript) and a "Try another" button. */
@@ -13,17 +14,26 @@ export function ResultCard({
   onReset: () => void
 }) {
   return (
-    <div className="mt-6 flex flex-col gap-4">
-      <div className="rounded-xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Your feedback</h2>
-          {result.coverage_score !== null && (
-            <span className="text-2xl font-bold text-accent">{result.coverage_score}%</span>
-          )}
-        </div>
-        {result.summary && (
-          <p className="mt-2 text-sm text-muted-foreground">{result.summary}</p>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5 rounded-[24px] bg-surface p-6 shadow-card sm:flex-row sm:items-center sm:p-7">
+        {result.coverage_score !== null && (
+          <div className="relative flex size-24 shrink-0 items-center justify-center">
+            <ProgressRing
+              pct={result.coverage_score / 100}
+              color="hsl(var(--primary))"
+              size={96}
+              stroke={9}
+              label={`${result.coverage_score}% covered`}
+            />
+            <span className="absolute font-grotesk text-2xl font-extrabold tabular-nums">
+              {result.coverage_score}%
+            </span>
+          </div>
         )}
+        <div className="min-w-0">
+          <h2 className="text-2xl font-extrabold">Your feedback</h2>
+          {result.summary && <p className="mt-1 text-muted-foreground">{result.summary}</p>}
+        </div>
       </div>
 
       {result.covered.length > 0 && (
@@ -34,12 +44,12 @@ export function ResultCard({
       )}
 
       {result.grammar_errors.length > 0 && (
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <h3 className="mb-3 text-sm font-semibold">Grammar</h3>
-          <ul className="flex flex-col gap-2">
+        <div className="rounded-[24px] bg-surface p-6 shadow-card">
+          <h3 className="mb-3 text-lg font-bold">Grammar</h3>
+          <ul className="flex flex-col gap-2.5">
             {result.grammar_errors.map((g, i) => (
-              <li key={i} className="text-sm">
-                <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+              <li key={i} className="text-[15px]">
+                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
                   {g.type}
                 </span>{" "}
                 <span className="text-[hsl(var(--danger))] line-through">{g.error}</span> →{" "}
@@ -54,17 +64,17 @@ export function ResultCard({
         <FeedbackList title="Pronunciation to watch" items={result.pronunciation_notes} tone="muted" />
       )}
 
-      <details className="rounded-xl border border-border bg-surface p-5">
-        <summary className="cursor-pointer text-sm font-medium">
+      <details className="rounded-[24px] bg-surface p-6 shadow-card">
+        <summary className="cursor-pointer font-semibold">
           What we heard (transcript)
         </summary>
-        <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+        <p className="mt-3 whitespace-pre-wrap leading-relaxed text-muted-foreground">
           {result.transcript || "No speech was picked up."}
         </p>
       </details>
 
-      <Button variant="secondary" className="self-start" onClick={onReset}>
-        <RotateCcw className="mr-2 size-4" /> Try another
+      <Button size="lg" className="self-start" onClick={onReset}>
+        <RotateCcw /> Try another
       </Button>
     </div>
   )
@@ -87,11 +97,11 @@ function FeedbackList({
         ? "text-[hsl(var(--danger))]"
         : "text-muted-foreground"
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
-      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
-      <ul className="flex flex-col gap-1.5">
+    <div className="rounded-[24px] bg-surface p-6 shadow-card">
+      <h3 className="mb-3 text-lg font-bold">{title}</h3>
+      <ul className="flex flex-col gap-2">
         {items.map((it, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm">
+          <li key={i} className="flex items-start gap-2.5 text-[15px]">
             {Icon && <Icon className={`mt-0.5 size-4 shrink-0 ${color}`} />}
             <span>{it}</span>
           </li>

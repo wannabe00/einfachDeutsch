@@ -4,16 +4,19 @@ import { useQuery } from "@tanstack/react-query"
 
 import { fetchPublicStats } from "@/api/stats"
 import { SITE_NAME } from "@/lib/site"
+import { MUNICH_PHOTO } from "@/lib/photos"
 import { cn } from "@/lib/utils"
+import { BookMarked, GraduationCap, Landmark, Route as RouteIcon, Sparkles, Swords, type LucideIcon } from "lucide-react"
+
 import { Reveal } from "@/components/landing/Reveal"
+import { Logo } from "@/components/layout/TopBar"
 
 /*
  * The page guests see at `/` (signed-in users get the dashboard). It's a run of
- * full-height sections, several over Berlin and Munich photos. Photos are free
- * Unsplash images; if one fails to load, the section falls back to plain dark.
+ * run of sections, several over Berlin and Munich photos. Photo sections stay
+ * dark with white text in both themes; the others follow light/dark. Photos are
+ * free Unsplash images; if one fails to load, the section falls back to plain dark.
  */
-const HERO_IMG =
-  "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=2400&q=80"
 const PHOTO_ISAR =
   "https://images.unsplash.com/photo-1770983437965-a88b456f2305?auto=format&fit=crop&w=2000&q=80"
 const PHOTO_BERLIN =
@@ -22,11 +25,11 @@ const PHOTO_MARIEN =
   "https://images.unsplash.com/photo-1780545311196-f8b507b08b94?auto=format&fit=crop&w=1400&q=80"
 
 const PRIMARY_LINK =
-  "inline-block rounded-full bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-accent-hover"
+  "inline-flex min-h-[52px] items-center justify-center rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.97]"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <Hero />
       <Teaser />
@@ -49,29 +52,21 @@ function Nav() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-30 flex items-center justify-between px-6 py-4 transition-colors duration-300",
-        solid ? "border-b border-border bg-background" : "bg-transparent",
+        "fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-5 transition-colors duration-300 sm:px-8",
+        solid ? "glass text-foreground" : "bg-transparent text-white",
       )}
     >
-      <span className="flex items-center gap-2 font-grotesk text-lg font-bold">
-        {/* der / die / das in their gender colours and shapes. */}
-        <span className="inline-flex gap-1" aria-hidden="true">
-          <span className="size-2.5 rounded-full bg-article-der" />
-          <span
-            className="size-2.5 bg-article-die"
-            style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
-          />
-          <span className="size-2.5 bg-article-das" />
-        </span>
-        {SITE_NAME}
-      </span>
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        <Link to="/login" className="rounded-full px-4 py-2 text-white/80 hover:text-white">
+      <Logo className="text-inherit" />
+      <div className="flex items-center gap-1 text-[15px] font-semibold">
+        <Link
+          to="/login"
+          className={cn("hidden rounded-full px-4 py-2 transition-opacity sm:inline-block", solid ? "opacity-70 hover:opacity-100" : "text-white/85 hover:text-white")}
+        >
           Log in
         </Link>
         <Link
           to="/login"
-          className="rounded-full bg-primary px-5 py-2 text-primary-foreground transition-colors hover:bg-accent-hover"
+          className="rounded-full bg-primary px-5 py-2 text-primary-foreground transition hover:brightness-110"
         >
           Get started
         </Link>
@@ -91,28 +86,29 @@ function Hero() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
   return (
-    <section className="relative flex h-screen min-h-[620px] items-center justify-center overflow-hidden bg-surface-2">
+    <section className="relative flex h-[100svh] min-h-[620px] items-center justify-center overflow-hidden bg-[#111] text-white">
       {ok && (
         <img
           ref={imgRef}
-          src={HERO_IMG}
+          src={MUNICH_PHOTO}
           alt="München"
           onError={() => setOk(false)}
           className="absolute inset-0 h-[135%] w-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-background/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/75" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         <Reveal>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-white/70">
+          <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.2em] text-white/75">
             Deutsch lernen · A1
           </p>
-          <h1 className="text-5xl font-bold leading-[1.05] sm:text-7xl">
+          <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] sm:text-7xl lg:text-[84px]">
             Learn German,
             <br />
             one short lesson a day.
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-white/80">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-white/85 sm:text-xl">
             A guided A1 course with flashcards that come back just before you forget
             them, quick drills, and short reads on German history. More levels are
             being written.
@@ -123,7 +119,7 @@ function Hero() {
             </Link>
             <Link
               to="/login"
-              className="w-full rounded-full border border-white/40 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
+              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-white/15 px-8 text-base font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/25 sm:w-auto"
             >
               I already know some German
             </Link>
@@ -165,26 +161,26 @@ function Teaser() {
   }
 
   return (
-    <Section bg={<PhotoBg src={PHOTO_MARIEN} />}>
+    <Section bg={<PhotoBg src={PHOTO_MARIEN} />} dark>
       <Reveal>
         <SectionHeader label="Try it" title="der, die or das?" />
-        <div className="mx-auto mt-10 max-w-md rounded-xl border border-border bg-background/90 p-8 text-center">
+        <div className="mx-auto mt-10 max-w-md rounded-[28px] bg-surface p-8 text-center text-foreground shadow-lift">
           {done ? (
             <>
               <p className="text-lg font-semibold">
                 You got {score} of {TEASER.length}.
               </p>
-              <p className="mt-1 text-sm text-white/75">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Noun genders are hard. The drills give you plenty of practice with them.
               </p>
-              <Link to="/login" className={cn(PRIMARY_LINK, "mt-6 px-6 py-2.5 text-sm")}>
+              <Link to="/login" className={cn(PRIMARY_LINK, "mt-6")}>
                 Create a free account
               </Link>
             </>
           ) : (
             <>
-              <p className="text-sm text-white/75">Which article? ({current.en})</p>
-              <p className="mt-2 font-grotesk text-4xl font-bold">{current.noun}</p>
+              <p className="text-sm text-muted-foreground">Which article? ({current.en})</p>
+              <p className="mt-2 font-grotesk text-5xl font-extrabold tracking-tight">{current.noun}</p>
               <div className="mt-7 grid grid-cols-3 gap-3">
                 {(["der", "die", "das"] as const).map((a) => {
                   const isCorrect = picked && a === current.article
@@ -195,12 +191,12 @@ function Teaser() {
                       onClick={() => choose(a)}
                       disabled={!!picked}
                       className={cn(
-                        "rounded-xl border-2 py-4 text-lg font-bold transition-colors",
+                        "min-h-[60px] rounded-2xl border-2 text-lg font-bold transition-colors",
                         isCorrect
                           ? "border-success bg-success/15 text-success"
                           : isWrong
                             ? "border-danger bg-danger/15 text-danger"
-                            : "border-white/20 hover:border-white/50",
+                            : "border-transparent bg-surface-2 hover:bg-border",
                         !picked && ARTICLE_TEXT[a],
                       )}
                     >
@@ -217,25 +213,30 @@ function Teaser() {
   )
 }
 
-const FEATURES = [
+const FEATURES: { title: string; body: string; icon: LucideIcon }[] = [
   {
+    icon: RouteIcon,
     title: "The path",
     body: "A1 split into units of two or three lessons: new words, grammar, then conversation and review.",
   },
   {
+    icon: GraduationCap,
     title: "Spaced review",
     body: "Flashcards scheduled with SM-2, so each word returns just before you'd forget it.",
   },
   {
+    icon: BookMarked,
     title: "Word Bank",
     body: "Every word you've reached, grouped by level and part of speech.",
   },
-  { title: "Drills", body: "Quick games for articles, spelling and word order." },
+  { icon: Swords, title: "Drills", body: "Quick games for articles, spelling and word order." },
   {
+    icon: Landmark,
     title: "History",
     body: "Short reads on German history, first in English and then in German.",
   },
   {
+    icon: Sparkles,
     title: "AI tutor and Recite",
     body: "Premium: ask a tutor anything, or retell a text aloud and get feedback on it.",
   },
@@ -250,9 +251,15 @@ function Features() {
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (
           <Reveal key={f.title} delay={i * 60}>
-            <div className="h-full rounded-xl border border-border bg-surface p-6">
-              <h3 className="font-bold">{f.title}</h3>
-              <p className="mt-1 text-sm text-white/70">{f.body}</p>
+            <div className="lift h-full rounded-[24px] bg-surface p-6 shadow-card">
+              <span
+                className="flex size-11 items-center justify-center rounded-2xl text-white"
+                style={{ background: `hsl(var(--section-${(i % 6) + 1}))` }}
+              >
+                <f.icon className="size-[22px]" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 text-lg font-bold">{f.title}</h3>
+              <p className="mt-1 text-muted-foreground">{f.body}</p>
             </div>
           </Reveal>
         ))}
@@ -280,16 +287,16 @@ function Stats() {
     <Section>
       <Reveal>
         <SectionHeader label="Right now" title="What's in the app" />
-        <p className="mx-auto mt-3 max-w-md text-center text-white/70">
+        <p className="mx-auto mt-3 max-w-md text-center text-muted-foreground">
           These are counted live from the database.
         </p>
         <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
           {items.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="font-grotesk text-4xl font-bold text-primary sm:text-5xl">
+              <p className="font-grotesk text-5xl font-extrabold tracking-tight text-primary sm:text-6xl">
                 {s.value.toLocaleString()}
               </p>
-              <p className="mt-1 text-sm text-white/70">{s.label}</p>
+              <p className="mt-1 text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
@@ -318,7 +325,7 @@ function CultureMoment() {
   const current = SIGHTS[active]
 
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden bg-surface-2">
+    <section className="relative flex min-h-screen items-center overflow-hidden bg-[#111] text-white">
       {SIGHTS.map((s, i) => (
         <img
           key={s.name}
@@ -331,17 +338,17 @@ function CultureMoment() {
         />
       ))}
       {/* Darken the left for the text, and fade top and bottom into the page. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/55 to-background/10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10" />
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6">
         <Reveal className="max-w-xl">
           <SectionLabel>Mehr als Vokabeln</SectionLabel>
-          <h2 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-extrabold leading-tight sm:text-6xl">
             Learn the language and the country
           </h2>
-          <p className="mt-4 text-lg text-white/80">
+          <p className="mt-4 text-lg text-white/85">
             The history track covers the places and events behind the words you're
             learning.
           </p>
@@ -351,17 +358,17 @@ function CultureMoment() {
                 key={s.name}
                 onClick={() => setActive(i)}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                  "min-h-[44px] rounded-full px-4 text-sm font-semibold transition-colors",
                   i === active
-                    ? "border-transparent bg-primary text-primary-foreground"
-                    : "border-white/30 text-white/80 hover:text-white",
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white/15 text-white backdrop-blur-md hover:bg-white/25",
                 )}
               >
                 {s.name}
               </button>
             ))}
           </div>
-          <p className="mt-3 text-sm text-white/70">{current.city}</p>
+          <p className="mt-3 text-sm text-white/75">{current.city}</p>
         </Reveal>
       </div>
     </section>
@@ -389,21 +396,21 @@ function FaqCta() {
       <Reveal>
         <SectionHeader label="Questions" title="Good to know" />
       </Reveal>
-      <div className="mx-auto mt-10 max-w-2xl divide-y divide-border">
+      <div className="mx-auto mt-10 max-w-2xl divide-y divide-border rounded-[24px] bg-surface px-6 shadow-card">
         {FAQS.map((f) => (
           <Reveal key={f.q}>
             <div className="py-5">
-              <p className="font-semibold">{f.q}</p>
-              <p className="mt-1 text-sm text-white/70">{f.a}</p>
+              <p className="text-lg font-semibold">{f.q}</p>
+              <p className="mt-1 text-muted-foreground">{f.a}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
       <Reveal>
-        <div className="mx-auto mt-14 max-w-2xl rounded-xl border border-border bg-surface p-10 text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">Ready to start?</h2>
-          <p className="mx-auto mt-3 max-w-md text-white/75">
+        <div className="mx-auto mt-14 max-w-2xl rounded-[28px] bg-surface p-10 text-center shadow-card">
+          <h2 className="text-3xl font-extrabold sm:text-5xl">Ready to start?</h2>
+          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
             Sign in with Google or GitHub. It takes about a minute.
           </p>
           <Link to="/login" className={cn(PRIMARY_LINK, "mt-7")}>
@@ -412,15 +419,15 @@ function FaqCta() {
         </div>
       </Reveal>
 
-      <footer className="mx-auto mt-14 flex w-full max-w-2xl flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-white/70 sm:flex-row">
+      <footer className="mx-auto mt-14 flex w-full max-w-2xl flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
         <span>
           © {new Date().getFullYear()} {SITE_NAME}
         </span>
         <div className="flex gap-4">
-          <Link to="/privacy" className="hover:text-white">
+          <Link to="/privacy" className="hover:text-foreground">
             Privacy
           </Link>
-          <Link to="/login" className="hover:text-white">
+          <Link to="/login" className="hover:text-foreground">
             Log in
           </Link>
         </div>
@@ -430,9 +437,14 @@ function FaqCta() {
 }
 
 /** A full-height section, optionally over a background (e.g. a photo). */
-function Section({ children, bg }: { children: ReactNode; bg?: ReactNode }) {
+function Section({ children, bg, dark }: { children: ReactNode; bg?: ReactNode; dark?: boolean }) {
   return (
-    <section className="relative flex min-h-screen flex-col justify-center overflow-hidden px-6 py-24">
+    <section
+      className={cn(
+        "relative flex flex-col justify-center overflow-hidden px-5 py-24 sm:px-8 sm:py-32",
+        dark && "min-h-screen bg-[#111] text-white",
+      )}
+    >
       {bg}
       <div className="relative z-10 mx-auto w-full max-w-5xl">{children}</div>
     </section>
@@ -449,10 +461,10 @@ function PhotoBg({ src }: { src: string }) {
           src={src}
           alt=""
           onError={() => setOk(false)}
-          className="absolute inset-0 size-full object-cover opacity-60"
+          className="absolute inset-0 size-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-background/45" />
+      <div className="absolute inset-0 bg-black/55" />
       <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
     </>
@@ -463,13 +475,13 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
       <SectionLabel>{label}</SectionLabel>
-      <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{title}</h2>
+      <h2 className="mt-3 text-4xl font-extrabold sm:text-5xl">{title}</h2>
     </div>
   )
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">{children}</p>
+    <p className="text-[13px] font-semibold uppercase tracking-[0.2em] opacity-70">{children}</p>
   )
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 
+import { Loader2 } from "lucide-react"
+
 import { useAuth } from "@/contexts/AuthContext"
 import { consumeState } from "@/lib/oauth"
 import type { SocialProvider } from "@/api/auth"
@@ -43,19 +45,22 @@ export default function OAuthCallbackPage() {
   }, [provider, params, loginWithCode, navigate])
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
       {error ? (
-        <div>
-          <p className="text-sm text-[hsl(var(--danger))]">{error}</p>
+        <div className="w-full max-w-sm rounded-[28px] bg-surface p-8 shadow-card">
+          <p className="text-lg font-bold">Couldn’t sign you in</p>
+          <p className="mt-1 text-muted-foreground">{error}</p>
           <Link
             to="/login"
-            className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
+            className="mt-6 inline-flex h-11 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground transition hover:brightness-110"
           >
             Back to sign in
           </Link>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Signing you in…</p>
+        <p className="flex items-center gap-3 font-medium text-muted-foreground">
+          <Loader2 className="size-5 animate-spin" aria-hidden="true" /> Signing you in…
+        </p>
       )}
     </div>
   )

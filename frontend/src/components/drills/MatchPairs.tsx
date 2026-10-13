@@ -34,21 +34,21 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
     [allRounds, round],
   )
 
-  if (!words) return <DrillShell title="Match Pairs" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (allRounds.length === 0) return <DrillShell title="Match Pairs" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
+  if (!words) return <DrillShell title="Match Pairs" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Loading…</p></DrillShell>
+  if (allRounds.length === 0) return <DrillShell title="Match Pairs" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
 
   if (round >= allRounds.length) {
     const total = score.correct + score.wrong
     const pct = total ? Math.round((score.correct / total) * 100) : 0
     return (
       <DrillShell title="Match Pairs" onExit={onExit}>
-        <div className="flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="text-2xl font-semibold">Drill complete</h2>
-          <p className="text-5xl font-bold text-accent">{pct}%</p>
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-[28px] bg-surface px-6 py-10 text-center shadow-card">
+          <h2 className="text-3xl font-extrabold">Drill complete</h2>
+          <p className="font-grotesk text-6xl font-extrabold tracking-tight text-primary animate-in zoom-in-50 fade-in-0 duration-500">{pct}%</p>
           <p className="text-sm text-muted-foreground">{score.correct} correct · {score.wrong} wrong</p>
-          <div className="flex gap-3">
-            <Button onClick={() => { setRound(0); setScore({ correct: 0, wrong: 0 }); setMatched({}); setSelectedLeft(null) }}>Again</Button>
-            <Button variant="secondary" onClick={onExit}>Back to drills</Button>
+          <div className="mt-3 flex w-full flex-col gap-2.5">
+            <Button size="lg" onClick={() => { setRound(0); setScore({ correct: 0, wrong: 0 }); setMatched({}); setSelectedLeft(null) }}>Again</Button>
+            <Button size="lg" variant="secondary" onClick={onExit}>Back to drills</Button>
           </div>
         </div>
       </DrillShell>
@@ -92,12 +92,12 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
                   disabled={!!done}
                   onClick={() => setSelectedLeft(selectedLeft === p.german ? null : p.german)}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                    "min-h-[52px] rounded-2xl border-2 px-3.5 py-2.5 text-left text-[15px] font-medium transition-colors",
                     done
                       ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                       : selectedLeft === p.german
-                        ? "border-accent bg-accent/10 text-foreground"
-                        : "border-border bg-background text-foreground hover:border-accent",
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-transparent bg-surface text-foreground shadow-card hover:bg-surface-2",
                   )}
                 >
                   {p.german}
@@ -114,12 +114,12 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
                   disabled={done || !selectedLeft}
                   onClick={() => pickRight(english)}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                    "min-h-[52px] rounded-2xl border-2 px-3.5 py-2.5 text-left text-[15px] font-medium transition-colors",
                     done
                       ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                       : wrongFlash === english
                         ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))]"
-                        : "border-border bg-background text-foreground hover:border-accent",
+                        : "border-transparent bg-surface text-foreground shadow-card hover:bg-surface-2",
                     !selectedLeft && !done && "opacity-60",
                   )}
                 >
@@ -131,7 +131,7 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
         </div>
         {allMatched && (
           <div className="mt-6 text-center">
-            <Button onClick={nextRound}>{round + 1 >= allRounds.length ? "Finish" : "Next round"}</Button>
+            <Button size="lg" onClick={nextRound}>{round + 1 >= allRounds.length ? "Finish" : "Next round"}</Button>
           </div>
         )}
       </div>

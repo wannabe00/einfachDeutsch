@@ -12,7 +12,7 @@ interface ChapterButtonsProps {
   badge?: (chapterId: number) => string | number | undefined
 }
 
-const GRID = "grid grid-cols-2 gap-2.5 sm:grid-cols-3"
+const GRID = "grid grid-cols-2 gap-3 sm:grid-cols-3"
 
 export function ChapterButtons({
   books,
@@ -23,10 +23,8 @@ export function ChapterButtons({
 }: ChapterButtonsProps) {
   const tile = (active: boolean) =>
     cn(
-      "flex min-h-[78px] flex-col gap-0.5 rounded-xl border p-3 text-left transition-colors",
-      active
-        ? "border-accent bg-accent text-accent-foreground"
-        : "border-border bg-surface text-foreground hover:bg-surface-2",
+      "lift flex min-h-[96px] flex-col gap-0.5 rounded-2xl p-4 text-left shadow-card",
+      active ? "bg-primary text-primary-foreground" : "bg-surface text-foreground",
     )
 
   return (
@@ -46,7 +44,7 @@ export function ChapterButtons({
       )}
       {books.map((book) => (
         <div key={book.id}>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
             {book.title}
           </p>
           <div className={GRID}>
@@ -60,13 +58,13 @@ export function ChapterButtons({
                   className={tile(active)}
                   title={c.title}
                 >
-                  <span className="text-sm font-semibold leading-tight">
+                  <span className="text-xs font-semibold uppercase tracking-[0.04em] opacity-70">
                     Lektion {c.number}
                   </span>
-                  <span className="line-clamp-2 text-xs opacity-70">{c.title}</span>
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug">{c.title}</span>
                   {b !== undefined && b !== 0 ? (
-                    <span className="mt-auto pt-1 text-xs">
-                      <span className="font-bold">{b}</span> due
+                    <span className="mt-auto w-fit rounded-full bg-primary/10 px-2 py-0.5 pt-0.5 text-xs font-semibold text-primary">
+                      {b} due
                     </span>
                   ) : null}
                 </button>

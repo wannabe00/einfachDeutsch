@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { X, Loader2 } from "lucide-react"
+import { Loader2, Sparkles, X } from "lucide-react"
 import { isAxiosError } from "axios"
 
 import { aiChat } from "@/api/ai"
@@ -48,34 +48,40 @@ export function AIPanel() {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/30"
+        className="fixed inset-0 z-40 bg-black/40 motion-safe:animate-in motion-safe:fade-in-0"
         onClick={closePanel}
         aria-hidden="true"
       />
       {/* Panel */}
       <aside
-        className="fixed right-0 top-0 z-50 flex h-full w-[480px] max-w-[90vw] flex-col border-l border-border bg-background shadow-xl
+        className="fixed right-0 top-0 z-50 flex h-full w-[480px] max-w-[92vw] flex-col rounded-l-[28px] bg-background shadow-lift
           motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-200"
         role="dialog"
         aria-label={panel.title}
       >
-        <header className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-base font-semibold tracking-tight">{panel.title}</h2>
+        <header className="flex items-center justify-between gap-3 px-5 py-4">
+          <h2 className="flex items-center gap-2.5 text-lg font-bold">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-[hsl(var(--section-3))] text-white">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </span>
+            {panel.title}
+          </h2>
           <button
             onClick={closePanel}
             aria-label="Close AI panel"
-            className="rounded-md p-1 text-muted-foreground hover:bg-surface hover:text-foreground"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-2 text-muted-foreground hover:text-foreground"
           >
             <X className="size-5" />
           </button>
         </header>
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-5">
+        <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 pb-5">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
-            className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Your question"
+            className="w-full rounded-2xl border border-transparent bg-surface px-4 py-3 text-base shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder="Ask the AI tutor…"
           />
           <Button
@@ -84,7 +90,7 @@ export function AIPanel() {
           >
             {mutation.isPending ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" /> Thinking…
+                <Loader2 className="animate-spin" /> Thinking…
               </>
             ) : (
               "Ask AI"
@@ -92,15 +98,15 @@ export function AIPanel() {
           </Button>
 
           {error && (
-            <div className="rounded-md border border-danger/40 bg-[hsl(var(--danger-bg))] px-3 py-2 text-sm text-[hsl(var(--danger))]">
+            <div className="rounded-xl bg-danger-bg px-4 py-2.5 text-sm font-medium text-danger" role="alert">
               {error}
             </div>
           )}
 
           {response && (
             <div
-              className="mt-2 rounded-lg border border-border bg-surface p-4 text-sm leading-relaxed
-                [&_code]:rounded [&_code]:bg-background [&_code]:px-1 [&_code]:font-mono
+              className="mt-2 rounded-[22px] bg-surface p-5 text-[15px] leading-relaxed shadow-card animate-in fade-in-0 duration-200
+                [&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:font-mono
                 [&_table]:my-2 [&_table]:w-full [&_table]:border-collapse
                 [&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:text-left
                 [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1

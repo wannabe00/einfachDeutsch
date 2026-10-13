@@ -9,6 +9,7 @@ import { EditStep } from "@/components/recite/EditStep"
 import { StudyRecordStep } from "@/components/recite/StudyRecordStep"
 import { ResultCard } from "@/components/recite/ResultCard"
 import { PageHeader } from "@/components/layout/PageHeader"
+import { cn } from "@/lib/utils"
 
 const MAX_SECONDS = 120
 
@@ -61,8 +62,10 @@ export default function RecitePage() {
         subtitle="Read a short German text, then retell it from memory in your own words. We transcribe and grade your retelling (your audio is discarded after)."
       />
 
+      <Steps current={phase === "edit" ? 0 : phase === "done" ? 2 : 1} />
+
       {!recorderSupported && (
-        <p className="rounded-xl border border-danger/40 bg-danger-bg p-4 text-sm text-danger">
+        <p className="rounded-2xl bg-danger-bg p-4 text-sm font-medium text-danger">
           Your browser doesn't support audio recording. Try Chrome, Edge, or
           Firefox on desktop.
         </p>
@@ -93,5 +96,33 @@ export default function RecitePage() {
 
       {phase === "done" && result && <ResultCard result={result} onReset={reset} />}
     </div>
+  )
+}
+
+const STEPS = ["Your text", "Study & record", "Feedback"]
+
+/** Where you are in the three steps. */
+function Steps({ current }: { current: number }) {
+  return (
+    <ol className="flex items-center gap-2" aria-label="Steps">
+      {STEPS.map((label, i) => (
+        <li key={label} className="flex min-w-0 flex-1 items-center gap-2" aria-current={i === current ? "step" : undefined}>
+          <span
+            className={cn(
+              "flex size-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition-colors",
+              i < current && "bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]",
+              i === current && "bg-primary text-primary-foreground",
+              i > current && "bg-surface-2 text-muted-foreground",
+            )}
+          >
+            {i + 1}
+          </span>
+          <span className={cn("truncate text-sm font-semibold", i === current ? "text-foreground" : "text-muted-foreground")}>
+            {label}
+          </span>
+          {i < STEPS.length - 1 && <span className="hidden h-px flex-1 bg-border sm:block" aria-hidden="true" />}
+        </li>
+      ))}
+    </ol>
   )
 }

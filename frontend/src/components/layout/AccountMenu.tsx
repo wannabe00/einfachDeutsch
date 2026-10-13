@@ -51,7 +51,7 @@ export function AccountMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-2xl bg-popover p-1.5 shadow-lift">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent/15 text-sm font-bold text-accent">
               {user.avatar_url ? (
@@ -72,7 +72,7 @@ export function AccountMenu() {
           <MenuLink to="/privacy" icon={Shield} label="Privacy" onClick={() => setOpen(false)} />
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[15px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           >
             <LogOut className="size-4" /> Log out
           </button>
@@ -97,7 +97,7 @@ function MenuLink({
     <Link
       to={to}
       onClick={onClick}
-      className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+      className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-[15px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
     >
       <Icon className="size-4" /> {label}
     </Link>

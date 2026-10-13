@@ -1,63 +1,42 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, NavLink, useLocation } from "react-router-dom"
-import { ChevronDown, Menu, X } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { ChevronDown } from "lucide-react"
 
 import { useAuth } from "@/contexts/AuthContext"
+import { fetchStreak } from "@/api/leveling"
 import { SITE_NAME } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useEnergy } from "@/hooks/useEnergy"
 import { EnergyMeter } from "@/components/path/EnergyMeter"
+import { StreakFlame } from "@/components/lektion/StreakFlame"
 import { AccountMenu } from "./AccountMenu"
-import { MobileNav } from "./MobileNav"
 import { dashboardItem, pathItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
 
+/** The streak shows in the bar once the flame is earned (see DESIGN.md). */
+const STREAK_CHIP_FROM = 3
+
 /*
- * Main navigation. On desktop: logo, a few direct links, and dropdown groups
- * (Practice / Library / Explore). On mobile: a menu button that opens
- * `MobileNav`. Guests see login buttons instead of the nav.
+ * Frosted top bar. Large screens: logo, the nav in a pill track (with
+ * Practice / Library / Explore dropdowns), then streak, energy and account.
+ * Phones and tablets only show the logo, energy and account here; their
+ * navigation is the bottom `TabBar`. Guests see login buttons.
  */
 export function TopBar() {
-  const { user } = useAuth()
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const { pathname } = useLocation()
-
-  // Close the mobile drawer whenever the route changes (React's adjust-state-on-
-  // change idiom: compare against a previous-value state, during render).
-  const [seenPath, setSeenPath] = useState(pathname)
-  if (seenPath !== pathname) {
-    setSeenPath(pathname)
-    if (drawerOpen) setDrawerOpen(false)
-  }
+  const { user, loading } = useAuth()
 
   return (
-    <>
-      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
-        <button
-          onClick={() => setDrawerOpen((v) => !v)}
-          aria-label={drawerOpen ? "Close menu" : "Open menu"}
-          aria-expanded={drawerOpen}
-          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground md:hidden"
-        >
-          {drawerOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+    <header className="glass sticky top-0 z-30 shrink-0">
+      {/* Full width: logo at the left edge, account at the right, and on large
+          screens the links exactly centred (equal side columns). */}
+      <div className="grid h-14 w-full grid-cols-[1fr_auto] items-center gap-3 px-4 sm:px-6 lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:px-8">
+        <Logo className="justify-self-start" />
 
-        <Link
-          to="/"
-          className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-foreground"
+        <nav
+          className="hidden items-center gap-0.5 rounded-full bg-surface-2/80 p-1 lg:flex"
+          aria-label="Main"
         >
-          <span className="inline-flex gap-1" aria-hidden="true">
-            <span className="size-2.5 rounded-full" style={{ background: "hsl(var(--article-der))" }} />
-            <span
-              className="size-2.5"
-              style={{ background: "hsl(var(--article-die))", clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
-            />
-            <span className="size-2.5" style={{ background: "hsl(var(--article-das))" }} />
-          </span>
-          {SITE_NAME}
-        </Link>
-
-        <nav className="ml-4 hidden items-center gap-1 md:flex">
           <BarLink item={dashboardItem} />
           <BarLink item={pathItem} />
           {navGroups.map((group) => (
@@ -66,9 +45,12 @@ export function TopBar() {
           <BarLink item={aiItem} />
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3">
-          {user ? (
+        <div className="flex shrink-0 items-center justify-self-end gap-2">
+          {/* Nothing until we know who's signed in, so members don't see a
+              flash of the guest buttons on every page load. */}
+          {loading ? null : user ? (
             <>
+              <StreakChip />
               <GlobalEnergy />
               <AccountMenu />
             </>
@@ -85,14 +67,71 @@ export function TopBar() {
             </>
           )}
         </div>
-      </header>
-
-      <MobileNav open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-    </>
+      </div>
+    </header>
   )
 }
 
-/** The always-visible energy meter, ticking down to the next refill. */
+/** The der / die / das mark: circle, triangle and square in the article colours. */
+function LogoMark() {
+  return (
+    <span className="inline-flex items-center gap-[3px]" aria-hidden="true">
+      <span className="size-2.5 rounded-full bg-article-der" />
+      <span
+        className="size-2.5 bg-article-die"
+        style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
+      />
+      <span className="size-2.5 rounded-[2px] bg-article-das" />
+    </span>
+  )
+}
+
+/** The mark plus the site name, its last capitalised word in red ("einfach" + "Deutsch"). */
+export function Logo({ className }: { className?: string }) {
+  const m = SITE_NAME.match(/^(.*?)([A-Z][a-z]+)$/)
+  return (
+    <Link
+      to="/"
+      className={cn(
+        "flex shrink-0 items-center gap-2 text-[19px] font-extrabold tracking-[-0.03em] text-foreground",
+        className,
+      )}
+    >
+      <LogoMark />
+      <span>
+        {m ? (
+          <>
+            {m[1]}
+            <span className="text-primary">{m[2]}</span>
+          </>
+        ) : (
+          SITE_NAME
+        )}
+      </span>
+    </Link>
+  )
+}
+
+/** Streak count with the flame, only once it's earned. */
+function StreakChip() {
+  const { user } = useAuth()
+  const { data } = useQuery({ queryKey: ["streak"], queryFn: fetchStreak, enabled: !!user })
+  const days = data?.current_streak ?? 0
+  if (days < STREAK_CHIP_FROM) return null
+  return (
+    <Link
+      to="/"
+      className="hidden h-9 items-center gap-1 rounded-full bg-surface-2 pl-2 pr-3 text-sm font-bold tabular-nums sm:inline-flex"
+      title={`${days}-day streak`}
+      aria-label={`${days}-day streak`}
+    >
+      <StreakFlame size={20} />
+      {days}
+    </Link>
+  )
+}
+
+/** The always-visible energy chip, ticking down to the next refill. */
 function GlobalEnergy() {
   const { energy, secondsUntilNext } = useEnergy()
   if (!energy) return null
@@ -102,30 +141,28 @@ function GlobalEnergy() {
       max={energy.max}
       premium={energy.premium}
       secondsUntilNext={secondsUntilNext}
-      className="max-sm:hidden"
     />
   )
 }
 
-/** A standalone top-bar link (Dashboard, AI Assistant). */
+const linkCls = (active: boolean) =>
+  cn(
+    "flex h-9 items-center rounded-full px-3.5 text-[15px] font-medium transition-colors",
+    active
+      ? "bg-surface text-foreground shadow-card"
+      : "text-muted-foreground hover:text-foreground",
+  )
+
+/** A standalone link in the track (Home, Path, AI Assistant). */
 function BarLink({ item }: { item: NavLeaf }) {
   return (
-    <NavLink
-      to={item.to}
-      end={item.end}
-      className={({ isActive }) =>
-        cn(
-          "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-          isActive ? "bg-primary/15 text-foreground" : "text-muted-foreground hover:text-foreground",
-        )
-      }
-    >
+    <NavLink to={item.to} end={item.end} className={({ isActive }) => linkCls(isActive)}>
       {item.label}
     </NavLink>
   )
 }
 
-/** A top-bar dropdown menu. Opens on hover (desktop pointer) and on click;
+/** A dropdown in the track. Opens on hover (desktop pointer) and on click;
     closes on outside click or route change. Highlights when a child is active. */
 function NavDropdown({ group }: { group: NavGroup }) {
   const [open, setOpen] = useState(false)
@@ -159,32 +196,29 @@ function NavDropdown({ group }: { group: NavGroup }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={cn(
-          "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-          active || open ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-        )}
+        className={cn(linkCls(active), "gap-1", open && !active && "text-foreground")}
       >
         {group.label}
         <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 w-56 pt-1">
-          <div className="rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+        <div className="absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-2">
+          <div className="rounded-2xl bg-popover p-1.5 shadow-lift animate-in fade-in-0 zoom-in-95 duration-150">
             {group.items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-[15px] transition-colors",
                     isActive
-                      ? "bg-primary/15 text-foreground"
-                      : "text-muted-foreground hover:bg-background hover:text-foreground",
+                      ? "bg-surface-2 font-semibold text-foreground"
+                      : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
                   )
                 }
               >
-                <item.icon className="size-4 shrink-0" aria-hidden="true" />
+                <item.icon className="size-[18px] shrink-0" aria-hidden="true" />
                 {item.label}
               </NavLink>
             ))}

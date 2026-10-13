@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom"
 import { isAxiosError } from "axios"
 
 import { useAuth } from "@/contexts/AuthContext"
-import { SITE_NAME } from "@/lib/site"
 import { isProviderConfigured, startOAuth } from "@/lib/oauth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { AuthShell } from "@/components/auth/AuthShell"
+import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
 import { AUTH_CARD } from "@/lib/authCard"
 
 export default function AuthPage() {
@@ -42,9 +41,10 @@ export default function AuthPage() {
   return (
     <AuthShell maxWidth="max-w-sm">
       <div>
-        <h1 className="text-center text-2xl font-bold tracking-tight">{SITE_NAME}</h1>
-        <p className="mt-1 text-center text-sm text-muted-foreground">
-          Sign in or create your account
+        <AuthWordmark />
+        <h1 className="mt-6 text-center text-3xl font-extrabold lg:mt-0 lg:text-left">Willkommen!</h1>
+        <p className="mt-1 text-center text-muted-foreground lg:text-left">
+          Sign in or create your account.
         </p>
 
         <div className={`mt-8 flex flex-col gap-3 ${AUTH_CARD}`}>
@@ -60,7 +60,7 @@ export default function AuthPage() {
             onClick={() => startOAuth("github")}
           />
 
-          <div className="my-1 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="my-2 flex items-center gap-3 text-sm text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             or log in with username
             <span className="h-px flex-1 bg-border" />
@@ -84,14 +84,18 @@ export default function AuthPage() {
               autoComplete="current-password"
               required
             />
-            {error && <p className="text-sm text-[hsl(var(--danger))]">{error}</p>}
-            <Button type="submit" disabled={pending}>
+            {error && (
+              <p className="rounded-xl bg-danger-bg px-3.5 py-2.5 text-sm font-medium text-danger" role="alert">
+                {error}
+              </p>
+            )}
+            <Button type="submit" size="lg" disabled={pending}>
               {pending ? "Please wait…" : "Log in"}
             </Button>
           </form>
         </div>
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
+        <p className="mt-5 text-center text-sm text-muted-foreground">
           New here? Continue with Google or GitHub and we'll set up your
           profile next.
         </p>
@@ -116,7 +120,7 @@ function SocialButton({
       onClick={onClick}
       disabled={!configured}
       title={configured ? undefined : "Sign-in not configured yet"}
-      className="flex h-11 items-center justify-center gap-3 rounded-lg border border-border bg-muted text-sm font-medium transition-colors hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-12 items-center justify-center gap-3 rounded-full bg-surface-2 text-[15px] font-semibold transition-colors hover:bg-border disabled:cursor-not-allowed disabled:opacity-50"
     >
       {provider === "google" ? <GoogleMark /> : <GitHubMark />}
       {label}
