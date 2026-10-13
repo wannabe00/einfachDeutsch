@@ -251,6 +251,7 @@ export type ExerciseType =
   | "matching"
   | "sentence_order"
   | "word_bank"
+  | "group"
 
 /** Solution-stripped payload shapes the UI receives (varies by type). */
 export interface ExercisePayload {
@@ -418,7 +419,7 @@ export interface ExamStatus {
 
 export interface ExamStart {
   attempt_id: number
-  questions: ExerciseContent[]
+  questions: ExamQuestion[]
 }
 
 export interface ExamResult {
@@ -437,8 +438,9 @@ export interface ExamResult {
 
 export type LessonItemKind = "exercise" | "drill" | "review" | "grammar"
 
-export interface ExerciseContent {
-  exercise_id: number
+/** One exercise as the player shows it: a whole exercise, one part of a
+    multi-part ("group") exercise, or an exam question. */
+export interface PartContent {
   type: string
   prompt: string
   hint: string
@@ -450,7 +452,18 @@ export interface ExerciseContent {
     bank?: string[]
     left?: string[]
     right?: string[]
+    /** group: the parts shown together on one screen. */
+    parts?: PartContent[]
   }
+}
+
+export interface ExerciseContent extends PartContent {
+  exercise_id: number
+}
+
+export interface ExamQuestion extends PartContent {
+  /** "12" for an exercise, "12:3" for part 3 of a multi-part one. */
+  question_id: string
 }
 
 export interface ReviewContent {
@@ -486,10 +499,15 @@ export interface LessonDetail {
   is_new: boolean
 }
 
+/** A string, a list (sentence order, word bank) or [left, right] pairs (matching). */
+export type PartSolution = string | string[] | [string, string][]
+
 export interface AnswerResult {
   correct: boolean
-  /** A string, a list (sentence order, word bank) or [left, right] pairs (matching). */
-  solution: string | string[] | [string, string][]
+  /** One verdict per part; a single exercise has one. */
+  parts: boolean[]
+  /** A group's solution is one PartSolution per part. */
+  solution: PartSolution | PartSolution[]
   explanation: string
 }
 

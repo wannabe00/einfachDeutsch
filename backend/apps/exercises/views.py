@@ -64,7 +64,9 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        # This page can't show multi-part exercises; they live in the lesson
+        # player until practice sets replace this page (plan 24.6).
+        qs = super().get_queryset().exclude(exercise_type="group")
         chapter = self.request.query_params.get("chapter")
         ex_type = self.request.query_params.get("type")
         if chapter:

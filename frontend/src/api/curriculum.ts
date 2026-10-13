@@ -83,10 +83,10 @@ export async function startExam(): Promise<ExamStart> {
   return data
 }
 
-/** Submit answers keyed by exercise_id; the server grades and may promote you. */
+/** Submit answers keyed by question_id; the server grades and may promote you. */
 export async function submitExam(
   attemptId: number,
-  answers: Record<number, unknown>,
+  answers: Record<string, unknown>,
 ): Promise<ExamResult> {
   const { data } = await apiClient.post<ExamResult>("/curriculum/exam/submit/", {
     attempt_id: attemptId,

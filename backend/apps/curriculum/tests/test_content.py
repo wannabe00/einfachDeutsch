@@ -9,7 +9,8 @@ from collections import Counter
 from django.test import SimpleTestCase
 
 from apps.curriculum.content.a1 import A1_UNITS
-from apps.curriculum.grading import grade
+from apps.curriculum.content.dsl import art, fill, group
+from apps.curriculum.grading import grade, grade_parts, public_exercise, solution_of
 from apps.curriculum.management.commands.seed_a1_path import exercise_fields
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
@@ -22,6 +23,8 @@ MAX_ITEMS_PER_LESSON = 12
 
 def right_answer(item):
     t = item["type"]
+    if t == "group":
+        return [right_answer(p) for p in item["parts"]]
     if t in ("multiple_choice", "sentence_order"):
         return item["answer"]
     if t == "word_bank":
@@ -33,6 +36,8 @@ def right_answer(item):
 
 def wrong_answer(item):
     t = item["type"]
+    if t == "group":
+        return [wrong_answer(p) for p in item["parts"]]
     if t == "multiple_choice":
         return next(o for o in item["options"] if o != item["answer"])
     if t == "sentence_order":
@@ -45,10 +50,18 @@ def wrong_answer(item):
 
 
 def exercises(unit):
+    """Every exercise, with a multi-part one's parts listed after it."""
     for les in unit["lessons"]:
         for item in les["items"]:
             if item["kind"] == "exercise":
                 yield les, item
+                for part in item.get("parts", []):
+                    yield les, part
+
+
+def single_exercises(unit):
+    """Every exercise and part that holds an answer of its own."""
+    return ((les, i) for les, i in exercises(unit) if i["type"] != "group")
 
 
 class ContentTests(SimpleTestCase):
@@ -114,6 +127,9 @@ class ContentTests(SimpleTestCase):
                 ex = Exercise(**exercise_fields(item))
                 self.assertTrue(grade(ex, right_answer(item)), f"Own answer fails: {where}")
                 self.assertFalse(grade(ex, wrong_answer(item)), f"Wrong answer passes: {where}")
+                if item["type"] == "group":
+                    self.assertGreaterEqual(len(item["parts"]), 2, where)
+                    self.assertFalse(any(grade_parts(ex, wrong_answer(item))), where)
                 if item["type"] == "multiple_choice":
                     self.assertEqual(len(item["options"]), len(set(item["options"])), where)
                     self.assertGreaterEqual(len(item["options"]), 2, where)
@@ -127,7 +143,7 @@ class ContentTests(SimpleTestCase):
         for u in A1_UNITS:
             keys = [
                 (i["type"], i["prompt"], str(right_answer(i)), i.get("text", ""))
-                for _, i in exercises(u)
+                for _, i in single_exercises(u)
             ]
             dupes = [k for k, n in Counter(keys).items() if n > 1]
             self.assertFalse(dupes, f"Unit {u['order']} repeats: {dupes[:3]}")
@@ -136,3 +152,27 @@ class ContentTests(SimpleTestCase):
         for u in A1_UNITS:
             for _, item in exercises(u):
                 self.assertNotIn("—", str(item), item["prompt"])
+
+
+class GroupGradingTests(SimpleTestCase):
+    def setUp(self):
+        item = group(
+            "Choose the article.", art("der Tisch"), art("die Lampe"), fill("Ich ___.", "bin")
+        )
+        self.ex = Exercise(**exercise_fields(item))
+
+    def test_each_part_is_marked(self):
+        self.assertEqual(grade_parts(self.ex, ["der", "das", "bin"]), [True, False, True])
+        self.assertFalse(grade(self.ex, ["der", "das", "bin"]))
+        self.assertTrue(grade(self.ex, ["der", "die", "bin"]))
+
+    def test_missing_or_malformed_answers_score_nothing(self):
+        self.assertEqual(grade_parts(self.ex, ["der"]), [True, False, False])
+        self.assertEqual(grade_parts(self.ex, "der"), [False, False, False])
+
+    def test_the_client_never_sees_answers(self):
+        public = public_exercise(self.ex)
+        self.assertEqual(public["type"], "group")
+        self.assertEqual(len(public["payload"]["parts"]), 3)
+        self.assertNotIn("answer", str(public))
+        self.assertEqual(solution_of(self.ex), [["der"], ["die"], ["bin"]])

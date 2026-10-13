@@ -91,6 +91,15 @@ def match(pairs, prompt: str = "Match the pairs.", hint: str = "") -> dict:
     return _exercise("matching", prompt, hint, pairs=pairs)
 
 
+def group(prompt: str, *parts: dict, hint: str = "") -> dict:
+    """Several exercises on one screen, like a workbook task: "write the new
+    words in these five sentences". Each part is built with the helpers above
+    and is checked on its own; the lesson score counts parts."""
+    assert len(parts) >= 2, prompt
+    assert all(p["kind"] == "exercise" and p["type"] != "group" for p in parts), prompt
+    return _exercise("group", prompt, hint, parts=list(parts))
+
+
 # ---- non-exercise items ----------------------------------------------------
 
 
@@ -130,33 +139,39 @@ def _german_head(german: str) -> str:
 def vocab_lessons(words, title: str, group_size: int = 6) -> list[dict]:
     """Lessons that practise every word in `words`, `group_size` at a time.
 
-    Each lesson matches the group German to English, asks the article of each
+    Each lesson matches the batch German to English, asks the article of each
     noun, the meaning of two words, and a translation of up to two nouns or
     verbs. Distractors come from the same word list.
     """
     words = list(words)
     lessons = []
     for start in range(0, len(words), group_size):
-        group = words[start : start + group_size]
-        if len(group) < 3:  # fold a tiny remainder into the previous lesson
-            lessons[-1]["items"].append(match([(w[1], w[0]) for w in group]))
-            lessons[-1]["teaches"].extend(w[1] for w in group)
+        batch = words[start : start + group_size]
+        if len(batch) < 3:  # fold a tiny remainder into the previous lesson
+            lessons[-1]["items"].append(match([(w[1], w[0]) for w in batch]))
+            lessons[-1]["teaches"].extend(w[1] for w in batch)
             continue
         n = len(lessons) + 1
-        items = [match([(w[1], w[0]) for w in group], "Match the German to the English.")]
-        for w in group:
-            if w[2] == "noun" and w[1].split(" ", 1)[0] in ARTICLES and len(w[1].split()) == 2:
-                items.append(art(w[1], hint=w[0]))
+        items = [match([(w[1], w[0]) for w in batch], "Match the German to the English.")]
+        articles = [
+            art(w[1], hint=w[0])
+            for w in batch
+            if w[2] == "noun" and w[1].split(" ", 1)[0] in ARTICLES and len(w[1].split()) == 2
+        ]
+        if len(articles) >= 2:
+            items.append(group("Choose the article.", *articles))
+        else:
+            items.extend(articles)
         others = [w[0] for w in words]
-        for w in group[:2]:
+        for w in batch[:2]:
             rng = _rng(title + w[1])
             pool = [e for e in others if e != w[0]]
             wrong = rng.sample(pool, min(3, len(pool)))
             items.append(mc(f"What does “{w[1]}” mean?", w[0], *wrong))
-        translatable = [w for w in group[2:] if w[2] in ("noun", "verb")][:2]
+        translatable = [w for w in batch[2:] if w[2] in ("noun", "verb")][:2]
         for w in translatable:
             items.append(tr(w[0], w[1]))
-        lessons.append(lesson(f"{title} {n}", *items, teaches=[w[1] for w in group]))
+        lessons.append(lesson(f"{title} {n}", *items, teaches=[w[1] for w in batch]))
     return lessons
 
 

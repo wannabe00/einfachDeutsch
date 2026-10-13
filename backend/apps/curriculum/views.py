@@ -173,7 +173,7 @@ PASS_THRESHOLD = 0.6
 def _get_playable_lesson(user, lesson_id: int) -> Lesson:
     """Fetch a lesson the user is actually allowed to play."""
     lesson = get_object_or_404(
-        Lesson.objects.select_related("unit").prefetch_related("items"), pk=lesson_id
+        Lesson.objects.select_related("unit").prefetch_related("items__exercise"), pk=lesson_id
     )
     if not gating.is_lesson_unlocked(user, lesson):
         raise PermissionDenied("This lesson is locked.")
@@ -224,10 +224,12 @@ def lesson_answer(request, lesson_id: int):
     if not item.exercise_id:
         return Response({"detail": "This item isn't gradable."}, status=status.HTTP_400_BAD_REQUEST)
 
-    correct = grading.grade(item.exercise, request.data.get("answer"))
+    parts = grading.grade_parts(item.exercise, request.data.get("answer"))
     return Response(
         {
-            "correct": correct,
+            "correct": all(parts),
+            # One verdict per part; a single exercise has one.
+            "parts": parts,
             "solution": grading.solution_of(item.exercise),
             "explanation": item.exercise.explanation,
         }
@@ -239,16 +241,21 @@ def lesson_answer(request, lesson_id: int):
 def lesson_complete(request, lesson_id: int):
     """Finish a lesson: re-grade every answer server-side, then award.
 
-    Energy is only spent when a lesson is passed for the first time. Quitting
+    The score counts parts, so a five-part exercise weighs five. Energy is only spent when a lesson is passed for the first time. Quitting
     costs nothing, and a failed attempt doesn't advance the path.
     """
     user = request.user
     lesson = _get_playable_lesson(user, lesson_id)
 
     submitted = {a.get("item_id"): a.get("answer") for a in request.data.get("answers", [])}
-    gradable = [i for i in lesson.items.all() if i.exercise_id]
-    correct_count = sum(1 for i in gradable if grading.grade(i.exercise, submitted.get(i.id)))
-    score = (correct_count / len(gradable)) if gradable else 1.0
+    verdicts = [
+        v
+        for i in lesson.items.all()
+        if i.exercise_id
+        for v in grading.grade_parts(i.exercise, submitted.get(i.id))
+    ]
+    correct_count = sum(verdicts)
+    score = (correct_count / len(verdicts)) if verdicts else 1.0
     passed = score >= PASS_THRESHOLD
 
     was_completed = _already_completed(user, lesson)
@@ -277,7 +284,7 @@ def lesson_complete(request, lesson_id: int):
             "passed": passed,
             "score": round(score, 3),
             "correct": correct_count,
-            "total": len(gradable),
+            "total": len(verdicts),
             "xp_earned": lesson.xp_reward if (passed and not was_completed) else 0,
             "crown": progress.crown,
             "spent_energy": spent_energy,

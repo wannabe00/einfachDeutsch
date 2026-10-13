@@ -25,77 +25,131 @@ def normalize(text: str) -> str:
     return text.strip().casefold()
 
 
-def _accepted_answers(exercise: Exercise) -> list[str]:
-    """A simple exercise may list alternatives separated by '|'."""
-    return [a for a in (exercise.correct_answer or "").split("|") if a.strip()]
+SIMPLE_TYPES = {"translation", "fill_blank", "article", "conjugation"}
+
+
+def parts_of(exercise: Exercise) -> list[dict]:
+    """An exercise as a list of parts, each `{"type", "prompt", "hint", ...}`
+    with its answer fields (the shape the content files use).
+
+    A `group` exercise stores its parts in `payload["parts"]`; any other
+    exercise is a single part. Simple types keep their answer in the
+    `correct_answer` column, so it is copied in as `answer`.
+    """
+    if exercise.exercise_type == "group":
+        return list((exercise.payload or {}).get("parts", []))
+    part = {
+        "type": exercise.exercise_type,
+        "prompt": exercise.prompt,
+        "hint": exercise.hint,
+        **(exercise.payload or {}),
+    }
+    if exercise.exercise_type in SIMPLE_TYPES:
+        part["answer"] = exercise.correct_answer or ""
+    return [part]
+
+
+def _accepted(part: dict) -> list[str]:
+    """A simple part may list alternatives separated by '|'."""
+    return [a for a in (part.get("answer") or "").split("|") if a.strip()]
+
+
+def _same_list(answer, expected) -> bool:
+    if not isinstance(answer, (list, tuple)) or len(answer) != len(expected):
+        return False
+    return [normalize(t) for t in answer] == [normalize(t) for t in expected]
+
+
+def grade_part(part: dict, answer) -> bool:
+    """True if `answer` solves one part. Unknown types never pass silently."""
+    ptype = part.get("type")
+    if ptype == "multiple_choice":
+        return normalize(answer) == normalize(part.get("answer", ""))
+    if ptype == "sentence_order":
+        return _same_list(answer, part.get("answer", []))
+    if ptype == "word_bank":
+        return _same_list(answer, part.get("answers", []))
+    if ptype == "matching":
+        if not isinstance(answer, dict):
+            return False
+        return all(
+            normalize(answer.get(left, "")) == normalize(right)
+            for left, right in part.get("pairs", [])
+        )
+    if ptype in SIMPLE_TYPES:
+        given = normalize(answer)
+        return any(given == normalize(a) for a in _accepted(part))
+    # free_text has no single right answer and needs AI, so it can't be graded here.
+    return False
+
+
+def grade_parts(exercise: Exercise, answer) -> list[bool]:
+    """One verdict per part. A group's answer is a list with one entry per part."""
+    parts = parts_of(exercise)
+    if exercise.exercise_type != "group":
+        return [grade_part(parts[0], answer)]
+    answers = answer if isinstance(answer, (list, tuple)) else []
+    return [grade_part(p, answers[i] if i < len(answers) else None) for i, p in enumerate(parts)]
 
 
 def grade(exercise: Exercise, answer) -> bool:
-    """True if `answer` solves `exercise`. Unknown types never pass silently."""
-    etype = exercise.exercise_type
+    """True if every part of `answer` is right."""
+    results = grade_parts(exercise, answer)
+    return bool(results) and all(results)
 
-    if etype == "multiple_choice":
-        return normalize(answer) == normalize(exercise.payload.get("answer", ""))
 
-    if etype == "sentence_order":
-        expected = exercise.payload.get("answer", [])
-        if not isinstance(answer, (list, tuple)):
-            return False
-        if len(answer) != len(expected):
-            return False
-        return [normalize(t) for t in answer] == [normalize(t) for t in expected]
-
-    if etype == "word_bank":
-        expected = exercise.payload.get("answers", [])
-        if not isinstance(answer, (list, tuple)) or len(answer) != len(expected):
-            return False
-        return [normalize(t) for t in answer] == [normalize(t) for t in expected]
-
-    if etype == "matching":
-        pairs = exercise.payload.get("pairs", [])
-        if not isinstance(answer, dict):
-            return False
-        return all(normalize(answer.get(left, "")) == normalize(right) for left, right in pairs)
-
-    if etype in {"translation", "fill_blank", "article", "conjugation"}:
-        given = normalize(answer)
-        return any(given == normalize(a) for a in _accepted_answers(exercise))
-
-    # free_text has no single right answer and needs AI, so it can't be graded here.
-    return False
+def public_part(part: dict) -> dict:
+    """A part as the client may see it, with the answers removed."""
+    payload = {
+        k: v
+        for k, v in part.items()
+        if k not in ("type", "prompt", "hint", "explanation", "answer", "answers")
+    }
+    if part.get("type") == "matching":
+        pairs = payload.pop("pairs", [])
+        payload["left"] = [p[0] for p in pairs]
+        payload["right"] = sorted({p[1] for p in pairs})
+    return {
+        "type": part.get("type"),
+        "prompt": part.get("prompt", ""),
+        "hint": part.get("hint", ""),
+        "payload": payload,
+    }
 
 
 def public_exercise(exercise: Exercise) -> dict:
     """An exercise as the client may see it, with the answers removed.
 
     The lesson player and the level exam both use this, so there is one place
-    that decides what is safe to send.
+    that decides what is safe to send. A group's parts go in `payload.parts`.
     """
-    payload = dict(exercise.payload or {})
-    payload.pop("answer", None)
-    payload.pop("answers", None)
-    if exercise.exercise_type == "matching":
-        pairs = payload.pop("pairs", [])
-        payload["left"] = [p[0] for p in pairs]
-        payload["right"] = sorted({p[1] for p in pairs})
-    return {
-        "exercise_id": exercise.id,
-        "type": exercise.exercise_type,
-        "prompt": exercise.prompt,
-        "hint": exercise.hint,
-        "payload": payload,
-    }
+    if exercise.exercise_type == "group":
+        out = {
+            "type": "group",
+            "prompt": exercise.prompt,
+            "hint": exercise.hint,
+            "payload": {"parts": [public_part(p) for p in parts_of(exercise)]},
+        }
+    else:
+        out = public_part(parts_of(exercise)[0])
+    return {"exercise_id": exercise.id, **out}
+
+
+def solution_of_part(part: dict):
+    """The answer to reveal for one part *after* an attempt (never before)."""
+    ptype = part.get("type")
+    if ptype in ("multiple_choice", "sentence_order"):
+        return part.get("answer", "" if ptype == "multiple_choice" else [])
+    if ptype == "word_bank":
+        return part.get("answers", [])
+    if ptype == "matching":
+        return part.get("pairs", [])
+    return _accepted(part)[:1] or [""]
 
 
 def solution_of(exercise: Exercise):
-    """The answer to reveal *after* an attempt (never before)."""
-    etype = exercise.exercise_type
-    if etype == "multiple_choice":
-        return exercise.payload.get("answer", "")
-    if etype == "sentence_order":
-        return exercise.payload.get("answer", [])
-    if etype == "word_bank":
-        return exercise.payload.get("answers", [])
-    if etype == "matching":
-        return exercise.payload.get("pairs", [])
-    return _accepted_answers(exercise)[:1] or [""]
+    """The answer to reveal *after* an attempt. A group gives one per part."""
+    parts = parts_of(exercise)
+    if exercise.exercise_type == "group":
+        return [solution_of_part(p) for p in parts]
+    return solution_of_part(parts[0])
