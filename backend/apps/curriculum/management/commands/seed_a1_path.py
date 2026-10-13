@@ -286,6 +286,23 @@ class Command(BaseCommand):
             LessonItem, (i.id for k, i in existing_items.items() if k not in desired_items)
         )
 
+        # ---- words each lesson teaches ----
+        Taught = Lesson.words.through
+        desired_taught = {
+            (lessons[(units[n].id, les["order"])].id, words[(chapters[n].id, german)].id): {
+                "lesson_id": lessons[(units[n].id, les["order"])].id,
+                "word_id": words[(chapters[n].id, german)].id,
+            }
+            for n, u in units_spec.items()
+            for les in u["lessons"]
+            for german in les["teaches"]
+        }
+        existing_taught = {
+            (t.lesson_id, t.word_id): t for t in Taught.objects.filter(lesson_id__in=lesson_ids)
+        }
+        sync(Taught, existing_taught, desired_taught, lambda t: (t.lesson_id, t.word_id))
+        delete_ids(Taught, (t.id for k, t in existing_taught.items() if k not in desired_taught))
+
         # Exercises from earlier runs that the content no longer has.
         removed += delete_ids(
             Exercise,

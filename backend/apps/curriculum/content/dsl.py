@@ -114,8 +114,10 @@ def rule(title: str, category: str, content: str, examples) -> dict:
     }
 
 
-def lesson(title: str, *items: dict) -> dict:
-    return {"title": title, "items": list(items)}
+def lesson(title: str, *items: dict, teaches=()) -> dict:
+    """`teaches` lists the German of the words this lesson introduces. Words no
+    lesson claims are assigned by `unit()`."""
+    return {"title": title, "items": list(items), "teaches": list(teaches)}
 
 
 # ---- vocabulary drills generated from a word list ---------------------------
@@ -138,6 +140,7 @@ def vocab_lessons(words, title: str, group_size: int = 6) -> list[dict]:
         group = words[start : start + group_size]
         if len(group) < 3:  # fold a tiny remainder into the previous lesson
             lessons[-1]["items"].append(match([(w[1], w[0]) for w in group]))
+            lessons[-1]["teaches"].extend(w[1] for w in group)
             continue
         n = len(lessons) + 1
         items = [match([(w[1], w[0]) for w in group], "Match the German to the English.")]
@@ -153,14 +156,29 @@ def vocab_lessons(words, title: str, group_size: int = 6) -> list[dict]:
         translatable = [w for w in group[2:] if w[2] in ("noun", "verb")][:2]
         for w in translatable:
             items.append(tr(w[0], w[1]))
-        lessons.append(lesson(f"{title} {n}", *items))
+        lessons.append(lesson(f"{title} {n}", *items, teaches=[w[1] for w in group]))
     return lessons
+
+
+def _assign_taught_words(words, lessons) -> None:
+    """Give every word exactly one teaching lesson: the first lesson that
+    names it in `teaches` or shows its flashcard, else the unit's last lesson."""
+    owner = {}
+    for les in lessons:
+        mentioned = les["teaches"] + [i["word"] for i in les["items"] if i["kind"] == "review"]
+        for german in mentioned:
+            owner.setdefault(german, les)
+    for les in lessons:
+        les["teaches"] = []
+    for w in words:
+        owner.get(w[1], lessons[-1])["teaches"].append(w[1])
 
 
 def unit(order: int, title: str, theme: str, words, rules, lessons) -> dict:
     """One Lektion. Lessons are numbered in the order given."""
     for i, les in enumerate(lessons, start=1):
         les["order"] = i
+    _assign_taught_words(words, lessons)
     return {
         "order": order,
         "title": title,

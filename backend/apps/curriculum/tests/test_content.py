@@ -102,6 +102,11 @@ class ContentTests(SimpleTestCase):
                     elif item["kind"] == "grammar":
                         self.assertIn(item["grammar"], rules, where)
 
+    def test_every_word_is_taught_by_exactly_one_lesson(self):
+        for u in A1_UNITS:
+            taught = [g for les in u["lessons"] for g in les["teaches"]]
+            self.assertCountEqual(taught, [w[1] for w in u["words"]], u["title"])
+
     def test_every_exercise_grades_correctly(self):
         for u in A1_UNITS:
             for les, item in exercises(u):

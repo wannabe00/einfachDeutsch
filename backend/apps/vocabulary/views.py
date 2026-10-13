@@ -23,35 +23,6 @@ def current_user(request):
     return request.user if request.user.is_authenticated else None
 
 
-def locked_chapter_ids_for(user) -> set[int]:
-    """Chapters whose vocabulary is still locked for `user`.
-
-    A Lektion at the user's own level stays locked until they've completed a
-    lesson in it. Lektionen below their level are review and always open, and
-    chapters with no path unit (older content, words the user added) never lock.
-
-    Words above the user's level aren't locked; the level filter means they're
-    never returned at all.
-    """
-    if user is None:
-        return set()
-
-    # Imported here so the vocabulary app doesn't hard-depend on curriculum.
-    from apps.curriculum.models import PathLessonProgress, Unit
-
-    level = user.profile.cefr_level
-    reached_unit_ids = set(
-        PathLessonProgress.objects.filter(user=user, completed_at__isnull=False).values_list(
-            "lesson__unit_id", flat=True
-        )
-    )
-    return set(
-        Unit.objects.filter(cefr_level=level, chapter__isnull=False)
-        .exclude(id__in=reached_unit_ids)
-        .values_list("chapter_id", flat=True)
-    )
-
-
 def due_words_for(user, chapter_id=None):
     """Words due for review for `user`.
 
@@ -117,7 +88,12 @@ class WordViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
-        ctx["locked_chapter_ids"] = locked_chapter_ids_for(current_user(self.request))
+        user = current_user(self.request)
+        if user is not None:
+            # Imported here so the vocabulary app doesn't hard-depend on curriculum.
+            from apps.curriculum.learned import learned_word_ids
+
+            ctx["learned_word_ids"] = learned_word_ids(user)
         return ctx
 
     @action(detail=False, methods=["get"], url_path="due")
