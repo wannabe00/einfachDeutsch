@@ -37,20 +37,20 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
     return () => clearTimeout(t)
   }, [phase, i, rounds.length])
 
-  if (!rules) return <DrillShell title="Flash Recall" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (rounds.length === 0) return <DrillShell title="Flash Recall" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
+  if (!rules) return <DrillShell title="Flash Recall" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Loading…</p></DrillShell>
+  if (rounds.length === 0) return <DrillShell title="Flash Recall" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
 
   if (i >= rounds.length) {
     const pct = Math.round((score.correct / rounds.length) * 100)
     return (
       <DrillShell title="Flash Recall" onExit={onExit}>
-        <div className="flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="text-2xl font-semibold">Drill complete</h2>
-          <p className="text-5xl font-bold text-accent">{pct}%</p>
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-[28px] bg-surface px-6 py-10 text-center shadow-card">
+          <h2 className="text-3xl font-extrabold">Drill complete</h2>
+          <p className="font-grotesk text-6xl font-extrabold tracking-tight text-primary animate-in zoom-in-50 fade-in-0 duration-500">{pct}%</p>
           <p className="text-sm text-muted-foreground">{score.correct} correct · {score.wrong} wrong</p>
-          <div className="flex gap-3">
-            <Button onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setValue(""); setVerdict(null); setPhase("show") }}>Again</Button>
-            <Button variant="secondary" onClick={onExit}>Back to drills</Button>
+          <div className="mt-3 flex w-full flex-col gap-2.5">
+            <Button size="lg" onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setValue(""); setVerdict(null); setPhase("show") }}>Again</Button>
+            <Button size="lg" variant="secondary" onClick={onExit}>Back to drills</Button>
           </div>
         </div>
       </DrillShell>
@@ -78,10 +78,10 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
       <div className="mx-auto flex max-w-lg flex-col items-center gap-5 py-10">
         {phase === "show" ? (
           <>
-            <p className="text-xs font-medium uppercase tracking-wide text-accent">Memorize…</p>
-            <p className="text-center text-2xl font-semibold text-foreground">{sentence}</p>
-            <div className="h-1 w-40 overflow-hidden rounded-full bg-border">
-              <div className="h-1 animate-[shrink_3s_linear] rounded-full bg-accent" style={{ width: "100%", animation: `drainbar ${FLASH_MS}ms linear forwards` }} />
+            <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-primary">Memorize…</p>
+            <p className="text-center font-grotesk text-3xl font-extrabold tracking-tight text-foreground">{sentence}</p>
+            <div className="h-2 w-48 overflow-hidden rounded-full bg-surface-2">
+              <div className="h-2 rounded-full bg-primary" style={{ width: "100%", animation: `drainbar ${FLASH_MS}ms linear forwards` }} />
             </div>
             <style>{`@keyframes drainbar{from{width:100%}to{width:0%}}`}</style>
           </>
@@ -97,18 +97,18 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
               placeholder="Rebuild it…"
               aria-label="Type the sentence"
               className={cn(
-                "text-center text-base",
+                "h-14 text-center text-lg",
                 verdict === "right" && "border-[hsl(var(--success))]",
                 verdict === "wrong" && "border-[hsl(var(--danger))]",
               )}
             />
             {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
             {verdict && (
-              <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+              <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
                 {verdict === "right" ? "Correct" : `Answer: ${sentence}`}
               </p>
             )}
-            <Button type="submit">{verdict ? "Next" : "Check"}</Button>
+            <Button type="submit" size="lg">{verdict ? "Next" : "Check"}</Button>
           </form>
         )}
       </div>

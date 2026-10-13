@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, ChevronDown } from "lucide-react"
+import { BookOpenCheck, ChevronDown } from "lucide-react"
 
 import { fetchBooks } from "@/api/books"
 import { fetchWords } from "@/api/vocabulary"
@@ -9,6 +9,7 @@ import { fetchGrammarRules } from "@/api/grammar"
 import type { GrammarRule, Word } from "@/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { BackLink } from "@/components/ui/BackLink"
 import { ArticleBadge } from "@/components/vocabulary/ArticleBadge"
 import { GrammarCard } from "@/components/grammar/GrammarCard"
 
@@ -40,16 +41,14 @@ export default function ChapterDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Link
-          to="/books"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Books
-        </Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">
-          {chapter ? `Chapter ${chapter.number}: ${chapter.title}` : "Chapter"}
-        </h1>
-        {book && <p className="mt-1 text-sm text-muted-foreground">{book.title}</p>}
+        <BackLink to="/books" label="Books" />
+        {book && (
+          <p className="mt-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+            {book.title}
+            {chapter && ` · Chapter ${chapter.number}`}
+          </p>
+        )}
+        <h1 className="mt-1 text-3xl font-extrabold sm:text-4xl">{chapter ? chapter.title : "Chapter"}</h1>
         {chapter?.description && (
           <p className="mt-2 text-sm text-muted-foreground">{chapter.description}</p>
         )}
@@ -57,12 +56,15 @@ export default function ChapterDetailPage() {
 
       {empty ? (
         <Card>
-          <div className="p-6 text-center">
-            <p className="font-medium">Nothing learned from this chapter yet.</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
+            <span className="flex size-16 items-center justify-center rounded-2xl bg-surface-2 text-muted-foreground">
+              <BookOpenCheck className="size-8" aria-hidden="true" />
+            </span>
+            <p className="mt-2 text-xl font-bold">Nothing learned from this chapter yet</p>
+            <p className="text-muted-foreground">
               Its words and grammar show up here as you finish its lessons on your path.
             </p>
-            <Button asChild variant="secondary" className="mt-5">
+            <Button asChild size="lg" className="mt-4">
               <Link to="/path">Go to your path</Link>
             </Button>
           </div>
@@ -83,13 +85,13 @@ function WordList({ words }: { words: Word[] }) {
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Words ({words.length})
+      <h2 className="mb-3 px-1 text-[22px] font-bold">
+        Wortschatz <span className="text-muted-foreground">{words.length}</span>
       </h2>
-      <Card>
-        <ul className="divide-y divide-border">
+      <Card className="overflow-hidden">
+        <ul className="divide-y divide-border/70">
           {shown.map((w) => (
-            <li key={w.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+            <li key={w.id} className="flex min-h-[56px] items-center justify-between gap-3 px-5 py-2.5">
               <span className="flex min-w-0 items-center gap-2 font-medium">
                 <ArticleBadge german={w.german} />
                 <span className="truncate">{w.german}</span>
@@ -105,7 +107,7 @@ function WordList({ words }: { words: Word[] }) {
         </ul>
       </Card>
       {words.length > FIRST_WORDS && (
-        <Button variant="secondary" className="mt-3" onClick={() => setShowAll((v) => !v)}>
+        <Button variant="secondary" className="mt-3 w-full sm:w-auto" onClick={() => setShowAll((v) => !v)}>
           {showAll ? "Show fewer" : `Show all ${words.length} words`}
         </Button>
       )}
@@ -118,29 +120,26 @@ function GrammarList({ rules }: { rules: GrammarRule[] }) {
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Grammar ({rules.length})
+      <h2 className="mb-3 px-1 text-[22px] font-bold">
+        Grammatik <span className="text-muted-foreground">{rules.length}</span>
       </h2>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {rules.map((rule) =>
           openId === rule.id ? (
             <div key={rule.id}>
               <GrammarCard rule={rule} />
-              <button
-                onClick={() => setOpenId(null)}
-                className="mt-2 text-sm text-muted-foreground underline hover:text-foreground"
-              >
+              <Button variant="secondary" size="sm" className="mt-2" onClick={() => setOpenId(null)}>
                 Close
-              </button>
+              </Button>
             </div>
           ) : (
             <button
               key={rule.id}
               onClick={() => setOpenId(rule.id)}
-              className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-left font-medium transition-colors hover:bg-surface-2"
+              className="lift flex min-h-[56px] items-center justify-between rounded-2xl bg-surface px-5 py-3 text-left font-semibold shadow-card"
             >
               {rule.title}
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <ChevronDown className="size-5 text-muted-foreground" aria-hidden="true" />
             </button>
           ),
         )}

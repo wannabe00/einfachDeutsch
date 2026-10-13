@@ -29,20 +29,20 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
       })
   }, [rules])
 
-  if (!rules) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (rounds.length === 0) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
+  if (!rules) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Loading…</p></DrillShell>
+  if (rounds.length === 0) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
 
   if (i >= rounds.length) {
     const pct = Math.round((score.correct / rounds.length) * 100)
     return (
       <DrillShell title="Sentence Shuffle" onExit={onExit}>
-        <div className="flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="text-2xl font-semibold">Drill complete</h2>
-          <p className="text-5xl font-bold text-accent">{pct}%</p>
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-[28px] bg-surface px-6 py-10 text-center shadow-card">
+          <h2 className="text-3xl font-extrabold">Drill complete</h2>
+          <p className="font-grotesk text-6xl font-extrabold tracking-tight text-primary animate-in zoom-in-50 fade-in-0 duration-500">{pct}%</p>
           <p className="text-sm text-muted-foreground">{score.correct} correct · {score.wrong} wrong</p>
-          <div className="flex gap-3">
-            <Button onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setBuilt([]); setVerdict(null) }}>Again</Button>
-            <Button variant="secondary" onClick={onExit}>Back to drills</Button>
+          <div className="mt-3 flex w-full flex-col gap-2.5">
+            <Button size="lg" onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setBuilt([]); setVerdict(null) }}>Again</Button>
+            <Button size="lg" variant="secondary" onClick={onExit}>Back to drills</Button>
           </div>
         </div>
       </DrillShell>
@@ -64,14 +64,14 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
     <DrillShell title="Sentence Shuffle" onExit={onExit} progress={(i / rounds.length) * 100} counter={`${i + 1} / ${rounds.length}`}>
       <div className="mx-auto flex max-w-lg flex-col gap-4 py-6">
         <p className="text-center text-sm text-muted-foreground">Tap the words to rebuild the sentence.</p>
-        <div className="flex min-h-[52px] flex-wrap gap-2 rounded-lg border border-dashed border-border bg-background p-3">
+        <div className="flex min-h-[64px] flex-wrap gap-2 rounded-2xl border-2 border-dashed border-border p-3">
           {built.length === 0 && <span className="self-center text-sm text-muted-foreground">…</span>}
           {built.map((slot, pos) => (
             <button
               key={pos}
               disabled={!!verdict}
               onClick={() => setBuilt(built.filter((_, j) => j !== pos))}
-              className="rounded-md bg-accent px-2.5 py-1 text-sm text-accent-foreground"
+              className="min-h-[44px] rounded-xl bg-primary px-3.5 py-2 text-[15px] font-medium text-primary-foreground"
             >
               {round.scrambled[slot].w}
             </button>
@@ -84,7 +84,7 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
                 key={slot}
                 disabled={!!verdict}
                 onClick={() => setBuilt([...built, slot])}
-                className="rounded-md border border-border bg-surface px-2.5 py-1 text-sm text-foreground hover:border-accent"
+                className="min-h-[44px] rounded-xl bg-surface px-3.5 py-2 text-[15px] font-medium text-foreground shadow-card transition-colors hover:bg-surface-2"
               >
                 {t.w}
               </button>
@@ -92,11 +92,11 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
           )}
         </div>
         {verdict && (
-          <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+          <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
             {verdict === "right" ? "Correct" : `Answer: ${round.words.join(" ")}`}
           </p>
         )}
-        <Button onClick={check} disabled={!verdict && built.length === 0}>
+        <Button size="lg" onClick={check} disabled={!verdict && built.length === 0}>
           {verdict ? "Next" : "Check"}
         </Button>
       </div>

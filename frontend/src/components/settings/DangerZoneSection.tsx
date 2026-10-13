@@ -63,7 +63,7 @@ export function DangerZoneSection() {
 
   return (
     <Section title="Danger zone" danger>
-      <p className="mb-3 text-xs text-muted-foreground">
+      <p className="mb-3 text-sm text-muted-foreground">
         These actions require your password.
       </p>
       <Input
@@ -118,7 +118,7 @@ function Row({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-      <span className="text-sm">{label}</span>
+      <span className="text-[15px]">{label}</span>
       <Button variant="destructive" onClick={onClick} disabled={disabled}>
         {busy ? "Working…" : button}
       </Button>

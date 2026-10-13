@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { ArrowLeftRight, Eye, Hammer, Link2, Lock, Shuffle, Tags, type LucideIcon } from "lucide-react"
 
 import { GenderTriage } from "@/components/drills/GenderTriage"
 import { BlindForge } from "@/components/drills/BlindForge"
@@ -23,6 +24,7 @@ interface DrillDef {
   name: string
   tag: string
   tagline: string
+  icon: LucideIcon
   /** Playable without an account (a free taste of the drills). */
   guest?: boolean
 }
@@ -33,6 +35,7 @@ const DRILLS: DrillDef[] = [
     name: "Gender Triage",
     tag: "der · die · das",
     tagline: "Snap each noun to its article before the round runs out.",
+    icon: Tags,
     guest: true,
   },
   {
@@ -40,30 +43,35 @@ const DRILLS: DrillDef[] = [
     name: "Blind Forge",
     tag: "no hints",
     tagline: "Type the exact German, with no options to pick from.",
+    icon: Hammer,
   },
   {
     id: "unscramble",
     name: "Unscramble",
     tag: "rebuild",
     tagline: "The letters are jumbled. Put the word back together.",
+    icon: Shuffle,
   },
   {
     id: "flash",
     name: "Flash Recall",
     tag: "3 seconds",
     tagline: "The sentence flashes, then vanishes. Rebuild it from memory.",
+    icon: Eye,
   },
   {
     id: "shuffle",
     name: "Sentence Shuffle",
     tag: "reorder",
     tagline: "The sentence is scrambled. Put the words back in order.",
+    icon: ArrowLeftRight,
   },
   {
     id: "match",
     name: "Match Pairs",
     tag: "connect",
     tagline: "Link each German word to its English meaning.",
+    icon: Link2,
   },
 ]
 
@@ -96,24 +104,38 @@ export default function DrillsPage() {
         subtitle="Short games built from your own words."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {DRILLS.map((d) => {
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {DRILLS.map((d, i) => {
           const locked = !user && !d.guest
           return (
             <button
               key={d.id}
               onClick={() => setActive(d.id)}
-              className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:bg-surface-2"
+              className="lift flex flex-col items-start gap-4 rounded-[24px] bg-surface p-5 text-left shadow-card sm:p-6"
             >
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-semibold text-foreground">{d.name}</h2>
-                  <span className="text-xs text-muted-foreground">{d.tag}</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
-              </div>
-              <span className="mt-1 text-sm font-medium text-primary group-hover:underline">
-                {locked ? "Needs an account" : "Play"}
+              <span
+                className="flex size-12 items-center justify-center rounded-2xl text-white"
+                style={{ background: `hsl(var(--section-${(i % 6) + 1}))` }}
+              >
+                <d.icon className="size-6" aria-hidden="true" />
+              </span>
+              <span className="flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-lg font-bold text-foreground">{d.name}</span>
+                  <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                    {d.tag}
+                  </span>
+                </span>
+                <span className="mt-1 block text-muted-foreground">{d.tagline}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-primary">
+                {locked ? (
+                  <>
+                    <Lock className="size-4" aria-hidden="true" /> Needs an account
+                  </>
+                ) : (
+                  "Play"
+                )}
               </span>
             </button>
           )

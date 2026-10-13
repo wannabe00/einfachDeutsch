@@ -57,41 +57,32 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
     setVerdict(checkAnswer(input, word.german))
   }
 
-  const borderClass =
+  // The card itself turns green / amber / red with the verdict.
+  const toneClass =
     verdict === "correct"
-      ? "border-success"
+      ? "ring-2 ring-success"
       : verdict === "close"
-        ? "border-warning"
+        ? "ring-2 ring-warning"
         : verdict === "wrong"
-          ? "border-danger"
-          : "border-border"
-
-  const bgClass =
-    verdict === "correct"
-      ? "bg-[hsl(var(--success-bg))]"
-      : verdict === "close"
-        ? "bg-[hsl(var(--warning-bg))]"
-        : verdict === "wrong"
-          ? "bg-[hsl(var(--danger-bg))]"
-          : "bg-surface"
+          ? "ring-2 ring-danger"
+          : ""
 
   return (
     <div
       className={cn(
-        "mx-auto w-full max-w-[480px] rounded-xl border-2 p-8 transition-colors duration-150",
-        borderClass,
-        bgClass,
+        "w-full rounded-[28px] bg-surface p-6 shadow-card transition-shadow duration-200 sm:p-8",
+        toneClass,
       )}
     >
       {/* Chapter badge */}
-      <div className="mb-6 flex justify-end">
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+      <div className="mb-6 flex justify-center">
+        <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-muted-foreground">
           {chapterTitle}
         </span>
       </div>
 
       {/* English prompt */}
-      <p className="mb-8 text-center text-2xl font-semibold tracking-tight text-foreground">
+      <p className="mb-8 text-center font-grotesk text-2xl font-extrabold tracking-tight text-foreground [overflow-wrap:anywhere] sm:text-4xl">
         {word.english}
       </p>
 
@@ -103,26 +94,26 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type in German with article…"
             aria-label="Type the German translation"
-            className="text-center text-base"
+            className="h-14 text-center text-lg"
           />
           <UmlautBar inputRef={inputRef} value={input} onChange={setInput} />
-          <Button type="submit" className="w-full">
+          <Button type="submit" size="lg" className="mt-1 w-full">
             Check
           </Button>
           <button
             type="button"
             onClick={onSkip}
-            className="mx-auto text-sm text-muted-foreground hover:text-accent"
+            className="mx-auto min-h-[44px] px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             Skip for now
           </button>
         </form>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
           {/* Feedback message */}
           <p
             className={cn(
-              "text-center text-sm font-medium",
+              "text-center text-base font-semibold",
               verdict === "correct"
                 ? "text-[hsl(var(--success))]"
                 : verdict === "close"
@@ -138,24 +129,24 @@ export function FlashCard({ word, chapterTitle, onRate, onSkip }: FlashCardProps
           </p>
 
           {/* SRS quality buttons */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2 min-[400px]:grid-cols-4">
             {(
               [
-                { label: "Again", quality: 0, hint: "tomorrow", className: "border-danger/40 bg-danger-bg text-danger" },
-                { label: "Hard", quality: 2, hint: "3 days", className: "border-warning/40 bg-warning-bg text-warning" },
-                { label: "Good", quality: 4, hint: "1 week", className: "border-article-der/40 bg-article-der/10 text-article-der" },
-                { label: "Easy", quality: 5, hint: "2+ weeks", className: "border-success/40 bg-success-bg text-success" },
+                { label: "Again", quality: 0, hint: "tomorrow", className: "bg-danger-bg text-danger" },
+                { label: "Hard", quality: 2, hint: "3 days", className: "bg-warning-bg text-warning" },
+                { label: "Good", quality: 4, hint: "1 week", className: "bg-article-der/10 text-article-der" },
+                { label: "Easy", quality: 5, hint: "2+ weeks", className: "bg-success-bg text-success" },
               ] as const
             ).map(({ label, quality, hint, className }) => (
               <button
                 key={label}
                 onClick={() => onRate(quality)}
                 className={cn(
-                  "flex flex-col items-center rounded-lg border px-2 py-2.5 text-xs font-medium transition-opacity hover:opacity-80",
+                  "flex min-h-[64px] flex-col items-center justify-center rounded-2xl px-2 py-2.5 text-xs font-medium transition-[filter,transform] hover:brightness-95 active:scale-95",
                   className,
                 )}
               >
-                <span className="text-sm font-semibold">{label}</span>
+                <span className="text-[15px] font-bold">{label}</span>
                 <span className="mt-0.5 opacity-70">{hint}</span>
               </button>
             ))}

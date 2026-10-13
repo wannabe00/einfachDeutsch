@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Crown, X, Zap } from "lucide-react"
+import { Check, Crown, RotateCcw, Zap } from "lucide-react"
 
 import { answerItem, completeLesson, fetchLesson, restartLesson } from "@/api/curriculum"
 import type {
@@ -16,6 +16,7 @@ import type {
 import { resolveAccent } from "@/lib/sections"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { SessionBar } from "@/components/ui/SessionBar"
 import { Markdown } from "@/components/ui/Markdown"
 import { AnswerFeedback } from "@/components/exercises/AnswerFeedback"
 import { ExerciseInput } from "@/components/exercises/ExerciseInput"
@@ -91,36 +92,29 @@ function Player({ lesson, unitId }: { lesson: LessonDetail; unitId?: string }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(`/path/${unitId}`)}
-          aria-label="Quit lesson"
-          className="text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <X className="size-5" />
-        </button>
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-border">
-          <div
-            className="h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%`, background: accent }}
-          />
-        </div>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {step + 1}/{lesson.items.length}
-        </span>
-      </div>
+    <div className="mx-auto flex min-h-[calc(100svh-3rem)] max-w-2xl flex-col gap-6">
+      <SessionBar
+        onClose={() => navigate(`/path/${unitId}`)}
+        closeLabel="Quit lesson"
+        progress={progress}
+        counter={`${step + 1}/${lesson.items.length}`}
+      />
 
       {resumed && (
-        <p className="text-center text-sm text-muted-foreground">
-          Picked up where you left off.{" "}
-          <button onClick={startOver} className="font-medium text-foreground underline">
-            Start over
+        <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          Picked up where you left off.
+          <button
+            onClick={startOver}
+            className="inline-flex min-h-[36px] items-center gap-1 rounded-full bg-surface-2 px-3 font-medium text-foreground"
+          >
+            <RotateCcw className="size-3.5" aria-hidden="true" /> Start over
           </button>
         </p>
       )}
 
-      <ItemStep key={item.id} item={item} lessonId={lesson.id} accent={accent} onNext={handleNext} />
+      <div className="flex flex-1 flex-col justify-center">
+        <ItemStep key={item.id} item={item} lessonId={lesson.id} accent={accent} onNext={handleNext} />
+      </div>
 
       <p className="text-center text-xs text-muted-foreground">
         Your answers are saved, so you can stop and come back. Energy is only spent when you
@@ -145,13 +139,11 @@ function ItemStep({
     const c = item.content as ReviewContent
     return (
       <Card>
-        <div className="p-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            New word
-          </p>
-          <p className="mt-3 text-3xl font-bold">{c.german}</p>
-          <p className="mt-1 text-muted-foreground">{c.english}</p>
-          <Button className="mt-6" onClick={() => onNext()}>
+        <div className="p-8 text-center sm:p-10">
+          <p className={KICKER}>New word</p>
+          <p className="mt-4 font-grotesk text-3xl font-extrabold tracking-tight [overflow-wrap:anywhere] sm:text-5xl">{c.german}</p>
+          <p className="mt-2 text-lg text-muted-foreground">{c.english}</p>
+          <Button size="lg" className="mt-8 w-full" onClick={() => onNext()}>
             Got it
           </Button>
         </div>
@@ -163,20 +155,18 @@ function ItemStep({
     const c = item.content as GrammarContent
     return (
       <Card>
-        <div className="p-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Grammar
-          </p>
-          <h2 className="mt-1 text-xl font-bold">{c.title}</h2>
+        <div className="p-6 sm:p-8">
+          <p className={KICKER}>Grammar</p>
+          <h2 className="mt-1 text-2xl font-bold">{c.title}</h2>
           <Markdown className="mt-3 text-muted-foreground">{c.content}</Markdown>
           {c.example_sentences && (
-            <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm">
+            <ul className="mt-4 space-y-1.5 rounded-xl bg-surface-2/70 p-4 text-[15px]">
               {c.example_sentences.split("\n").filter(Boolean).map((ex) => (
                 <li key={ex}>{ex}</li>
               ))}
             </ul>
           )}
-          <Button className="mt-6" onClick={() => onNext()}>
+          <Button size="lg" className="mt-8 w-full" onClick={() => onNext()}>
             Continue
           </Button>
         </div>
@@ -221,11 +211,11 @@ function ExerciseStep({
 
   return (
     <Card>
-      <div className="p-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="p-6 sm:p-8">
+        <p className={KICKER}>
           {content.type === "sentence_order" ? "Build the sentence" : "Exercise"}
         </p>
-        <p className="mt-2 text-lg font-semibold">{content.prompt}</p>
+        <p className="mt-2 text-xl font-bold leading-snug sm:text-2xl">{content.prompt}</p>
 
         <div className="mt-5">
           <ExerciseInput
@@ -241,16 +231,18 @@ function ExerciseStep({
         </div>
 
         {content.hint && !feedback && (
-          <p className="mt-3 text-xs text-muted-foreground">Hint: {content.hint}</p>
+          <p className="mt-4 text-sm text-muted-foreground">Hint: {content.hint}</p>
         )}
 
         {feedback && <AnswerFeedback feedback={feedback} content={content} />}
 
-        <div className="mt-6">
+        <div className="mt-8">
           {feedback ? (
-            <Button onClick={() => onNext(answer)}>Continue</Button>
+            <Button size="lg" className="w-full" onClick={() => onNext(answer)}>
+              Continue
+            </Button>
           ) : (
-            <Button disabled={!ready} onClick={check}>
+            <Button size="lg" className="w-full" disabled={!ready} onClick={check}>
               Check
             </Button>
           )}
@@ -272,20 +264,31 @@ function Summary({
   lessonTitle: string
 }) {
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto flex min-h-[calc(100svh-3rem)] max-w-md flex-col justify-center">
       <Card>
         <div className="p-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {lessonTitle}
-          </p>
-          <h1 className="mt-2 text-3xl font-bold">
+          <span
+            className={`mx-auto flex size-24 items-center justify-center rounded-full animate-in zoom-in-50 fade-in-0 duration-500 ${
+              result.passed
+                ? "bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
+                : "bg-surface-2 text-muted-foreground"
+            }`}
+          >
+            {result.passed ? (
+              <Check className="size-12" strokeWidth={2.5} aria-hidden="true" />
+            ) : (
+              <RotateCcw className="size-10" aria-hidden="true" />
+            )}
+          </span>
+          <p className={`mt-6 ${KICKER}`}>{lessonTitle}</p>
+          <h1 className="mt-2 text-3xl font-extrabold">
             {result.passed ? "Lektion geschafft!" : "Fast geschafft"}
           </h1>
           <p className="mt-1 text-muted-foreground">
             {result.correct}/{result.total} correct · {Math.round(result.score * 100)}%
           </p>
 
-          <div className="mt-6 flex items-center justify-center gap-6">
+          <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl bg-surface-2/70 p-4">
             <Stat label="XP" value={`+${result.xp_earned}`} />
             <Stat
               label="Crown"
@@ -312,8 +315,8 @@ function Summary({
             </p>
           )}
 
-          <Button asChild className="mt-7">
-            <Link to={`/path/${unitId}`}>Back to unit</Link>
+          <Button asChild size="lg" className="mt-7 w-full">
+            <Link to={`/path/${unitId}`}>Back to Lektion</Link>
           </Button>
         </div>
       </Card>
@@ -324,7 +327,7 @@ function Summary({
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center">
-      <span className="text-xl font-bold">{value}</span>
+      <span className="font-grotesk text-2xl font-extrabold tabular-nums">{value}</span>
       <span className="mt-0.5 text-xs text-muted-foreground">{label}</span>
     </div>
   )
@@ -341,14 +344,16 @@ function OutOfEnergy({ unitId }: { unitId?: string }) {
             New lessons cost 1 energy, which refills over time. Review, Word Bank, Grammar and
             redoing finished lessons are always free. Premium has no energy limit.
           </p>
-          <Button asChild variant="secondary" className="mt-6">
-            <Link to={`/path/${unitId ?? ""}`}>Back to unit</Link>
+          <Button asChild variant="secondary" size="lg" className="mt-6 w-full">
+            <Link to={`/path/${unitId ?? ""}`}>Back to Lektion</Link>
           </Button>
         </div>
       </Card>
     </div>
   )
 }
+
+const KICKER = "text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground"
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (

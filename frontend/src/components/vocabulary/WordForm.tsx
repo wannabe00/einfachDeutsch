@@ -56,7 +56,7 @@ export function WordForm({ chapters, defaultChapterId, onDone }: WordFormProps) 
       <select
         value={chapterId}
         onChange={(e) => setChapterId(Number(e.target.value))}
-        className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
       >
         {chapters.map((c) => (
           <option key={c.id} value={c.id}>

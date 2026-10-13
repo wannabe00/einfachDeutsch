@@ -3,8 +3,9 @@ import { Infinity as InfinityIcon, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /*
- * Energy meter. Free users see `max` bolts with `energy` of them filled and a
- * countdown to the next refill; premium users see an infinity sign. Values come
+ * Energy as a compact chip for the top bar: a bolt and how many are left
+ * (premium: infinity). When energy isn't full, wide screens also show the
+ * countdown to the next refill; everyone gets it in the tooltip. Values come
  * from `useEnergy`.
  */
 export function EnergyMeter({
@@ -20,30 +21,30 @@ export function EnergyMeter({
   secondsUntilNext?: number | null
   className?: string
 }) {
-  const brand = "hsl(var(--brand))"
-
-  if (premium) {
-    return (
-      <div className={cn("inline-flex items-center gap-1.5 text-sm font-semibold", className)} style={{ color: brand }}>
-        <Zap className="size-4 fill-current" />
-        <InfinityIcon className="size-4" />
-      </div>
-    )
-  }
+  const refill =
+    !premium && energy < max && secondsUntilNext != null
+      ? `+1 in ${formatCountdown(secondsUntilNext)}`
+      : null
+  const label = premium
+    ? "Unlimited energy"
+    : `${energy} of ${max} energy${refill ? `, ${refill}` : ""}`
 
   return (
-    <div className={cn("inline-flex items-center gap-2", className)}>
-      <div className="flex items-center gap-1" aria-label={`${energy} of ${max} energy`}>
-        {Array.from({ length: max }).map((_, i) => (
-          <Zap
-            key={i}
-            className={cn("size-4", i < energy ? "fill-current" : "text-muted-foreground/30")}
-            style={i < energy ? { color: brand } : undefined}
-          />
-        ))}
-      </div>
-      {energy < max && secondsUntilNext != null && (
-        <span className="text-xs tabular-nums text-muted-foreground">+1 in {formatCountdown(secondsUntilNext)}</span>
+    <div
+      className={cn(
+        "inline-flex h-9 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-sm font-bold tabular-nums",
+        className,
+      )}
+      title={label}
+      aria-label={label}
+    >
+      <Zap
+        className={cn("size-4", premium || energy > 0 ? "fill-current text-primary" : "text-muted-foreground")}
+        aria-hidden="true"
+      />
+      {premium ? <InfinityIcon className="size-4" aria-hidden="true" /> : <span>{energy}</span>}
+      {refill && (
+        <span className="hidden text-xs font-medium text-muted-foreground xl:inline">{refill}</span>
       )}
     </div>
   )

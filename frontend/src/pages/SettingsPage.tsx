@@ -3,6 +3,7 @@ import {
   User,
   Shield,
   SlidersHorizontal,
+  Palette,
   Download,
   TriangleAlert,
   type LucideIcon,
@@ -13,6 +14,7 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader"
 import { ProfileSection } from "@/components/settings/ProfileSection"
 import { SecuritySection } from "@/components/settings/SecuritySection"
 import { PreferencesSection } from "@/components/settings/PreferencesSection"
+import { AppearanceSection } from "@/components/settings/AppearanceSection"
 import { DataSection } from "@/components/settings/DataSection"
 import { DangerZoneSection } from "@/components/settings/DangerZoneSection"
 
@@ -32,6 +34,7 @@ const TABS: Tab[] = [
   { id: "profile", label: "Profile", icon: User, Component: ProfileSection },
   { id: "security", label: "Security", icon: Shield, Component: SecuritySection },
   { id: "preferences", label: "Preferences", icon: SlidersHorizontal, Component: PreferencesSection },
+  { id: "appearance", label: "Appearance", icon: Palette, Component: AppearanceSection },
   { id: "data", label: "Data", icon: Download, Component: DataSection },
   { id: "danger", label: "Danger zone", icon: TriangleAlert, Component: DangerZoneSection },
 ]
@@ -60,11 +63,11 @@ export default function SettingsPage() {
                 onClick={() => setActive(tab.id)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-colors md:w-full",
+                  "flex min-h-[44px] shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[15px] font-medium transition-colors md:w-full",
                   isActive
                     ? danger
                       ? "bg-[hsl(var(--danger))]/15 text-[hsl(var(--danger))]"
-                      : "bg-primary/15 text-foreground"
+                      : "bg-surface text-foreground shadow-card"
                     : cn(
                         "text-muted-foreground hover:bg-surface hover:text-foreground",
                         danger && "hover:text-[hsl(var(--danger))]",
@@ -79,7 +82,7 @@ export default function SettingsPage() {
         </nav>
 
         {/* Active section panel */}
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-5">
           <Panel />
         </div>
       </div>

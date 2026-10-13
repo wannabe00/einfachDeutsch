@@ -29,14 +29,14 @@ export function UmlautBar({ inputRef, value, onChange }: UmlautBarProps) {
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-1.5">
+    <div className="flex flex-wrap justify-center gap-2">
       {CHARS.map((c) => (
         <button
           key={c}
           type="button"
           onClick={() => insert(c)}
           aria-label={`Insert ${c}`}
-          className="rounded-md border border-border bg-surface px-2.5 py-1 text-sm font-medium text-foreground transition-colors hover:border-accent hover:bg-background"
+          className="flex size-11 items-center justify-center rounded-xl bg-surface-2 text-base font-semibold text-foreground transition-colors hover:bg-border active:scale-95"
         >
           {c}
         </button>

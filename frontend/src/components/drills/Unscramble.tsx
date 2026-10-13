@@ -43,20 +43,20 @@ export function Unscramble({ onExit }: { onExit: () => void }) {
       .map((x) => ({ ...x, scrambled: scrambleLetters(x.noun) }))
   }, [words])
 
-  if (!words) return <DrillShell title="Unscramble" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (pool.length === 0) return <DrillShell title="Unscramble" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
+  if (!words) return <DrillShell title="Unscramble" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Loading…</p></DrillShell>
+  if (pool.length === 0) return <DrillShell title="Unscramble" onExit={onExit}><p className="py-10 text-center text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
 
   if (i >= pool.length) {
     const pct = Math.round((score.correct / pool.length) * 100)
     return (
       <DrillShell title="Unscramble" onExit={onExit}>
-        <div className="flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="text-2xl font-semibold">Drill complete</h2>
-          <p className="text-5xl font-bold text-accent">{pct}%</p>
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 rounded-[28px] bg-surface px-6 py-10 text-center shadow-card">
+          <h2 className="text-3xl font-extrabold">Drill complete</h2>
+          <p className="font-grotesk text-6xl font-extrabold tracking-tight text-primary animate-in zoom-in-50 fade-in-0 duration-500">{pct}%</p>
           <p className="text-sm text-muted-foreground">{score.correct} correct · {score.wrong} wrong</p>
-          <div className="flex gap-3">
-            <Button onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setValue(""); setVerdict(null) }}>Again</Button>
-            <Button variant="secondary" onClick={onExit}>Back to drills</Button>
+          <div className="mt-3 flex w-full flex-col gap-2.5">
+            <Button size="lg" onClick={() => { setI(0); setScore({ correct: 0, wrong: 0 }); setValue(""); setVerdict(null) }}>Again</Button>
+            <Button size="lg" variant="secondary" onClick={onExit}>Back to drills</Button>
           </div>
         </div>
       </DrillShell>
@@ -77,9 +77,9 @@ export function Unscramble({ onExit }: { onExit: () => void }) {
     <DrillShell title="Unscramble" onExit={onExit} progress={(i / pool.length) * 100} counter={`${i + 1} / ${pool.length}`}>
       <div className="mx-auto flex max-w-md flex-col gap-5 py-6">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {current.article && <ArticleBadge german={`${current.article} x`} />}
-            <p className="font-mono text-3xl font-bold uppercase tracking-[0.3em] text-foreground">
+            <p className="min-w-0 font-mono text-2xl font-bold uppercase tracking-[0.2em] text-foreground [overflow-wrap:anywhere] sm:text-3xl sm:tracking-[0.3em]">
               {current.scrambled}
             </p>
           </div>
@@ -95,18 +95,18 @@ export function Unscramble({ onExit }: { onExit: () => void }) {
             aria-label="Unscramble the word"
             autoFocus
             className={cn(
-              "text-center text-base",
+              "h-14 text-center text-lg",
               verdict === "right" && "border-[hsl(var(--success))]",
               verdict === "wrong" && "border-[hsl(var(--danger))]",
             )}
           />
           {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
           {verdict && (
-            <p className={cn("text-center text-sm font-medium", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+            <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
               {verdict === "right" ? "Correct" : `Answer: ${current.noun}`}
             </p>
           )}
-          <Button type="submit">{verdict ? "Next" : "Check"}</Button>
+          <Button type="submit" size="lg">{verdict ? "Next" : "Check"}</Button>
         </form>
       </div>
     </DrillShell>

@@ -72,7 +72,7 @@ export function WordBankInput({
               type="button"
               disabled={disabled || used || !slots.includes("")}
               onClick={() => fill(w)}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-surface-2 disabled:opacity-40"
+              className="min-h-[44px] rounded-xl bg-surface-2 px-3.5 py-2 text-[15px] font-medium transition-colors hover:bg-border disabled:opacity-40"
             >
               {w}
             </button>

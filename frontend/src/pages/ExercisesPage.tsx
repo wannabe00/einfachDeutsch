@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useMutation, useQuery } from "@tanstack/react-query"
+import { ArrowRight, BookOpenCheck, Keyboard, Repeat, Target } from "lucide-react"
 
 import { answerPractice, fetchPracticeOptions, startPractice } from "@/api/curriculum"
 import type { AnswerResult, PracticeOptions, PracticeTask } from "@/types"
@@ -11,6 +12,7 @@ import { LockedFeature } from "@/components/auth/LockedFeature"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { SessionBar } from "@/components/ui/SessionBar"
 import { isAnswered } from "@/lib/exercises"
 
 /*
@@ -41,6 +43,12 @@ export default function ExercisesPage() {
   return <StartScreen options={options} onStart={setTasks} />
 }
 
+const FACTS = [
+  { icon: Target, title: "No hints", body: "A bit harder than the lessons." },
+  { icon: Keyboard, title: "More typing", body: "Mostly writing and word order." },
+  { icon: Repeat, title: "Mistakes return", body: "Wrong answers come back more often." },
+]
+
 function StartScreen({
   options,
   onStart,
@@ -58,31 +66,54 @@ function StartScreen({
   })
 
   const selectClass =
-    "rounded-lg border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    "h-12 w-full rounded-xl border border-transparent bg-surface-2 px-3.5 text-base focus-visible:border-ring focus-visible:outline-none"
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageHeader
         title="Practice"
-        subtitle="Short sets from what you've finished. No hints, more typing."
+        subtitle="Short sets of about ten tasks from the lessons you've finished."
       />
+
+      <ul className="grid gap-3 sm:grid-cols-3">
+        {FACTS.map(({ icon: Icon, title, body }, i) => (
+          <li key={title} className="flex items-start gap-3 rounded-2xl bg-surface p-4 shadow-card sm:flex-col">
+            <span
+              className="flex size-10 shrink-0 items-center justify-center rounded-xl text-white"
+              style={{ background: `hsl(var(--section-${i + 1}))` }}
+            >
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <span>
+              <span className="block font-semibold">{title}</span>
+              <span className="block text-sm text-muted-foreground">{body}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
 
       {options && options.units.length === 0 ? (
         <Card>
-          <div className="p-6 text-center">
-            <p className="font-medium">Nothing to practise yet.</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-surface-2 text-muted-foreground">
+              <BookOpenCheck className="size-7" aria-hidden="true" />
+            </span>
+            <p className="mt-2 text-xl font-bold">Nothing to practise yet</p>
+            <p className="text-muted-foreground">
               Practice uses the lessons you've finished. Finish your first lesson to start.
             </p>
-            <Button asChild className="mt-5">
-              <Link to="/path">Go to your path</Link>
+            <Button asChild size="lg" className="mt-4">
+              <Link to="/path">
+                Go to your path <ArrowRight />
+              </Link>
             </Button>
           </div>
         </Card>
       ) : (
         <Card>
-          <div className="flex flex-col gap-4 p-6">
-            <label className="flex flex-col gap-1.5 text-sm font-medium">
+          <div className="flex flex-col gap-5 p-6 sm:p-7">
+            <h2 className="text-xl font-bold">Build a set</h2>
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-muted-foreground">
               Unit
               <select
                 className={selectClass}
@@ -98,7 +129,7 @@ function StartScreen({
               </select>
             </label>
             {!!options?.topics.length && (
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
+              <label className="flex flex-col gap-1.5 text-sm font-medium text-muted-foreground">
                 Grammar topic
                 <select
                   className={selectClass}
@@ -114,7 +145,7 @@ function StartScreen({
                 </select>
               </label>
             )}
-            <Button disabled={!options || start.isPending} onClick={() => start.mutate()}>
+            <Button size="lg" className="mt-1" disabled={!options || start.isPending} onClick={() => start.mutate()}>
               {start.isPending ? "Building your set…" : "Start a set"}
             </Button>
             {start.data?.length === 0 && (
@@ -135,17 +166,20 @@ function PracticeSet({ tasks, onDone }: { tasks: PracticeTask[]; onDone: () => v
 
   if (step >= tasks.length) {
     return (
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md py-8">
         <Card>
           <div className="p-8 text-center">
-            <h1 className="text-2xl font-bold">Set done</h1>
+            <span className="mx-auto flex size-24 items-center justify-center rounded-full bg-primary/10 font-grotesk text-3xl font-extrabold tabular-nums text-primary animate-in zoom-in-50 fade-in-0 duration-500">
+              {score.total > 0 ? Math.round((score.right / score.total) * 100) : 0}%
+            </span>
+            <h1 className="mt-6 text-3xl font-extrabold">Set done</h1>
             <p className="mt-2 text-muted-foreground">
-              {score.right}/{score.total} right
+              {score.right} of {score.total} right
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               What you got wrong will come up more often in your next sets.
             </p>
-            <Button className="mt-6" onClick={onDone}>
+            <Button size="lg" className="mt-7 w-full" onClick={onDone}>
               Another set
             </Button>
           </div>
@@ -155,18 +189,14 @@ function PracticeSet({ tasks, onDone }: { tasks: PracticeTask[]; onDone: () => v
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-border">
-          <div
-            className="h-2 rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${(step / tasks.length) * 100}%` }}
-          />
-        </div>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {step + 1}/{tasks.length}
-        </span>
-      </div>
+    <div className="mx-auto flex max-w-2xl flex-col gap-8">
+      <SessionBar
+        onClose={onDone}
+        closeLabel="End this set"
+        title="Practice"
+        progress={(step / tasks.length) * 100}
+        counter={`${step + 1}/${tasks.length}`}
+      />
       <TaskStep
         key={tasks[step].task_id}
         task={tasks[step]}
@@ -178,9 +208,6 @@ function PracticeSet({ tasks, onDone }: { tasks: PracticeTask[]; onDone: () => v
           setStep(step + 1)
         }}
       />
-      <button onClick={onDone} className="text-center text-xs text-muted-foreground underline">
-        End this set
-      </button>
     </div>
   )
 }
@@ -205,8 +232,8 @@ function TaskStep({
 
   return (
     <Card>
-      <div className="p-6">
-        <p className="text-lg font-semibold">{task.prompt}</p>
+      <div className="p-6 sm:p-8">
+        <p className="text-xl font-bold leading-snug sm:text-2xl">{task.prompt}</p>
         <div className="mt-5">
           <ExerciseInput
             content={task}
@@ -219,11 +246,13 @@ function TaskStep({
           />
         </div>
         {feedback && <AnswerFeedback feedback={feedback} content={task} />}
-        <div className="mt-6">
+        <div className="mt-8">
           {feedback ? (
-            <Button onClick={() => onNext(feedback)}>Continue</Button>
+            <Button size="lg" className="w-full" onClick={() => onNext(feedback)}>
+              Continue
+            </Button>
           ) : (
-            <Button disabled={!ready} onClick={check}>
+            <Button size="lg" className="w-full" disabled={!ready} onClick={check}>
               Check
             </Button>
           )}

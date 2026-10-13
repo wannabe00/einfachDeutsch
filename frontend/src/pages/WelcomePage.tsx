@@ -59,10 +59,10 @@ export default function WelcomePage() {
     <AuthShell>
       <div>
         <AuthWordmark />
-        <h1 className="mt-3 text-center text-2xl font-bold tracking-tight">
+        <h1 className="mt-6 text-center text-3xl font-extrabold lg:mt-0 lg:text-left">
           Welcome to {SITE_NAME}
         </h1>
-        <p className="mt-1 text-center text-sm text-muted-foreground">
+        <p className="mt-1 text-center text-muted-foreground lg:text-left">
           Set up your profile. Your password lets you log in without Google or
           GitHub too.
         </p>
@@ -103,18 +103,22 @@ export default function WelcomePage() {
               required
             />
           </div>
-          <label className="text-xs text-muted-foreground">
+          <label className="text-sm font-medium text-muted-foreground">
             Birthday (optional)
             <Input
               type="date"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
               aria-label="Birthday"
-              className="mt-1"
+              className="mt-1.5"
             />
           </label>
-          {error && <p className="text-sm text-[hsl(var(--danger))]">{error}</p>}
-          <Button type="submit" disabled={pending} className="mt-1">
+          {error && (
+            <p className="rounded-xl bg-danger-bg px-3.5 py-2.5 text-sm font-medium text-danger" role="alert">
+              {error}
+            </p>
+          )}
+          <Button type="submit" size="lg" disabled={pending} className="mt-1">
             {pending ? "Saving…" : "Continue"}
           </Button>
         </form>

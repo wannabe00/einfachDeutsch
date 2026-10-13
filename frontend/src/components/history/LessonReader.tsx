@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { ArrowLeft } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
 import { fetchHistoryLesson } from "@/api/history"
 import { Button } from "@/components/ui/button"
+import { BackLink } from "@/components/ui/BackLink"
 import { EraArt } from "./EraArt"
 import { LessonQuiz } from "./LessonQuiz"
 
@@ -18,24 +18,19 @@ export function LessonReader({ id, onBack }: { id: number; onBack: () => void })
 
   return (
     <div className="mx-auto max-w-3xl">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> All lessons
-      </button>
+      <BackLink onClick={onBack} label="History" />
 
       {isLoading || !lesson ? (
         <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
       ) : (
         <article className="mt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
             {lesson.era}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{lesson.title}</h1>
+          <h1 className="mt-1 text-3xl font-extrabold sm:text-4xl">{lesson.title}</h1>
 
           <figure className="mt-5">
-            <div className="aspect-[16/9] overflow-hidden rounded-xl border border-border bg-surface">
+            <div className="aspect-[16/9] overflow-hidden rounded-[24px] bg-surface shadow-card">
               <EraArt
                 era={lesson.era}
                 imageUrl={lesson.image_url || undefined}
@@ -50,19 +45,19 @@ export function LessonReader({ id, onBack }: { id: number; onBack: () => void })
             )}
           </figure>
 
-          <div className="mt-6 space-y-4 text-[1.05rem] leading-relaxed">
+          <div className="mx-auto mt-8 max-w-2xl space-y-5 text-lg leading-8">
             {lesson.body_de.split(/\n\s*\n/).map((p) => (
               <p key={p}>{p}</p>
             ))}
           </div>
 
           {lesson.body_en && (
-            <div className="mt-6 border-t border-border pt-5">
+            <div className="mx-auto mt-8 max-w-2xl">
               <Button variant="secondary" onClick={() => setShowEnglish((v) => !v)}>
                 {showEnglish ? "Hide English" : "Show English"}
               </Button>
               {showEnglish && (
-                <div className="mt-4 space-y-4 leading-relaxed text-muted-foreground">
+                <div className="mt-4 space-y-4 rounded-2xl bg-surface-2/70 p-5 leading-relaxed text-muted-foreground animate-in fade-in-0 duration-200">
                   {lesson.body_en.split(/\n\s*\n/).map((p) => (
                     <p key={p}>{p}</p>
                   ))}

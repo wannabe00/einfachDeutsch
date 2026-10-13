@@ -40,7 +40,7 @@ export function AnswerFeedback({ feedback, content }: { feedback: AnswerResult; 
   return (
     <div
       className={cn(
-        "mt-5 rounded-xl p-4",
+        "mt-5 rounded-2xl p-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
         feedback.correct
           ? "bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))]"
           : "bg-[hsl(var(--danger)/0.12)] text-[hsl(var(--danger))]",

@@ -31,17 +31,17 @@ export function LessonQuiz({
   const resultFor = (qid: number) => result?.results.find((r) => r.id === qid)
 
   return (
-    <div className="mt-6">
-      <h2 className="text-base font-semibold">Quick quiz</h2>
-      <div className="mt-3 flex flex-col gap-5">
+    <div className="mx-auto mt-10 max-w-2xl rounded-[24px] bg-surface p-6 shadow-card sm:p-7">
+      <h2 className="text-2xl font-extrabold">Quick quiz</h2>
+      <div className="mt-5 flex flex-col gap-6">
         {quiz.map((q, idx) => {
           const res = resultFor(q.id)
           return (
             <div key={q.id}>
-              <p className="text-sm font-medium">
+              <p className="font-semibold">
                 {idx + 1}. {q.prompt}
               </p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {q.options.map((opt) => {
                   const picked = answers[String(q.id)] === opt
                   const isAnswer = result && res?.answer === opt
@@ -52,14 +52,14 @@ export function LessonQuiz({
                       disabled={!!result}
                       onClick={() => setAnswers((a) => ({ ...a, [String(q.id)]: opt }))}
                       className={cn(
-                        "rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:cursor-default",
+                        "min-h-[44px] rounded-xl border-2 px-4 py-2 text-[15px] font-medium transition-colors disabled:cursor-default",
                         isAnswer
                           ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                           : isWrongPick
                             ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))]"
                             : picked
-                              ? "border-accent bg-accent text-accent-foreground"
-                              : "border-border bg-background hover:border-accent",
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-transparent bg-surface-2 hover:bg-border",
                       )}
                     >
                       {opt}
@@ -73,14 +73,15 @@ export function LessonQuiz({
       </div>
 
       {result ? (
-        <p className="mt-5 text-sm">
-          You scored <span className="font-semibold text-accent">{result.score}%</span> (
+        <p className="mt-6 rounded-2xl bg-surface-2/70 p-4 text-[15px]">
+          You scored <span className="font-bold text-primary">{result.score}%</span> (
           {result.correct}/{result.total}).{" "}
           {result.score === 100 ? "All correct." : "Lesson marked complete."}
         </p>
       ) : (
         <Button
-          className="mt-5"
+          size="lg"
+          className="mt-6 w-full sm:w-auto"
           disabled={!allAnswered || submit.isPending}
           onClick={() => submit.mutate()}
         >

@@ -5,6 +5,8 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/contexts/AuthContext"
 import { fetchPlacementTest, setLevel, submitPlacementTest } from "@/api/leveling"
 import type { CEFRLevel, PlacementResult } from "@/types"
+import { ArrowRight, ClipboardCheck, Sprout } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PlacementTestForm } from "@/components/onboarding/PlacementTestForm"
@@ -63,24 +65,28 @@ export default function OnboardingPage() {
 
         {/* Step 1: start at A1 or take the test. There's no free choice of level. */}
         {phase === "choose" && (
-          <div className={`mt-8 ${AUTH_CARD}`}>
-            <h2 className="text-lg font-semibold">What's your German level?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              New to German? Start at A1. Already know some? Take the placement
-              test and we'll set your level for you.
+          <div className="mt-6 lg:mt-0">
+            <h1 className="text-center text-3xl font-extrabold lg:text-left">What's your German level?</h1>
+            <p className="mt-1 text-center text-muted-foreground lg:text-left">
+              New to German? Start at A1. Already know some? The placement test sets your level.
             </p>
-            <div className="mt-5 flex flex-col gap-3">
-              <Button size="lg" disabled={save.isPending} onClick={() => save.mutate("A1")}>
-                {save.isPending ? "Starting…" : "I'm a beginner, start at A1"}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
+            <div className="mt-8 flex flex-col gap-3">
+              <LevelChoice
+                icon={Sprout}
+                color="hsl(var(--section-4))"
+                title={save.isPending ? "Starting…" : "I'm a beginner"}
+                body="Start at A1 with the very first Lektion."
+                disabled={save.isPending}
+                onClick={() => save.mutate("A1")}
+              />
+              <LevelChoice
+                icon={ClipboardCheck}
+                color="hsl(var(--section-1))"
+                title="I know some German"
+                body="Take the placement test and we'll set your level."
                 disabled={save.isPending}
                 onClick={() => setPhase("test")}
-              >
-                Take the placement test
-              </Button>
+              />
             </div>
           </div>
         )}
@@ -103,23 +109,25 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted-foreground">
               You got {result.correct} of {result.total} right. We suggest:
             </p>
-            <p className="mt-2 text-4xl font-bold text-accent">{result.suggested_level}</p>
+            <p className="mx-auto mt-4 flex size-28 items-center justify-center rounded-full bg-primary/10 font-grotesk text-5xl font-extrabold text-primary animate-in zoom-in-50 fade-in-0 duration-500">
+              {result.suggested_level}
+            </p>
             {result.source === "ai" && result.rationale && (
               <p className="mx-auto mt-2 max-w-sm text-xs text-muted-foreground">
                 {result.rationale}
               </p>
             )}
-            <p className="mt-4 text-sm text-muted-foreground">Adjust if it feels off:</p>
+            <p className="mt-6 text-sm text-muted-foreground">Adjust if it feels off:</p>
             <div className="mt-2 flex justify-center gap-2">
               {adjustOptions(result.suggested_level).map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setChosen(lvl)}
                   className={cn(
-                    "rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
+                    "min-h-[48px] min-w-[64px] rounded-2xl px-4 text-base font-bold transition-colors",
                     chosen === lvl
-                      ? "border-accent bg-accent text-accent-foreground"
-                      : "border-border bg-background hover:border-accent",
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-2 hover:bg-border",
                   )}
                 >
                   {lvl}
@@ -127,7 +135,8 @@ export default function OnboardingPage() {
               ))}
             </div>
             <Button
-              className="mt-6 w-full"
+              size="lg"
+              className="mt-7 w-full"
               disabled={save.isPending}
               onClick={() => save.mutate(chosen)}
             >
@@ -137,5 +146,41 @@ export default function OnboardingPage() {
         )}
       </div>
     </AuthShell>
+  )
+}
+
+function LevelChoice({
+  icon: Icon,
+  color,
+  title,
+  body,
+  disabled,
+  onClick,
+}: {
+  icon: typeof Sprout
+  color: string
+  title: string
+  body: string
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="lift flex w-full items-center gap-4 rounded-[24px] bg-surface p-5 text-left shadow-card disabled:opacity-60"
+    >
+      <span
+        className="flex size-14 shrink-0 items-center justify-center rounded-2xl text-white"
+        style={{ background: color }}
+      >
+        <Icon className="size-7" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-bold">{title}</span>
+        <span className="block text-muted-foreground">{body}</span>
+      </span>
+      <ArrowRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+    </button>
   )
 }

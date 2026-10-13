@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
-import { ExternalLink, Lock } from "lucide-react"
+import { ExternalLink, Lightbulb, Lock } from "lucide-react"
 
 import { fetchVideoSuggestions } from "@/api/videos"
 import type { CEFRLevel, ShowSuggestion } from "@/types"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Card } from "@/components/ui/card"
 import { SourceArt } from "@/components/videos/SourceArt"
+import { cn } from "@/lib/utils"
 
 /*
  * Video suggestions, each with artwork for its source. The server applies two
@@ -31,17 +32,14 @@ export default function VideosPage() {
 
       {data && !data.unlocked && (
         <Card>
-          <div className="flex flex-col items-center p-8 text-center">
-            <span
-              className="flex size-12 items-center justify-center rounded-xl"
-              style={{ background: "hsl(var(--brand)/0.15)", color: "hsl(var(--brand))" }}
-            >
-              <Lock className="size-6" />
+          <div className="flex flex-col items-center px-6 py-12 text-center">
+            <span className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Lock className="size-8" aria-hidden="true" />
             </span>
-            <h2 className="mt-4 text-xl font-bold">
+            <h2 className="mt-4 text-2xl font-extrabold">
               Video suggestions unlock at {data.unlock_level}
             </h2>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-2 max-w-sm text-muted-foreground">
               You're at {data.current_level}. Videos open up once you reach{" "}
               {data.unlock_level}.
             </p>
@@ -55,17 +53,16 @@ export default function VideosPage() {
           if (items.length === 0) return null
           return (
             <section key={level}>
-              <div className="mb-3 flex items-baseline gap-3">
-                <h2 className="text-xl font-bold">
-                  {level}
-                </h2>
+              <div className="mb-3 flex items-baseline gap-3 px-1">
+                <h2 className="text-[22px] font-bold">{level}</h2>
                 <span className="text-sm text-muted-foreground">
                   {items.length} {items.length === 1 ? "pick" : "picks"}
                 </span>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {items.map((s) => (
-                  <SuggestionCard key={s.id} suggestion={s} />
+              <div className="grid gap-5 sm:grid-cols-2">
+                {/* With an odd number of picks the first spans the row, so no row is half empty. */}
+                {items.map((s, i) => (
+                  <SuggestionCard key={s.id} suggestion={s} featured={items.length % 2 === 1 && i === 0} />
                 ))}
               </div>
             </section>
@@ -75,21 +72,39 @@ export default function VideosPage() {
   )
 }
 
-function SuggestionCard({ suggestion: s }: { suggestion: ShowSuggestion }) {
+function SuggestionCard({ suggestion: s, featured }: { suggestion: ShowSuggestion; featured: boolean }) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden">
-      <a href={s.url} target="_blank" rel="noopener noreferrer" className="block aspect-video">
+    <Card
+      className={cn(
+        "lift flex h-full flex-col overflow-hidden rounded-[24px]",
+        featured && "sm:col-span-2 sm:grid sm:grid-cols-2",
+      )}
+    >
+      <a
+        href={s.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn("relative block aspect-video overflow-hidden", featured && "sm:aspect-auto sm:h-full sm:min-h-[280px]")}
+        aria-label={`Open ${s.title} on ${s.platform}`}
+      >
         <SourceArt platform={s.platform} imageUrl={s.image_url || undefined} title={s.title} />
+        <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+          {s.platform}
+        </span>
       </a>
-      <div className="flex flex-1 flex-col gap-3 p-5">
+      <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
         <div>
-          <h3 className="text-lg font-bold">{s.title}</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {[s.platform, s.cefr_level, s.cost].filter(Boolean).join(" · ")}
-          </p>
+          <h3 className="text-xl font-bold">{s.title}</h3>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {[s.cefr_level, s.cost].filter(Boolean).map((tag) => (
+              <span key={tag} className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-        <p className="text-sm">{s.description}</p>
-        <dl className="grid gap-1 text-sm">
+        <p>{s.description}</p>
+        <dl className="grid gap-1 text-[15px]">
           {s.audience && (
             <div>
               <dt className="inline font-medium">For: </dt>
@@ -104,9 +119,11 @@ function SuggestionCard({ suggestion: s }: { suggestion: ShowSuggestion }) {
           )}
         </dl>
         {s.tips.length > 0 && (
-          <div>
-            <p className="text-sm font-medium">How to learn with it</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
+          <div className="rounded-2xl bg-surface-2/70 p-4">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <Lightbulb className="size-4 text-[hsl(var(--warning))]" aria-hidden="true" /> How to learn with it
+            </p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
               {s.tips.map((tip) => (
                 <li key={tip}>{tip}</li>
               ))}
@@ -117,9 +134,9 @@ function SuggestionCard({ suggestion: s }: { suggestion: ShowSuggestion }) {
           href={s.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-auto inline-flex w-fit items-center gap-1.5 pt-1 text-sm font-medium text-foreground underline underline-offset-4 hover:text-primary"
+          className="mt-auto inline-flex h-11 w-fit items-center gap-2 rounded-full bg-surface-2 px-5 text-[15px] font-semibold transition-colors hover:bg-border"
         >
-          Open on {s.platform} <ExternalLink className="size-3.5" />
+          Open on {s.platform} <ExternalLink className="size-4" aria-hidden="true" />
         </a>
       </div>
     </Card>

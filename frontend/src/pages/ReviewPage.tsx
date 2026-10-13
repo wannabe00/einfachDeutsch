@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useLocation, useSearchParams } from "react-router-dom"
+import { ArrowRight, CheckCircle2, GraduationCap, RotateCcw } from "lucide-react"
 
 import { fetchDueCounts, type DueCounts } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
@@ -9,6 +10,8 @@ import { FlashCard } from "@/components/vocabulary/FlashCard"
 import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { SessionBar } from "@/components/ui/SessionBar"
 
 /*
  * Flashcard review of learned words, scheduled by SM-2. Pick a chapter or
@@ -41,12 +44,15 @@ export default function ReviewPage() {
 
   if (!session.dueWords?.length) {
     return (
-      <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <p className="text-lg font-medium text-foreground">Nothing due here.</p>
-        <Button variant="secondary" onClick={session.restart}>
-          Choose another chapter
-        </Button>
-      </div>
+      <EmptyState
+        title="Nothing due here"
+        body="Every word in this selection is scheduled for later."
+        action={
+          <Button size="lg" variant="secondary" onClick={session.restart}>
+            Choose another chapter
+          </Button>
+        }
+      />
     )
   }
 
@@ -65,33 +71,15 @@ export default function ReviewPage() {
           : chapterTitle(session.selection as number)
 
   return (
-    <div>
-      <div className="mb-6">
-        <PageHeader
-          title="Review"
-          subtitle={
-            <button
-              onClick={session.restart}
-              className="text-muted-foreground transition-colors hover:text-accent"
-            >
-              {sessionLabel} · change
-            </button>
-          }
-          actions={
-            <span className="self-center text-sm text-muted-foreground">
-              {session.stats.answered} / {session.total}
-            </span>
-          }
-        />
-      </div>
-
-      {/* Progress by answered, not position (skips don't advance it) */}
-      <div className="mb-8 h-1 w-full rounded-full bg-border">
-        <div
-          className="h-1 rounded-full bg-accent transition-all duration-300"
-          style={{ width: `${(session.stats.answered / session.total) * 100}%` }}
-        />
-      </div>
+    <div className="mx-auto flex max-w-xl flex-col gap-8">
+      {/* Progress by answered, not position (skips don't advance it). */}
+      <SessionBar
+        onClose={session.restart}
+        closeLabel="End review"
+        title={`Review · ${sessionLabel}`}
+        progress={(session.stats.answered / session.total) * 100}
+        counter={`${session.stats.answered}/${session.total}`}
+      />
 
       <FlashCard
         key={current.id}
@@ -101,6 +89,19 @@ export default function ReviewPage() {
         onSkip={session.skip}
       />
     </div>
+  )
+}
+
+function EmptyState({ title, body, action }: { title: string; body: string; action: React.ReactNode }) {
+  return (
+    <Card className="mx-auto flex max-w-md flex-col items-center gap-3 px-6 py-12 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]">
+        <CheckCircle2 className="size-8" aria-hidden="true" />
+      </span>
+      <h2 className="mt-2 text-2xl font-extrabold">{title}</h2>
+      <p className="text-muted-foreground">{body}</p>
+      <div className="mt-3">{action}</div>
+    </Card>
   )
 }
 
@@ -131,29 +132,49 @@ function StartScreen({
     .filter((b) => b.chapters.length > 0)
 
   return (
-    <div>
-      <PageHeader title="Review" subtitle="Choose what to review." />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Review" subtitle="Flashcards for the words you've learned, timed so they come back just before you forget them." />
 
       {total === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-lg font-medium text-foreground">Nothing due today.</p>
-          <p className="text-sm text-muted-foreground">
-            Review covers the words from lessons you've finished. Come back tomorrow, or
-            continue your path to learn more.
-          </p>
-          <Button variant="secondary" asChild>
-            <Link to="/path">Continue your path</Link>
-          </Button>
-        </div>
+        <EmptyState
+          title="All caught up"
+          body="Review covers the words from lessons you've finished. Come back tomorrow, or continue your path to learn more."
+          action={
+            <Button size="lg" asChild>
+              <Link to="/path">
+                Continue your path <ArrowRight />
+              </Link>
+            </Button>
+          }
+        />
       ) : (
-        <div className="mt-6">
-          <ChapterButtons
-            books={dueBooks}
-            selected={-1}
-            onSelect={onSelect}
-            badge={(id) => counts?.per_chapter[id]}
-          />
-        </div>
+        <>
+          <Card className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-7">
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <GraduationCap className="size-7" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-grotesk text-4xl font-extrabold tabular-nums tracking-tight">
+                {total} <span className="text-xl font-bold text-muted-foreground">{total === 1 ? "word" : "words"} due</span>
+              </p>
+              <p className="mt-1 text-muted-foreground">About {Math.max(1, Math.round(total / 4))} min. Type each one in German.</p>
+            </div>
+            <Button size="lg" onClick={() => onSelect("all")}>
+              Review all <ArrowRight />
+            </Button>
+          </Card>
+
+          <section>
+            <h2 className="mb-3 px-1 text-[22px] font-bold">Or pick a Lektion</h2>
+            <ChapterButtons
+              books={dueBooks}
+              selected={-1}
+              onSelect={onSelect}
+              includeAll={false}
+              badge={(id) => counts?.per_chapter[id]}
+            />
+          </section>
+        </>
       )}
     </div>
   )
@@ -172,24 +193,29 @@ function SessionComplete({
     { label: "Due again", value: stats.again },
   ]
   return (
-    <div className="flex flex-col items-center gap-6 py-24 text-center">
-      <h2 className="text-2xl font-semibold tracking-tight">Session complete</h2>
-      <div className="grid grid-cols-3 gap-6">
-        {cells.map(({ label, value }) => (
-          <div key={label} className="flex flex-col items-center">
-            <span className="text-3xl font-bold text-foreground">{value}</span>
-            <span className="mt-1 text-sm text-muted-foreground">{label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-3">
-        <Button variant="secondary" onClick={onRestart}>
-          Review more
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link to="/">Back to Dashboard</Link>
-        </Button>
-      </div>
+    <div className="mx-auto max-w-md py-8">
+      <Card className="p-8 text-center">
+        <span className="mx-auto flex size-24 items-center justify-center rounded-full bg-[hsl(var(--success-bg))] text-[hsl(var(--success))] animate-in zoom-in-50 fade-in-0 duration-500">
+          <CheckCircle2 className="size-12" strokeWidth={2.25} aria-hidden="true" />
+        </span>
+        <h2 className="mt-6 text-3xl font-extrabold">Session complete</h2>
+        <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-surface-2/70 p-4">
+          {cells.map(({ label, value }) => (
+            <div key={label} className="flex flex-col items-center">
+              <span className="font-grotesk text-2xl font-extrabold tabular-nums">{value}</span>
+              <span className="mt-0.5 text-xs text-muted-foreground">{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-7 flex flex-col gap-2.5">
+          <Button size="lg" onClick={onRestart}>
+            <RotateCcw /> Review more
+          </Button>
+          <Button size="lg" variant="secondary" asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }

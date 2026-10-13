@@ -63,17 +63,15 @@ export function PreferencesSection() {
             <Input type="time" value={reminder} onChange={(e) => setReminder(e.target.value)} />
           </Field>
         </div>
-        <p className="mt-3 mb-1 text-xs text-muted-foreground">Days that count toward your schedule</p>
+        <p className="mb-2 mt-5 text-sm font-medium text-muted-foreground">Days that count toward your schedule</p>
         <div className="flex flex-wrap gap-2">
           {WEEKDAYS.map((d, i) => (
             <button
               key={d}
               onClick={() => toggleWeekday(i)}
               className={cn(
-                "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-                weekdays.includes(i)
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border bg-background hover:border-accent",
+                "min-h-[40px] min-w-[52px] rounded-full px-3 text-sm font-semibold transition-colors",
+                weekdays.includes(i) ? "bg-primary text-primary-foreground" : "bg-surface-2 hover:bg-border",
               )}
             >
               {d}
@@ -96,7 +94,7 @@ export function PreferencesSection() {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className="h-11 w-full rounded-xl border border-transparent bg-surface-2 px-3.5 text-base focus-visible:border-ring focus-visible:outline-none"
             >
               <option value="en">English</option>
               <option value="de">Deutsch</option>
@@ -112,7 +110,7 @@ export function PreferencesSection() {
       </Section>
 
       {msg && <Msg tone="success">{msg}</Msg>}
-      <Button className="self-start" onClick={savePrefs}>
+      <Button size="lg" className="self-start" onClick={savePrefs}>
         Save preferences
       </Button>
     </>

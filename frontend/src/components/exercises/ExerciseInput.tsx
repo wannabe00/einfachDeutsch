@@ -43,7 +43,7 @@ export function ExerciseInput({
             <li
               key={i}
               className={cn(
-                "rounded-xl border p-3",
+                "rounded-2xl border-2 p-3.5",
                 result === undefined && "border-border",
                 result === true && "border-[hsl(var(--success))]",
                 result === false && "border-[hsl(var(--danger))]",
@@ -91,10 +91,8 @@ export function ExerciseInput({
             disabled={disabled}
             onClick={() => onChange(option)}
             className={cn(
-              "rounded-xl border-2 px-4 py-3 text-left font-medium transition-colors",
-              picked === option
-                ? "border-transparent text-white"
-                : "border-border hover:border-white/30",
+              "min-h-[56px] rounded-2xl px-4 py-3 text-left text-base font-semibold transition-colors",
+              picked === option ? "text-white" : "bg-surface-2 hover:bg-border",
             )}
             style={picked === option ? { background: accent } : undefined}
           >
@@ -114,7 +112,7 @@ export function ExerciseInput({
     )
     return (
       <div>
-        <div className="min-h-14 rounded-xl border-2 border-dashed border-border p-2">
+        <div className="min-h-[60px] rounded-2xl border-2 border-dashed border-border p-2">
           <div className="flex flex-wrap gap-2">
             {order.map((token, i) => (
               <button
@@ -122,7 +120,7 @@ export function ExerciseInput({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(order.filter((_, j) => j !== i))}
-                className="rounded-lg bg-surface-2 px-3 py-1.5 text-sm font-medium ring-1 ring-border"
+                className="min-h-[44px] rounded-xl bg-surface px-3.5 py-2 text-[15px] font-medium shadow-card ring-1 ring-border"
               >
                 {token}
               </button>
@@ -136,7 +134,7 @@ export function ExerciseInput({
               type="button"
               disabled={disabled}
               onClick={() => onChange([...order, token])}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:border-white/30"
+              className="min-h-[44px] rounded-xl bg-surface-2 px-3.5 py-2 text-[15px] font-medium transition-colors hover:bg-border"
             >
               {token}
             </button>

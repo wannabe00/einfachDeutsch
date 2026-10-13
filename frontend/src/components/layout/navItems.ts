@@ -33,7 +33,7 @@ export interface NavGroup {
 /** Standalone links that sit on their own in the bar (not under a menu). */
 export const dashboardItem: NavLeaf = {
   to: "/",
-  label: "Dashboard",
+  label: "Home",
   icon: LayoutDashboard,
   end: true,
 }

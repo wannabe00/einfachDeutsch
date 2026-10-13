@@ -80,16 +80,16 @@ export function PlacementTestForm({
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-6 rounded-xl border border-border bg-surface p-6">
+    <div className="mt-6 flex flex-col gap-6 rounded-[28px] bg-surface p-6 shadow-card sm:p-8 lg:mt-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold">Placement test</h2>
+          <h2 className="text-2xl font-extrabold">Placement test</h2>
           <p className="text-sm text-muted-foreground">
             Step {stepIndex + 1} of {steps.length}: {step.label}
           </p>
         </div>
-        <div className="text-right text-xs text-muted-foreground tabular-nums">
-          <div>⏱ {mmss(elapsed)}</div>
+        <div className="text-right text-sm text-muted-foreground tabular-nums">
+          <div>{mmss(elapsed)}</div>
           <div>
             {answered}/{mcqIds.length} answered
           </div>
@@ -116,7 +116,7 @@ export function PlacementTestForm({
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {step.passage.title}
             </h3>
-            <p className="mt-2 whitespace-pre-wrap rounded-lg bg-background p-3 text-sm leading-relaxed">
+            <p className="mt-2 whitespace-pre-wrap rounded-2xl bg-surface-2/70 p-4 leading-relaxed">
               {step.passage.text}
             </p>
           </div>
@@ -137,7 +137,7 @@ export function PlacementTestForm({
             onChange={(e) => setWriting(e.target.value)}
             rows={4}
             placeholder="Auf Deutsch…"
-            className="w-full rounded-lg border border-border bg-background p-3 text-sm"
+            className="w-full rounded-xl border border-transparent bg-surface-2 p-3.5 text-base transition-colors focus-visible:border-ring focus-visible:outline-none"
           />
           {remaining > 0 && (
             <p className="text-xs text-danger">
@@ -148,9 +148,9 @@ export function PlacementTestForm({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 border-t border-border pt-4">
-        <Button variant="outline" disabled={stepIndex === 0} onClick={() => go(stepIndex - 1)}>
-          ← Previous
+      <div className="flex items-center justify-between gap-2 border-t border-border pt-5">
+        <Button variant="secondary" disabled={stepIndex === 0} onClick={() => go(stepIndex - 1)}>
+          Previous
         </Button>
         {isLast ? (
           <Button
@@ -160,7 +160,7 @@ export function PlacementTestForm({
             {submitting ? "Scoring…" : "See my level"}
           </Button>
         ) : (
-          <Button onClick={() => go(stepIndex + 1)}>Next →</Button>
+          <Button onClick={() => go(stepIndex + 1)}>Next</Button>
         )}
       </div>
     </div>
@@ -180,7 +180,7 @@ function Question({
 }) {
   return (
     <div>
-      <p className="text-sm font-medium">
+      <p className="font-semibold">
         {index}. {q.prompt}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -189,10 +189,8 @@ function Question({
             key={opt}
             onClick={() => onPick(q.id, opt)}
             className={cn(
-              "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-              chosen === opt
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border bg-background hover:border-accent",
+              "min-h-[44px] rounded-xl px-4 py-2 text-[15px] font-medium transition-colors",
+              chosen === opt ? "bg-primary text-primary-foreground" : "bg-surface-2 hover:bg-border",
             )}
           >
             {opt}

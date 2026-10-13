@@ -2,7 +2,17 @@ import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { Check, Loader2, MessageSquarePlus, Pencil, Send, Trash2, X } from "lucide-react"
+import {
+  Check,
+  Loader2,
+  MessageSquarePlus,
+  MessagesSquare,
+  Pencil,
+  Send,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react"
 import { isAxiosError } from "axios"
 
 import {
@@ -34,6 +44,8 @@ export default function AIAssistantPage() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [input, setInput] = useState("")
   const [error, setError] = useState("")
+  // Phones show either the chat or the list of chats.
+  const [showList, setShowList] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const { data: conversations } = useQuery({
@@ -95,48 +107,68 @@ export default function AIAssistantPage() {
     send.mutate(text)
   }
 
+  const list = (
+    <ConversationList
+      conversations={conversations ?? []}
+      activeId={activeId}
+      onNew={() => {
+        setActiveId(null)
+        setShowList(false)
+      }}
+      onOpen={(id) => {
+        setActiveId(id)
+        setShowList(false)
+      }}
+      onRename={(id, title) => rename.mutate({ id, title })}
+      onDelete={(id) => remove.mutate(id)}
+    />
+  )
+
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
-      {/* Conversation list */}
-      <aside className="hidden w-60 shrink-0 flex-col md:flex">
-        <Button className="w-full" onClick={() => setActiveId(null)}>
-          <MessageSquarePlus className="mr-2 size-4" /> New chat
-        </Button>
-        <div className="mt-3 flex-1 overflow-y-auto">
-          {(conversations ?? []).length === 0 ? (
-            <p className="px-2 py-3 text-xs text-muted-foreground">No chats yet.</p>
-          ) : (
-            <ul className="flex flex-col gap-1">
-              {(conversations ?? []).map((c) => (
-                <ConversationRow
-                  key={c.id}
-                  conversation={c}
-                  active={c.id === activeId}
-                  onOpen={() => setActiveId(c.id)}
-                  onRename={(title) => rename.mutate({ id: c.id, title })}
-                  onDelete={() => remove.mutate(c.id)}
-                />
-              ))}
-            </ul>
-          )}
+    <div className="flex h-[calc(100svh-12.5rem)] min-h-[420px] flex-col gap-3 lg:h-[calc(100vh-9rem)] lg:flex-row lg:gap-5">
+      {/* Phones: a bar to switch between the chat and the list of chats. */}
+      <div className="flex items-center justify-between gap-2 lg:hidden">
+        <h1 className="text-2xl font-extrabold">AI Assistant</h1>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setShowList((v) => !v)} aria-expanded={showList}>
+            <MessagesSquare /> {showList ? "Back to chat" : "Chats"}
+          </Button>
+          <Button
+            size="icon"
+            className="size-9"
+            aria-label="New chat"
+            onClick={() => {
+              setActiveId(null)
+              setShowList(false)
+            }}
+          >
+            <MessageSquarePlus />
+          </Button>
         </div>
-      </aside>
+      </div>
+
+      {/* Conversation list: a side card on desktop, a full view on phones. */}
+      <aside className="hidden w-64 shrink-0 lg:flex">{list}</aside>
+      {showList && <div className="flex min-h-0 flex-1 lg:hidden">{list}</div>}
 
       {/* Thread */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div className={cn("min-w-0 flex-1 flex-col", showList ? "hidden lg:flex" : "flex")}>
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
           {messages.length === 0 && !send.isPending ? (
-            <div className="flex flex-col gap-3 py-8">
-              <h1 className="text-xl font-bold">AI Assistant</h1>
-              <p className="text-sm text-muted-foreground">
-                Ask anything about German. Your chats are saved on the left.
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-2 py-8 text-center">
+              <span className="flex size-16 items-center justify-center rounded-2xl bg-[hsl(var(--section-3))] text-white">
+                <Sparkles className="size-8" aria-hidden="true" />
+              </span>
+              <h2 className="mt-2 text-3xl font-extrabold">Ask me anything about German</h2>
+              <p className="max-w-md text-muted-foreground">
+                Grammar, words, how to say something. Your chats are saved, so you can come back to them.
               </p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-4 grid w-full max-w-xl gap-2.5 sm:grid-cols-3">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => send.mutate(s)}
-                    className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:bg-surface-2"
+                    className="lift min-h-[64px] rounded-2xl bg-surface p-4 text-left text-[15px] font-medium shadow-card"
                   >
                     {s}
                   </button>
@@ -144,19 +176,22 @@ export default function AIAssistantPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-4 pb-4">
+            <div className="mx-auto flex max-w-3xl flex-col gap-4 pb-4 pt-1">
               {messages.map((m) => (
                 <div
                   key={m.id}
-                  className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
+                  className={cn(
+                    "flex animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
+                    m.role === "user" ? "justify-end" : "justify-start",
+                  )}
                 >
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-xl px-4 py-2.5 text-sm leading-relaxed",
+                      "max-w-[85%] rounded-[22px] px-4 py-3 text-[15px] leading-relaxed",
                       m.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-border bg-surface text-foreground",
-                      "[&_code]:rounded [&_code]:bg-background/50 [&_code]:px-1 [&_code]:font-mono",
+                        ? "rounded-br-md bg-primary text-primary-foreground"
+                        : "rounded-bl-md bg-surface text-foreground shadow-card",
+                      "[&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:font-mono",
                       "[&_table]:my-2 [&_table]:w-full [&_table]:border-collapse",
                       "[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:text-left",
                       "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1",
@@ -169,7 +204,7 @@ export default function AIAssistantPage() {
               ))}
               {send.isPending && (
                 <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 rounded-[22px] rounded-bl-md bg-surface px-4 py-3 text-[15px] text-muted-foreground shadow-card">
                     <Loader2 className="size-4 animate-spin" /> Thinking…
                   </div>
                 </div>
@@ -179,27 +214,85 @@ export default function AIAssistantPage() {
         </div>
 
         {error && (
-          <div className="mb-2 rounded-md border border-[hsl(var(--danger))]/40 bg-[hsl(var(--danger-bg))] px-3 py-2 text-sm text-[hsl(var(--danger))]">
+          <div className="mx-auto mb-2 w-full max-w-3xl rounded-xl bg-danger-bg px-4 py-2.5 text-sm font-medium text-danger" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={submit} className="mt-2 flex gap-2 border-t border-border pt-4">
+        <form
+          onSubmit={submit}
+          className="mx-auto mt-2 flex w-full max-w-3xl items-center gap-2 rounded-full bg-surface p-1.5 pl-5 shadow-card focus-within:ring-2 focus-within:ring-ring"
+        >
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about German…"
             aria-label="Message the AI tutor"
-            className="flex-1 rounded-md border border-input bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-w-0 flex-1 bg-transparent py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none"
           />
-          <Button type="submit" disabled={send.isPending || !input.trim()}>
-            <Send className="size-4" />
+          <Button
+            type="submit"
+            size="icon"
+            aria-label="Send"
+            className="shrink-0"
+            disabled={send.isPending || !input.trim()}
+          >
+            <Send />
           </Button>
         </form>
       </div>
     </div>
   )
 }
+
+function ConversationList({
+  conversations,
+  activeId,
+  onNew,
+  onOpen,
+  onRename,
+  onDelete,
+}: {
+  conversations: Conversation[]
+  activeId: number | null
+  onNew: () => void
+  onOpen: (id: number) => void
+  onRename: (id: number, title: string) => void
+  onDelete: (id: number) => void
+}) {
+  return (
+    <div className="flex min-h-0 w-full flex-col rounded-[24px] bg-surface p-3 shadow-card">
+      <Button className="w-full" onClick={onNew}>
+        <MessageSquarePlus /> New chat
+      </Button>
+      <p className="mt-4 px-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+        Your chats
+      </p>
+      <div className="mt-1.5 min-h-0 flex-1 overflow-y-auto">
+        {conversations.length === 0 ? (
+          <p className="px-2 py-3 text-sm text-muted-foreground">No chats yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-0.5">
+            {conversations.map((c) => (
+              <ConversationRow
+                key={c.id}
+                conversation={c}
+                active={c.id === activeId}
+                onOpen={() => onOpen(c.id)}
+                onRename={(title) => onRename(c.id, title)}
+                onDelete={() => onDelete(c.id)}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* Row actions show on touch screens always; with a mouse, on hover or focus. */
+const ROW_ACTION =
+  "flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
 
 function ConversationRow({
   conversation,
@@ -219,7 +312,7 @@ function ConversationRow({
 
   if (editing) {
     return (
-      <li className="flex items-center gap-1 rounded-md bg-surface p-1">
+      <li className="flex items-center gap-1 rounded-xl bg-surface-2 p-1">
         <input
           autoFocus
           value={draft}
@@ -231,7 +324,8 @@ function ConversationRow({
             }
             if (e.key === "Escape") setEditing(false)
           }}
-          className="min-w-0 flex-1 rounded bg-background px-2 py-1 text-sm focus-visible:outline-none"
+          aria-label="Chat title"
+          className="min-w-0 flex-1 rounded-lg bg-surface px-2.5 py-1.5 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <button
           aria-label="Save title"
@@ -257,11 +351,14 @@ function ConversationRow({
   return (
     <li
       className={cn(
-        "group flex items-center gap-1 rounded-md px-2 py-1.5 transition-colors",
-        active ? "bg-primary/15" : "hover:bg-surface",
+        "group flex min-h-[44px] items-center gap-0.5 rounded-xl px-1 transition-colors",
+        active ? "bg-primary/10" : "hover:bg-surface-2",
       )}
     >
-      <button onClick={onOpen} className="min-w-0 flex-1 truncate text-left text-sm">
+      <button
+        onClick={onOpen}
+        className={cn("min-w-0 flex-1 truncate px-2 py-2.5 text-left text-[15px]", active && "font-semibold")}
+      >
         {conversation.title || "New chat"}
       </button>
       <button
@@ -270,14 +367,14 @@ function ConversationRow({
           setDraft(conversation.title)
           setEditing(true)
         }}
-        className="p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+        className={cn(ROW_ACTION, "hover:text-foreground", active && "lg:opacity-100")}
       >
         <Pencil className="size-3.5" />
       </button>
       <button
         aria-label="Delete chat"
         onClick={onDelete}
-        className="p-1 text-muted-foreground opacity-0 transition-opacity hover:text-[hsl(var(--danger))] group-hover:opacity-100"
+        className={cn(ROW_ACTION, "hover:text-danger", active && "lg:opacity-100")}
       >
         <Trash2 className="size-3.5" />
       </button>

@@ -13,8 +13,15 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
-        grotesk: ["Space Grotesk", "system-ui", "sans-serif"],
+        sans: [
+          "-apple-system", "BlinkMacSystemFont", '"SF Pro Text"', '"Segoe UI"', "Roboto",
+          '"Helvetica Neue"', "Arial", "sans-serif",
+        ],
+        // Display face for headings and big numbers (the system font's display cut).
+        grotesk: [
+          "-apple-system", "BlinkMacSystemFont", '"SF Pro Display"', '"Segoe UI"', "Roboto",
+          '"Helvetica Neue"', "Arial", "sans-serif",
+        ],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -78,6 +85,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        lift: "var(--shadow-lift)",
       },
       borderRadius: {
         lg: "var(--radius)",

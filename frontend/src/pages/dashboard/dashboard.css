@@ -1,0 +1,100 @@
+/*
+ * Dashboard-only helpers. Colours come from the global tokens in index.css
+ * (aliased here so the components read short names), so light and dark work
+ * like everywhere else.
+ */
+.dash {
+  --d-card: hsl(var(--surface));
+  --d-fill: hsl(var(--surface-2));
+  --d-fg: hsl(var(--foreground));
+  --d-muted: hsl(var(--muted-foreground));
+  --d-red: hsl(var(--primary));
+  --d-red-soft: hsl(var(--primary) / 0.14);
+  --d-ok: hsl(var(--success));
+  --d-u1: hsl(var(--section-1));
+  --d-u2: hsl(var(--section-2));
+  --d-u3: hsl(var(--section-3));
+  --d-u4: hsl(var(--section-4));
+  --d-u5: hsl(var(--section-5));
+  --d-u6: hsl(var(--section-6));
+}
+
+:where(.dash) .d-card {
+  background: var(--d-card);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+:where(.dash) .d-lift {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+:where(.dash) .d-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+:where(.dash) .d-kicker {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--d-muted);
+}
+
+:where(.dash) .d-num {
+  font-family: theme("fontFamily.grotesk");
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+:where(.dash) .d-btn {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 24px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: transform 150ms ease, filter 150ms ease, background 150ms ease;
+}
+:where(.dash) .d-btn:active {
+  transform: scale(0.97);
+}
+:where(.dash) .d-btn-red {
+  background: var(--d-red);
+  color: #fff;
+}
+:where(.dash) .d-btn-red:hover {
+  filter: brightness(1.08);
+}
+:where(.dash) .d-btn-glass {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:where(.dash) .d-btn-glass:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+/* Rings fill from empty, bars grow from the bottom. */
+.dash .d-ring-fill {
+  animation: d-ring 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes d-ring {
+  from {
+    stroke-dashoffset: var(--c);
+  }
+}
+.dash .d-grow {
+  transform-origin: bottom;
+  animation: d-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes d-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
