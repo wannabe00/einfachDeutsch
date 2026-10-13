@@ -220,7 +220,7 @@ function Teaser() {
 const FEATURES = [
   {
     title: "The path",
-    body: "A1 split into short daily lessons. Each one mixes exercises with words to review.",
+    body: "A1 split into units of two or three lessons: new words, grammar, then conversation and review.",
   },
   {
     title: "Spaced review",
@@ -375,7 +375,7 @@ const FAQS = [
   },
   {
     q: "Do I need an account?",
-    a: "You can try review, grammar, exercises and one drill as a guest. Sign in with Google or GitHub to save progress and follow the path.",
+    a: "You can try review, grammar and one drill as a guest. Sign in with Google or GitHub to save progress and follow the path.",
   },
   {
     q: "What level is it for?",

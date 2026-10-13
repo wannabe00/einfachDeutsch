@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { fetchWords } from "@/api/vocabulary"
+import { fetchDrillWords } from "@/api/vocabulary"
 import { splitArticle, normalize, shuffle } from "@/lib/german"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,7 +24,7 @@ function scrambleLetters(word: string): string {
 }
 
 export function Unscramble({ onExit }: { onExit: () => void }) {
-  const { data: words } = useQuery({ queryKey: ["words", "all"], queryFn: () => fetchWords() })
+  const { data: words } = useQuery({ queryKey: ["drill-words"], queryFn: fetchDrillWords })
   const [i, setI] = useState(0)
   const [score, setScore] = useState({ correct: 0, wrong: 0 })
   const [value, setValue] = useState("")
@@ -44,7 +44,7 @@ export function Unscramble({ onExit }: { onExit: () => void }) {
   }, [words])
 
   if (!words) return <DrillShell title="Unscramble" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (pool.length === 0) return <DrillShell title="Unscramble" onExit={onExit}><p className="text-sm text-muted-foreground">No words yet.</p></DrillShell>
+  if (pool.length === 0) return <DrillShell title="Unscramble" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
 
   if (i >= pool.length) {
     const pct = Math.round((score.correct / pool.length) * 100)

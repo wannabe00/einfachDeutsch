@@ -47,7 +47,7 @@ export const navGroups: NavGroup[] = [
     label: "Practice",
     items: [
       { to: "/review", label: "Review", icon: GraduationCap },
-      { to: "/exercises", label: "Exercises", icon: NotebookPen },
+      { to: "/exercises", label: "Practice", icon: NotebookPen },
       { to: "/drills", label: "Drills", icon: Swords },
       { to: "/speak", label: "Recite", icon: Mic },
     ],

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { fetchWords } from "@/api/vocabulary"
+import { fetchDrillWords } from "@/api/vocabulary"
 import { shuffle, normalize } from "@/lib/german"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -11,7 +11,7 @@ const PER_ROUND = 5
 const ROUNDS = 5
 
 export function MatchPairs({ onExit }: { onExit: () => void }) {
-  const { data: words } = useQuery({ queryKey: ["words", "all"], queryFn: () => fetchWords() })
+  const { data: words } = useQuery({ queryKey: ["drill-words"], queryFn: fetchDrillWords })
   const [round, setRound] = useState(0)
   const [score, setScore] = useState({ correct: 0, wrong: 0 })
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null)
@@ -35,7 +35,7 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
   )
 
   if (!words) return <DrillShell title="Match Pairs" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (allRounds.length === 0) return <DrillShell title="Match Pairs" onExit={onExit}><p className="text-sm text-muted-foreground">Not enough words yet.</p></DrillShell>
+  if (allRounds.length === 0) return <DrillShell title="Match Pairs" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a lesson on your path to unlock words for this drill.</p></DrillShell>
 
   if (round >= allRounds.length) {
     const total = score.correct + score.wrong

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { fetchWords } from "@/api/vocabulary"
+import { fetchDrillWords } from "@/api/vocabulary"
 import { splitArticle, shuffle } from "@/lib/german"
 import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ const ARTICLE_TEXT: Record<string, string> = {
 }
 
 export function GenderTriage({ onExit }: { onExit: () => void }) {
-  const { data: words } = useQuery({ queryKey: ["words", "all"], queryFn: () => fetchWords() })
+  const { data: words } = useQuery({ queryKey: ["drill-words"], queryFn: fetchDrillWords })
   const [i, setI] = useState(0)
   const [score, setScore] = useState({ correct: 0, wrong: 0 })
   const [picked, setPicked] = useState<string | null>(null)
@@ -41,7 +41,7 @@ export function GenderTriage({ onExit }: { onExit: () => void }) {
   if (pool.length === 0)
     return (
       <DrillShell title="Gender Triage" onExit={onExit}>
-        <p className="text-sm text-muted-foreground">No nouns with articles found. Add some words first.</p>
+        <p className="text-sm text-muted-foreground">No nouns learned yet. Finish a lesson on your path to unlock them.</p>
       </DrillShell>
     )
 

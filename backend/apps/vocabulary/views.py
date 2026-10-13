@@ -1,3 +1,4 @@
+import random
 from datetime import date
 
 from django.db.models import Count, Prefetch, Q
@@ -19,6 +20,21 @@ from .srs import calculate_next_review
 
 # Words in the Dashboard's "review last unit" session.
 LAST_UNIT_REVIEW_SIZE = 20
+# Words handed to the drills per round of loading.
+DRILL_POOL_SIZE = 60
+
+
+def drill_weight(progress) -> float:
+    """How likely a word is to come up in a drill: weak words more, words the
+    user has mastered less. A word never reviewed counts as fairly weak."""
+    if progress is None:
+        return 2.0
+    seen = progress.times_seen or 0
+    weight = 1.0 + progress.lapses + 2 * (progress.times_wrong / (seen + 1))
+    weight += max(0.0, 2.5 - progress.ease_factor) * 2
+    if progress.interval > 21:
+        weight /= 2
+    return weight
 
 
 def current_user(request):
@@ -112,6 +128,32 @@ class WordViewSet(viewsets.ModelViewSet):
         words = self._with_user_progress(due_words_for(user, chapter))
         serializer = self.get_serializer(words, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="drill")
+    def drill(self, request):
+        """Words for the drills: learned words only, weak ones more often, in
+        random order. Guests get a random set from the lowest level."""
+        user = current_user(request)
+        qs = Word.objects.select_related("chapter").filter(
+            chapter__cefr_level__in=visible_levels_for(request.user)
+        )
+        if user is None:
+            words = list(qs.order_by("?")[:DRILL_POOL_SIZE])
+        else:
+            from apps.curriculum.learned import learned_word_ids
+
+            words = list(self._with_user_progress(qs.filter(id__in=learned_word_ids(user))))
+            # Weighted sampling without replacement: sort by a random key
+            # raised to 1/weight (Efraimidis-Spirakis), keep the top ones.
+            words.sort(
+                key=lambda w: (
+                    random.random() ** (1 / drill_weight(next(iter(w.user_progress), None)))
+                ),
+                reverse=True,
+            )
+            words = words[:DRILL_POOL_SIZE]
+            random.shuffle(words)
+        return Response(self.get_serializer(words, many=True).data)
 
     @action(
         detail=False, methods=["get"], url_path="last-unit", permission_classes=[IsAuthenticated]

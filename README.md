@@ -20,10 +20,14 @@ production.
 - **Level exam.** Finishing a level's path unlocks an exam; passing it moves you
   up a level.
 - **Spaced review.** SM-2 flashcards where you type the German, article
-  included.
+  included, over the words from lessons you've finished. The Dashboard offers a
+  short review of the last unit you finished.
+- **Practice.** Sets of about ten tasks from finished lessons, mixed across
+  units, with no hints, mostly typing, and more of what you got wrong.
 - **Word Bank and Grammar.** Grouped by level; topics and words unlock as you
   reach the lessons that teach them.
-- **Drills.** Six short games (articles, spelling, word order and more).
+- **Drills.** Six short games (articles, spelling, word order and more) over the
+  words and sentences you've learned, weak words more often.
 - **Videos and History.** Curated watch suggestions and history reads with a
   quiz, filtered to your level.
 - **Premium.** Unlimited energy, an AI tutor with saved conversations, and
