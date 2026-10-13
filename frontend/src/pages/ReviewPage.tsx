@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 
 import { fetchDueCounts, type DueCounts } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
@@ -10,8 +10,14 @@ import { ChapterButtons } from "@/components/layout/ChapterButtons"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 
+/*
+ * Flashcard review of learned words, scheduled by SM-2. Pick a chapter or
+ * everything; `?scope=last-unit` (from the Dashboard) starts straight into a
+ * short review of the unit finished most recently.
+ */
 export default function ReviewPage() {
-  const session = useReviewSession()
+  const [params] = useSearchParams()
+  const session = useReviewSession(params.get("scope") === "last-unit" ? "last-unit" : null)
   const { data: books } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
   const { data: counts } = useQuery({
     queryKey: ["due-counts"],
@@ -46,7 +52,11 @@ export default function ReviewPage() {
   if (!current) return <Centered>Loading…</Centered>
 
   const sessionLabel =
-    session.selection === "all" ? "All chapters" : chapterTitle(session.selection as number)
+    session.selection === "all"
+      ? "All chapters"
+      : session.selection === "last-unit"
+        ? "Your last unit"
+        : chapterTitle(session.selection as number)
 
   return (
     <div>
@@ -122,10 +132,11 @@ function StartScreen({
         <div className="mt-10 flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-lg font-medium text-foreground">Nothing due today.</p>
           <p className="text-sm text-muted-foreground">
-            Come back tomorrow, or add more words.
+            Review covers the words from lessons you've finished. Come back tomorrow, or
+            continue your path to learn more.
           </p>
           <Button variant="secondary" asChild>
-            <Link to="/words">Go to Word Bank</Link>
+            <Link to="/path">Continue your path</Link>
           </Button>
         </div>
       ) : (

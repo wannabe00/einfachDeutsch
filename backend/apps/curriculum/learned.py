@@ -19,7 +19,7 @@ from apps.accounts.levels import level_rank
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
-from .models import Lesson, LessonItem, PathLessonProgress
+from .models import Lesson, LessonItem, PathLessonProgress, Unit
 
 
 def completed_lesson_ids(user) -> set[int]:
@@ -74,3 +74,27 @@ def teaching_lessons(rule_ids) -> dict[int, Lesson]:
     for item in items:
         out.setdefault(item.grammar_rule_id, item.lesson)
     return out
+
+
+def last_completed_unit(user) -> Unit | None:
+    """The unit the user finished most recently (every lesson completed), for
+    the Dashboard's "review last unit". None until a whole unit is done."""
+    if user is None or not user.is_authenticated:
+        return None
+    finished_at: dict[int, object] = {}
+    done_count: dict[int, int] = {}
+    rows = PathLessonProgress.objects.filter(user=user, completed_at__isnull=False).values_list(
+        "lesson__unit_id", "completed_at"
+    )
+    for unit_id, completed_at in rows:
+        done_count[unit_id] = done_count.get(unit_id, 0) + 1
+        finished_at[unit_id] = max(finished_at.get(unit_id, completed_at), completed_at)
+
+    rank = level_rank(user.profile.cefr_level)
+    units = Unit.objects.filter(id__in=done_count).prefetch_related("lessons")
+    finished = [
+        u
+        for u in units
+        if done_count[u.id] >= len(u.lessons.all()) and level_rank(u.cefr_level) <= rank
+    ]
+    return max(finished, key=lambda u: finished_at[u.id], default=None)
