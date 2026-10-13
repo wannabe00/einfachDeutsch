@@ -10,6 +10,8 @@ import type {
   PathEnergy,
   PathResponse,
   PathUnitDetail,
+  PracticeOptions,
+  PracticeTask,
 } from "@/types"
 
 /** XP + crowns + level progress for the Dashboard. */
@@ -97,6 +99,35 @@ export async function submitExam(
   const { data } = await apiClient.post<ExamResult>("/curriculum/exam/submit/", {
     attempt_id: attemptId,
     answers,
+  })
+  return data
+}
+
+/* ---- Practice sets ---- */
+
+/** The units and grammar topics a practice set can be narrowed to. */
+export async function fetchPracticeOptions(): Promise<PracticeOptions> {
+  const { data } = await apiClient.get<PracticeOptions>("/curriculum/practice/")
+  return data
+}
+
+/** A new set of about ten tasks from finished lessons. */
+export async function startPractice(filters: {
+  unit?: number
+  topic?: number
+}): Promise<PracticeTask[]> {
+  const { data } = await apiClient.post<{ tasks: PracticeTask[] }>(
+    "/curriculum/practice/start/",
+    filters,
+  )
+  return data.tasks
+}
+
+/** Grade one task. Same result shape as a lesson answer. */
+export async function answerPractice(taskId: string, answer: unknown): Promise<AnswerResult> {
+  const { data } = await apiClient.post<AnswerResult>("/curriculum/practice/answer/", {
+    task_id: taskId,
+    answer,
   })
   return data
 }

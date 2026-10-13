@@ -6,12 +6,13 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.scheduling import record_activity
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
 from . import energy as energy_lib
 from . import exam as exam_lib
-from . import gating, grading
+from . import gating, grading, practice
 from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
 from .serializers import (
     LessonDetailSerializer,
@@ -345,4 +346,38 @@ def exam_submit(request):
         )
     except exam_lib.ExamError as err:
         return Response({"detail": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def practice_options(request):
+    """The units and grammar topics a practice set can be narrowed to."""
+    return Response(practice.options(request.user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def practice_start(request):
+    """A new practice set from finished lessons, optionally for one unit or topic."""
+
+    def as_id(key):
+        value = request.data.get(key)
+        return int(value) if str(value or "").isdigit() else None
+
+    tasks = practice.build_set(request.user, as_id("unit"), as_id("topic"))
+    return Response({"tasks": tasks})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def practice_answer(request):
+    """Grade one practice task and reveal its solution."""
+    try:
+        result = practice.answer(
+            request.user, request.data.get("task_id"), request.data.get("answer")
+        )
+    except practice.PracticeError as err:
+        return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
+    record_activity(request.user)
     return Response(result)

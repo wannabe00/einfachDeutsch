@@ -30,7 +30,7 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
   }, [rules])
 
   if (!rules) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (rounds.length === 0) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="text-sm text-muted-foreground">No sentences available yet.</p></DrillShell>
+  if (rounds.length === 0) return <DrillShell title="Sentence Shuffle" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
 
   if (i >= rounds.length) {
     const pct = Math.round((score.correct / rounds.length) * 100)

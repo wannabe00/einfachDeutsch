@@ -275,15 +275,6 @@ export interface Exercise {
   // correct_answer is deliberately absent: the API never sends it before an attempt.
 }
 
-/** Returned by POST /api/exercises/{id}/attempt/ */
-export interface AttemptResult {
-  is_correct: boolean
-  // Shape mirrors the type: string for simple, string[] / map for interactive.
-  correct_answer: string | string[] | Record<string, string>
-  explanation: string
-  ai_feedback: string
-}
-
 export type GrammarCategory =
   | "articles"
   | "cases"
@@ -533,4 +524,16 @@ export interface LastUnitReview {
   /** Null until a whole unit is finished. */
   unit: { id: number; order: number; title: string } | null
   words: Word[]
+}
+
+/* ---- Practice sets ---- */
+
+export interface PracticeOptions {
+  units: { id: number; order: number; title: string }[]
+  topics: { id: number; title: string }[]
+}
+
+export interface PracticeTask extends PartContent {
+  /** "12" for an exercise, "12:0,3" for those parts of a multi-part one. */
+  task_id: string
 }

@@ -1,16 +1,11 @@
 from rest_framework import serializers
 
-from .models import Exercise, ExerciseAttempt
+from .models import Exercise
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
-    """Default representation, with solutions deliberately left out.
-
-    `correct_answer` is never sent here, and answer fields are stripped from
-    `payload`. The attempt endpoint reveals the solution and grades the answer.
-    For interactive types, `payload` is shuffled/cleaned so the UI can render
-    the exercise without seeing the solution.
-    """
+    """An exercise without its answers: `correct_answer` is never sent and the
+    payload is stripped the same way the lesson player strips it."""
 
     payload = serializers.SerializerMethodField()
 
@@ -29,32 +24,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
         ]
 
     def get_payload(self, obj):
-        p = dict(obj.payload or {})
-        t = obj.exercise_type
-        if t == "multiple_choice":
-            # keep options, drop the answer
-            return {"options": p.get("options", [])}
-        if t == "matching":
-            # Send left and right separately, right shuffled, so no pairing is given away.
-            pairs = p.get("pairs", [])
-            lefts = [pair[0] for pair in pairs]
-            rights = [pair[1] for pair in pairs]
-            return {"left": lefts, "right": sorted(rights)}
-        if t == "sentence_order":
-            return {"tokens": p.get("tokens", [])}
-        if t == "word_bank":
-            return {"text": p.get("text", ""), "bank": p.get("bank", [])}
-        return {}
+        # Imported here so the exercises app doesn't hard-depend on curriculum.
+        from apps.curriculum.grading import public_exercise
 
-
-class ExerciseAttemptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExerciseAttempt
-        fields = [
-            "id",
-            "exercise",
-            "user_answer",
-            "is_correct",
-            "ai_feedback",
-            "attempted_at",
-        ]
+        return public_exercise(obj)["payload"]

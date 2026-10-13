@@ -38,7 +38,7 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
   }, [phase, i, rounds.length])
 
   if (!rules) return <DrillShell title="Flash Recall" onExit={onExit}><p className="text-sm text-muted-foreground">Loading…</p></DrillShell>
-  if (rounds.length === 0) return <DrillShell title="Flash Recall" onExit={onExit}><p className="text-sm text-muted-foreground">No sentences available yet.</p></DrillShell>
+  if (rounds.length === 0) return <DrillShell title="Flash Recall" onExit={onExit}><p className="text-sm text-muted-foreground">Finish a grammar lesson on your path to unlock sentences for this drill.</p></DrillShell>
 
   if (i >= rounds.length) {
     const pct = Math.round((score.correct / rounds.length) * 100)
