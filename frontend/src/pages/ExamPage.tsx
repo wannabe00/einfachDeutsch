@@ -110,7 +110,6 @@ export default function ExamPage() {
                   content={q}
                   value={answers[q.question_id] ?? (q.type === "sentence_order" ? [] : "")}
                   onChange={(v) => setAnswers((a) => ({ ...a, [q.question_id]: v }))}
-                  accent={BRAND}
                   autoFocus
                   onSubmit={() => !last && setStep(step + 1)}
                 />

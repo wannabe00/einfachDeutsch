@@ -32,9 +32,9 @@ interface DrillDef {
 const DRILLS: DrillDef[] = [
   {
     id: "gender",
-    name: "Gender Triage",
-    tag: "der · die · das",
-    tagline: "Snap each noun to its article before the round runs out.",
+    name: "der, die, das",
+    tag: "articles",
+    tagline: "Pick the right article for the nouns you've learned. Mistakes come back at the end.",
     icon: Tags,
     guest: true,
   },
@@ -85,7 +85,7 @@ export default function DrillsPage() {
     return (
       <LockedFeature
         title="This drill needs an account"
-        description="Gender Triage is free to try. Sign in to play the others."
+        description="der, die, das is free to try. Sign in to play the others."
       />
     )
   }

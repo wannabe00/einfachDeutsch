@@ -1,12 +1,9 @@
-import { useState, type FormEvent } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 import { ChevronRight, Library } from "lucide-react"
 
-import { createChapter, fetchBooks } from "@/api/books"
+import { fetchBooks } from "@/api/books"
 import type { Book } from "@/types"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { PageHeader } from "@/components/layout/PageHeader"
 
 export default function BooksPage() {
@@ -46,9 +43,6 @@ export default function BooksPage() {
 }
 
 function BookCard({ book }: { book: Book }) {
-  const nextNumber =
-    book.chapters.reduce((max, ch) => Math.max(max, ch.number), 0) + 1
-
   return (
     <section className="rounded-[24px] bg-surface p-5 shadow-card sm:p-6">
       <div className="flex items-start gap-4">
@@ -83,63 +77,6 @@ function BookCard({ book }: { book: Book }) {
           <li className="px-4 py-4 text-sm text-muted-foreground">No chapters yet.</li>
         )}
       </ul>
-      <AddChapterForm bookId={book.id} nextNumber={nextNumber} />
     </section>
-  )
-}
-
-function AddChapterForm({
-  bookId,
-  nextNumber,
-}: {
-  bookId: number
-  nextNumber: number
-}) {
-  const queryClient = useQueryClient()
-  const [title, setTitle] = useState("")
-  const [number, setNumber] = useState(String(nextNumber))
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      createChapter(bookId, { title: title.trim(), number: Number(number) }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] })
-      setTitle("")
-    },
-  })
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!title.trim() || !number) return
-    mutation.mutate()
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-4 flex flex-wrap items-center gap-2"
-    >
-      <Input
-        type="number"
-        min={1}
-        aria-label="Chapter number"
-        value={number}
-        onChange={(e) => setNumber(e.target.value)}
-        className="w-24"
-      />
-      <Input
-        aria-label="Chapter title"
-        placeholder="Chapter title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="min-w-40 flex-1"
-      />
-      <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "Adding…" : "Add chapter"}
-      </Button>
-      {mutation.isError && (
-        <span className="text-sm text-danger">Failed to add chapter.</span>
-      )}
-    </form>
   )
 }

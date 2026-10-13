@@ -6,18 +6,21 @@ import { cn } from "@/lib/utils"
  * first empty gap; tapping a filled gap empties it again. Each bank word can be
  * used once (duplicates in the bank can each be used once).
  *
- * `value` holds one entry per gap, with "" for an empty gap.
+ * `value` holds one entry per gap, with "" for an empty gap. After checking,
+ * `solution` (the right word per gap) colours each gap green or red.
  */
 export function WordBankInput({
   payload,
   value,
   onChange,
   disabled,
+  solution,
 }: {
   payload: ExercisePayload
   value: string[]
   onChange: (v: string[]) => void
   disabled: boolean
+  solution?: string[]
 }) {
   const parts = (payload.text ?? "").split("___")
   const gaps = parts.length - 1
@@ -52,7 +55,13 @@ export function WordBankInput({
                 onClick={() => clear(i)}
                 className={cn(
                   "mx-1 inline-flex min-w-16 justify-center rounded-md border-b-2 px-2 align-baseline",
-                  slots[i] ? "border-primary bg-primary/10" : "border-muted-foreground text-muted-foreground",
+                  solution
+                    ? same(slots[i], solution[i])
+                      ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))]"
+                      : "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))]"
+                    : slots[i]
+                      ? "border-[hsl(var(--choice))] bg-[hsl(var(--choice-bg))]"
+                      : "border-muted-foreground text-muted-foreground",
                 )}
               >
                 {slots[i] || " "}
@@ -81,4 +90,9 @@ export function WordBankInput({
       </div>
     </div>
   )
+}
+
+/** Loose comparison, like the server's grading (case and spaces ignored). */
+function same(a = "", b = "") {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
 }

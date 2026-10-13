@@ -382,7 +382,7 @@ const FAQS = [
   },
   {
     q: "Do I need an account?",
-    a: "You can try review, grammar and one drill as a guest. Sign in with Google or GitHub to save progress and follow the path.",
+    a: "You can try the grammar pages and one drill as a guest. Sign in with Google or GitHub to save progress and follow the path.",
   },
   {
     q: "What level is it for?",

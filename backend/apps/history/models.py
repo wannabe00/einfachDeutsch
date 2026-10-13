@@ -56,3 +56,32 @@ class UserHistoryProgress(models.Model):
 
     def __str__(self):
         return f"{self.user} ✓ {self.lesson}"
+
+
+class CustomHistoryLesson(models.Model):
+    """A history lesson the AI wrote for one user on a topic they asked for
+    (see history/custom.py). Per-user, unlike the shared HistoryLesson."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="custom_history_lessons",
+    )
+    topic = models.CharField(max_length=300)  # what the user asked for
+    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS)
+    title = models.CharField(max_length=200)
+    era = models.CharField(max_length=80, blank=True)
+    excerpt = models.CharField(max_length=300, blank=True)
+    body_de = models.TextField()
+    body_en = models.TextField(blank=True)
+    quiz = models.JSONField(default=list)  # same shape as HistoryLesson.quiz
+    image_url = models.URLField(max_length=500, blank=True)
+    image_credit = models.CharField(max_length=300, blank=True)
+    score = models.IntegerField(null=True, blank=True)  # last quiz result, % correct
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user}: {self.title}"

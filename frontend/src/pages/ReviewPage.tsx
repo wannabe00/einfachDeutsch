@@ -4,6 +4,9 @@ import { ArrowRight, CheckCircle2, GraduationCap, RotateCcw } from "lucide-react
 
 import { fetchDueCounts, type DueCounts } from "@/api/vocabulary"
 import { fetchBooks } from "@/api/books"
+import { fetchStats } from "@/api/stats"
+import { useAuth } from "@/contexts/AuthContext"
+import { LockedFeature } from "@/components/auth/LockedFeature"
 import { useReviewSession } from "@/hooks/useReviewSession"
 import type { Book, Chapter, Word } from "@/types"
 import { FlashCard } from "@/components/vocabulary/FlashCard"
@@ -17,9 +20,12 @@ import { SessionBar } from "@/components/ui/SessionBar"
  * Flashcard review of learned words, scheduled by SM-2. Pick a chapter or
  * everything; `?scope=last-unit` (from the Dashboard) starts straight into a
  * short review of the unit finished most recently, and the Word Bank can send
- * its own selection of words.
+ * its own selection of words. It needs an account and at least one finished
+ * lesson: until then there is nothing to review and no choices are shown.
  */
 export default function ReviewPage() {
+  const { user } = useAuth()
+  const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: fetchStats, enabled: !!user })
   const [params] = useSearchParams()
   const picked = (useLocation().state as { words?: Word[] } | null)?.words
   const session = useReviewSession(
@@ -36,7 +42,35 @@ export default function ReviewPage() {
   const chapterTitle = (id: number) =>
     allChapters.find((c) => c.id === id)?.title ?? "Unknown chapter"
 
+  if (!user) {
+    return (
+      <LockedFeature
+        title="Review needs an account"
+        description="Review brings back the words from the lessons you've finished, so it needs your progress. Accounts are free."
+      />
+    )
+  }
+
   if (!session.started) {
+    if (!stats) return <Centered>Loading…</Centered>
+    if (stats.words_learned === 0) {
+      return (
+        <div className="flex flex-col gap-6">
+          <PageHeader title="Review" />
+          <EmptyState
+            title="Nothing to review yet"
+            body="Review brings back the words from lessons you've finished. Finish your first lesson and its words show up here."
+            action={
+              <Button size="lg" asChild>
+                <Link to="/path">
+                  Start your first lesson <ArrowRight />
+                </Link>
+              </Button>
+            }
+          />
+        </div>
+      )
+    }
     return <StartScreen books={books} counts={counts} onSelect={session.setSelection} />
   }
 

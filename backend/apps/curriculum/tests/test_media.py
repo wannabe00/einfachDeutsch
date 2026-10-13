@@ -9,6 +9,8 @@ from apps.history.content import LESSONS
 from apps.videos.content import VIDEOS
 
 HISTORY_IMAGES = Path(settings.BASE_DIR).parent / "frontend" / "public" / "history"
+# Words per lesson by level: short and simple at A1, longer as the level rises.
+WORDS = {"A1": (120, 220), "A2": (200, 320), "B1": (280, 450)}
 
 
 class HistoryContentTests(SimpleTestCase):
@@ -16,10 +18,16 @@ class HistoryContentTests(SimpleTestCase):
         self.assertEqual(len({lesson["order"] for lesson in LESSONS}), len(LESSONS))
         for lesson in LESSONS:
             title = lesson["title"]
-            self.assertGreaterEqual(len(lesson["body_de"].split()), 230, title)
+            low, high = WORDS[lesson["level"]]
+            self.assertTrue(low <= len(lesson["body_de"].split()) <= high, title)
             self.assertTrue(lesson["body_en"].strip(), title)
             self.assertTrue((HISTORY_IMAGES / f"{lesson['image']}.jpg").exists(), title)
             self.assertNotIn("—", str(lesson), title)
+
+    def test_every_level_has_its_own_lessons(self):
+        levels = [lesson["level"] for lesson in LESSONS]
+        for level in WORDS:
+            self.assertGreaterEqual(levels.count(level), 4, level)
 
     def test_quiz_has_five_answerable_questions(self):
         for lesson in LESSONS:

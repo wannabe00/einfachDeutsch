@@ -23,7 +23,7 @@ class Command(BaseCommand):
             HistoryLesson.objects.update_or_create(
                 order=lesson["order"],
                 defaults={
-                    "cefr_level": "A1",
+                    "cefr_level": lesson["level"],
                     "era": lesson["era"],
                     "title": lesson["title"],
                     "excerpt": lesson["excerpt"],

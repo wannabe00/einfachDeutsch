@@ -1,9 +1,9 @@
-import random
 import re
 
 from rest_framework import serializers
 
-from .models import HistoryLesson
+from .models import CustomHistoryLesson, HistoryLesson
+from .quiz import public_quiz
 
 EXCERPT_LENGTH = 180
 
@@ -75,12 +75,47 @@ class HistoryLessonDetailSerializer(serializers.ModelSerializer):
         return obj.id in self.context.get("completed_ids", set())
 
     def get_quiz(self, obj):
-        # Strip the answers; the client only gets each prompt and its options.
-        # The content lists the right answer first, so the options are
-        # shuffled, the same way every time for a given question.
-        quiz = []
-        for i, q in enumerate(obj.quiz or []):
-            options = list(q.get("options", []))
-            random.Random(f"{obj.id}-{i}").shuffle(options)
-            quiz.append({"id": i, "prompt": q.get("prompt", ""), "options": options})
-        return quiz
+        # Answers stripped, options shuffled (see history.quiz).
+        return public_quiz(obj.quiz, str(obj.id))
+
+
+class CustomLessonListSerializer(serializers.ModelSerializer):
+    """An AI-written lesson as a card."""
+
+    completed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomHistoryLesson
+        fields = ["id", "title", "era", "excerpt", "image_url", "cefr_level", "completed"]
+
+    def get_completed(self, obj) -> bool:
+        return obj.score is not None
+
+
+class CustomLessonDetailSerializer(serializers.ModelSerializer):
+    """An AI-written lesson to read, in the same shape as a built-in one."""
+
+    completed = serializers.SerializerMethodField()
+    quiz = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomHistoryLesson
+        fields = [
+            "id",
+            "topic",
+            "title",
+            "era",
+            "body_en",
+            "body_de",
+            "quiz",
+            "completed",
+            "cefr_level",
+            "image_url",
+            "image_credit",
+        ]
+
+    def get_completed(self, obj) -> bool:
+        return obj.score is not None
+
+    def get_quiz(self, obj):
+        return public_quiz(obj.quiz, f"custom-{obj.id}")

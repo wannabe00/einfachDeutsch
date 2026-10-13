@@ -1,20 +1,43 @@
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { fetchHistoryLesson } from "@/api/history"
+import {
+  completeCustomLesson,
+  completeHistoryLesson,
+  deleteCustomLesson,
+  fetchCustomLesson,
+  fetchHistoryLesson,
+} from "@/api/history"
 import { Button } from "@/components/ui/button"
 import { BackLink } from "@/components/ui/BackLink"
 import { EraArt } from "./EraArt"
 import { LessonQuiz } from "./LessonQuiz"
 
 /** Reads one history lesson: its picture, the German text with an English
-    translation behind a button, then the quiz. */
-export function LessonReader({ id, onBack }: { id: number; onBack: () => void }) {
+    translation behind a button, then the quiz. `custom` lessons are the ones
+    the AI wrote for this user; they can also be deleted. */
+export function LessonReader({
+  id,
+  custom = false,
+  onBack,
+}: {
+  id: number
+  custom?: boolean
+  onBack: () => void
+}) {
+  const qc = useQueryClient()
   const [showEnglish, setShowEnglish] = useState(false)
   const { data: lesson, isLoading } = useQuery({
-    queryKey: ["history", id],
-    queryFn: () => fetchHistoryLesson(id),
+    queryKey: ["history", custom ? "custom" : "built-in", id],
+    queryFn: () => (custom ? fetchCustomLesson(id) : fetchHistoryLesson(id)),
   })
+
+  async function remove() {
+    if (!window.confirm("Delete this lesson?")) return
+    await deleteCustomLesson(id)
+    qc.invalidateQueries({ queryKey: ["history"] })
+    onBack()
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -66,7 +89,31 @@ export function LessonReader({ id, onBack }: { id: number; onBack: () => void })
             </div>
           )}
 
-          {lesson.quiz.length > 0 && <LessonQuiz lessonId={lesson.id} quiz={lesson.quiz} />}
+          {lesson.quiz.length > 0 && (
+            <LessonQuiz
+              quiz={lesson.quiz}
+              onSubmit={(answers) =>
+                custom
+                  ? completeCustomLesson(lesson.id, answers)
+                  : completeHistoryLesson(lesson.id, answers)
+              }
+            />
+          )}
+
+          {custom && (
+            <div className="mx-auto mt-8 max-w-2xl text-center">
+              <p className="text-xs text-muted-foreground">
+                Written by AI for you{lesson.topic ? ` on “${lesson.topic}”` : ""}. It is
+                checked for topic and form, but can still contain mistakes.
+              </p>
+              <button
+                onClick={remove}
+                className="mt-2 text-sm text-muted-foreground underline hover:text-foreground"
+              >
+                Delete this lesson
+              </button>
+            </div>
+          )}
         </article>
       )}
     </div>

@@ -49,6 +49,18 @@
     --section-5: 199 78% 55%;
     --section-6: 349 100% 61%;
 
+    /* Exercises: a chosen-but-unchecked answer, and the colours that tell
+       matched pairs apart. Neither uses green or red, which only ever mean
+       right and wrong. */
+    --choice: 234 74% 56%;
+    --choice-bg: 234 90% 95%;
+    --pair-1: 211 100% 50%;
+    --pair-2: 28 100% 50%;
+    --pair-3: 275 70% 58%;
+    --pair-4: 190 90% 40%;
+    --pair-5: 46 100% 45%;
+    --pair-6: 250 60% 45%;
+
     --card: 0 0% 100%;
     --card-foreground: 240 14% 4%;
     --popover: 0 0% 100%;
@@ -89,6 +101,11 @@
       --success-bg: 135 45% 12%;
       --danger: 3 100% 61%;
       --danger-bg: 3 60% 13%;
+      --choice: 234 90% 72%;
+      --choice-bg: 234 45% 20%;
+      --pair-2: 30 100% 58%;
+      --pair-4: 190 80% 55%;
+      --pair-6: 250 85% 75%;
       --warning: 40 100% 55%;
       --warning-bg: 40 80% 11%;
       --article-der: 211 100% 64%;
@@ -125,6 +142,11 @@
     --success-bg: 135 45% 12%;
     --danger: 3 100% 61%;
     --danger-bg: 3 60% 13%;
+    --choice: 234 90% 72%;
+    --choice-bg: 234 45% 20%;
+    --pair-2: 30 100% 58%;
+    --pair-4: 190 80% 55%;
+    --pair-6: 250 85% 75%;
     --warning: 40 100% 55%;
     --warning-bg: 40 80% 11%;
     --article-der: 211 100% 64%;

@@ -1,6 +1,6 @@
 import { Check } from "lucide-react"
 
-import type { HistoryLessonSummary } from "@/types"
+import type { HistoryCard } from "@/types"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { EraArt } from "./EraArt"
@@ -15,7 +15,7 @@ export function LessonList({
   lessons,
   onOpen,
 }: {
-  lessons: HistoryLessonSummary[]
+  lessons: HistoryCard[]
   onOpen: (id: number) => void
 }) {
   const featureFirst = lessons.length % 2 === 1
@@ -39,7 +39,7 @@ function ArticleCard({
   onOpen,
   featured,
 }: {
-  lesson: HistoryLessonSummary
+  lesson: HistoryCard
   onOpen: (id: number) => void
   featured: boolean
 }) {
