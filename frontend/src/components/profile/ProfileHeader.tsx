@@ -46,7 +46,7 @@ export function ProfileHeader() {
         <StatCard value={game?.total_xp ?? 0} label="XP" className="bg-background" />
         <StatCard value={game?.crowns ?? 0} label="Crowns" className="bg-background" />
         <StatCard value={game?.lessons_completed ?? 0} label="Lessons" className="bg-background" />
-        <StatCard value={stats?.learned_total ?? 0} label="Learned" className="bg-background" />
+        <StatCard value={stats?.words_learned ?? 0} label="Words" className="bg-background" />
       </div>
     </section>
   )

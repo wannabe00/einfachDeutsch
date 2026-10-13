@@ -299,7 +299,10 @@ export interface AIResponse {
 
 export interface Stats {
   due_today: number
-  learned_total: number
+  /** Words taught by lessons the user has finished. */
+  words_learned: number
+  /** Words reviewed until their SM-2 interval is over three weeks. */
+  mastered_total: number
   reviewed_today: number
   total_words: number
   total_grammar_rules: number

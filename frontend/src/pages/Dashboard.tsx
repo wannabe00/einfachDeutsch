@@ -17,17 +17,6 @@ import { LastUnitReview } from "@/components/dashboard/LastUnitReview"
 const HERO_IMG =
   "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=2400&q=80"
 
-const SHORTCUTS = [
-  { to: "/review", label: "Review", tagline: "Your due flashcards" },
-  { to: "/words", label: "Word Bank", tagline: "Browse and add vocabulary" },
-  { to: "/grammar", label: "Grammar", tagline: "Rules and topics" },
-  { to: "/exercises", label: "Exercises", tagline: "Practice sets" },
-  { to: "/drills", label: "Drills", tagline: "Short timed games" },
-  { to: "/speak", label: "Recite", tagline: "Speak and get feedback" },
-  { to: "/videos", label: "Videos", tagline: "Shows for your level" },
-  { to: "/history", label: "History", tagline: "Short reads on German history" },
-]
-
 export default function Dashboard() {
   const { user } = useAuth()
   const imgRef = useRef<HTMLImageElement>(null)
@@ -104,41 +93,16 @@ export default function Dashboard() {
         <StreakBanner />
         <GamificationRow />
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard value={stats?.words_learned ?? 0} label="Words learned" />
+          <StatCard value={stats?.mastered_total ?? 0} label="Mastered" />
           <StatCard value={dueToday} label="Due today" highlight={dueToday > 0} />
-          <StatCard value={stats?.learned_total ?? 0} label="Words learned" />
           <StatCard value={stats?.reviewed_today ?? 0} label="Reviewed today" />
-          <StatCard value={stats?.total_words ?? 0} label="Words in the bank" />
         </div>
         {activity && activity.length > 0 && (
           <div className="mt-4">
             <ReviewActivityChart data={activity} />
           </div>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Jump back in
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {SHORTCUTS.map((s) => (
-            <Link
-              key={s.to}
-              to={s.to}
-              className="rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{s.label}</span>
-                {s.to === "/review" && dueToday > 0 && (
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-                    {dueToday}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-muted-foreground">{s.tagline}</p>
-            </Link>
-          ))}
-        </div>
       </section>
     </div>
   )

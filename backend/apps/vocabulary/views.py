@@ -272,11 +272,15 @@ class StatsView(APIView):
 
         if user is None:
             due_today = Word.objects.count()  # everything is new for a guest
-            learned_total = 0
-            reviewed_today = 0
+            words_learned = mastered_total = reviewed_today = 0
         else:
+            from apps.curriculum.learned import learned_word_ids
+
             due_today = due_words_for(user).count()
-            learned_total = WordProgress.objects.filter(user=user, interval__gt=21).count()
+            # Learned = taught by a finished lesson; mastered = an SM-2 interval
+            # of over three weeks.
+            words_learned = len(learned_word_ids(user))
+            mastered_total = WordProgress.objects.filter(user=user, interval__gt=21).count()
             reviewed_today = (
                 WordProgress.objects.filter(user=user, last_reviewed__gte=midnight).count()
                 + ExerciseAttempt.objects.filter(user=user, attempted_at__gte=midnight).count()
@@ -285,7 +289,8 @@ class StatsView(APIView):
         return Response(
             {
                 "due_today": due_today,
-                "learned_total": learned_total,
+                "words_learned": words_learned,
+                "mastered_total": mastered_total,
                 "reviewed_today": reviewed_today,
                 "total_words": Word.objects.count(),
                 "total_grammar_rules": GrammarRule.objects.count(),

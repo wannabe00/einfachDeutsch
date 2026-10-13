@@ -61,3 +61,8 @@ class ReviewScopeTests(TestCase):
         res = self.api.get("/api/vocabulary/words/last-unit/").json()
         self.assertEqual(res["unit"]["order"], 2)
         self.assertEqual(sorted(w["german"] for w in res["words"]), ["Wort21", "Wort22"])
+
+    def test_dashboard_counts_learned_words(self):
+        self.complete(self.units[0], 1)
+        stats = self.api.get("/api/stats/").json()
+        self.assertEqual((stats["words_learned"], stats["due_today"]), (1, 1))
