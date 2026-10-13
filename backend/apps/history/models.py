@@ -5,10 +5,11 @@ from apps.accounts.models import CEFR_LEVELS
 
 
 class HistoryLesson(models.Model):
-    """A German-history lesson. Always-available (no Mon/Wed/Fri
-    gating). Bilingual: the frontend shows English + German through A2 and
-    German-only from B1. `quiz` holds the questions WITH answers; the serializer
-    strips answers before sending, and the complete endpoint grades against it.
+    """A German-history lesson: a German text with an English translation the
+    reader can show, a picture, and a quiz. Written in `history/content.py`
+    and loaded with `manage.py seed_history`. `quiz` holds the questions WITH
+    answers; the serializer strips answers before sending, and the complete
+    endpoint grades against it.
     """
 
     # Used by the level rule, so a B1 user never sees C1 history. Defaults to
@@ -20,14 +21,13 @@ class HistoryLesson(models.Model):
     body_en = models.TextField(blank=True)
     body_de = models.TextField()
     # Article-card fields. Both optional:
-    #   * `excerpt`: when blank it's taken from the body, so old lessons need
-    #     no edit;
-    #   * `image_url`: when blank the UI draws an era tile. The production CSP
-    #     only allows images from 'self', data:, images.unsplash.com and
-    #     res.cloudinary.com, so use a Cloudinary or Unsplash image; anything
-    #     else is blocked. Only public-domain or royalty-free images.
+    #   * `excerpt`: when blank it's taken from the body;
+    #   * `image_url`: when blank the UI draws an era tile. Public-domain images
+    #     are bundled with the frontend (`/history/<name>.jpg`), so the CSP can
+    #     stay strict; `image_credit` names the source.
     excerpt = models.CharField(max_length=300, blank=True)
-    image_url = models.URLField(blank=True)
+    image_url = models.CharField(max_length=300, blank=True)
+    image_credit = models.CharField(max_length=300, blank=True)
     # [{"prompt": str, "options": [str, ...], "answer": str}]
     quiz = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

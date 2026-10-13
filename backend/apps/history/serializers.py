@@ -1,3 +1,4 @@
+import random
 import re
 
 from rest_framework import serializers
@@ -10,10 +11,10 @@ EXCERPT_LENGTH = 180
 def _derive_excerpt(lesson: HistoryLesson) -> str:
     """First sentence-ish of the body, for lessons with no authored excerpt.
 
-    Prefers English (the card is chrome, not the lesson) and strips markdown
-    headings/emphasis so the teaser reads as prose.
+    Uses the German text (the lesson is read in German first) and strips
+    markdown headings/emphasis so the teaser reads as prose.
     """
-    body = (lesson.body_en or lesson.body_de or "").strip()
+    body = (lesson.body_de or lesson.body_en or "").strip()
     if not body:
         return ""
     text = re.sub(r"[#*_>`]+", "", body)
@@ -67,6 +68,7 @@ class HistoryLessonDetailSerializer(serializers.ModelSerializer):
             "completed",
             "cefr_level",
             "image_url",
+            "image_credit",
         ]
 
     def get_completed(self, obj):
@@ -74,7 +76,11 @@ class HistoryLessonDetailSerializer(serializers.ModelSerializer):
 
     def get_quiz(self, obj):
         # Strip the answers; the client only gets each prompt and its options.
-        return [
-            {"id": i, "prompt": q.get("prompt", ""), "options": q.get("options", [])}
-            for i, q in enumerate(obj.quiz or [])
-        ]
+        # The content lists the right answer first, so the options are
+        # shuffled, the same way every time for a given question.
+        quiz = []
+        for i, q in enumerate(obj.quiz or []):
+            options = list(q.get("options", []))
+            random.Random(f"{obj.id}-{i}").shuffle(options)
+            quiz.append({"id": i, "prompt": q.get("prompt", ""), "options": options})
+        return quiz

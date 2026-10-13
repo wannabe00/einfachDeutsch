@@ -19,7 +19,6 @@ urlpatterns = [
     path("api/", include("apps.books.urls")),
     path("api/", include("apps.vocabulary.urls")),
     path("api/", include("apps.grammar.urls")),
-    path("api/", include("apps.exercises.urls")),
     path("api/", include("apps.ai_assistant.urls")),
     path("api/", include("apps.recitation.urls")),
     path("api/", include("apps.videos.urls")),

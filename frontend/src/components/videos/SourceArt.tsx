@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Tv } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -58,13 +57,11 @@ export function SourceArt({
   return (
     <div
       className={cn("flex size-full flex-col items-center justify-center gap-1", className)}
-      style={{
-        background: `linear-gradient(140deg, hsl(${hue} 60% 28%), hsl(${(hue + 40) % 360} 55% 16%))`,
-      }}
+      style={{ background: `hsl(${hue} 35% 20%)` }}
       aria-hidden="true"
     >
-      <Tv className="size-5 text-white/50" />
-      <span className="text-sm font-bold tracking-wide text-white/90">{initials(platform)}</span>
+      <span className="text-2xl font-bold tracking-wide text-white/90">{initials(platform)}</span>
+      <span className="text-xs text-white/60">{platform}</span>
     </div>
   )
 }
