@@ -12,6 +12,7 @@ import { useEnergy } from "@/hooks/useEnergy"
 import { EnergyMeter } from "@/components/path/EnergyMeter"
 import { StreakFlame } from "@/components/lektion/StreakFlame"
 import { AccountMenu } from "./AccountMenu"
+import { BrandMark } from "./BrandMark"
 import { dashboardItem, pathItem, aiItem, navGroups, type NavGroup, type NavLeaf } from "./navItems"
 
 /** The streak shows in the bar once the flame is earned (see DESIGN.md). */
@@ -72,20 +73,6 @@ export function TopBar() {
   )
 }
 
-/** The der / die / das mark: circle, triangle and square in the article colours. */
-function LogoMark() {
-  return (
-    <span className="inline-flex items-center gap-[3px]" aria-hidden="true">
-      <span className="size-2.5 rounded-full bg-article-der" />
-      <span
-        className="size-2.5 bg-article-die"
-        style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
-      />
-      <span className="size-2.5 rounded-[2px] bg-article-das" />
-    </span>
-  )
-}
-
 /** The mark plus the site name, its last capitalised word in red ("einfach" + "Deutsch"). */
 export function Logo({ className }: { className?: string }) {
   const m = SITE_NAME.match(/^(.*?)([A-Z][a-z]+)$/)
@@ -97,7 +84,7 @@ export function Logo({ className }: { className?: string }) {
         className,
       )}
     >
-      <LogoMark />
+      <BrandMark />
       <span>
         {m ? (
           <>
