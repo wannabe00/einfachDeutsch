@@ -71,3 +71,23 @@ export async function logoutUser(): Promise<void> {
     localStorage.removeItem(TOKEN_KEY)
   }
 }
+
+/** E-mail a reset link. Answers the same whether or not the address exists. */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await apiClient.post("/auth/password/reset/", { email })
+}
+
+/** Set a new password from the e-mail link. Signs the account out everywhere. */
+export async function confirmPasswordReset(
+  uid: string,
+  token: string,
+  password: string,
+  repeat: string,
+): Promise<void> {
+  await apiClient.post("/auth/password/reset/confirm/", {
+    uid,
+    token,
+    new_password1: password,
+    new_password2: repeat,
+  })
+}

@@ -17,3 +17,10 @@ class OnboardingThrottle(UserRateThrottle):
     top of the profile_complete lock)."""
 
     scope = "onboarding"
+
+
+class PasswordResetThrottle(AnonRateThrottle):
+    """Per-IP cap on reset e-mails and reset attempts, so the endpoint can't be
+    used to flood someone's inbox."""
+
+    scope = "password_reset"

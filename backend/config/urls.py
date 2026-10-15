@@ -12,8 +12,18 @@ urlpatterns = [
     path("api/", api_root, name="api-root"),
     # Auth: login (username/password), logout, user, password reset (dj-rest-auth).
     # Accounts are only created through Google or GitHub; see apps.accounts.urls.
-    # Login is overridden FIRST so the brute-force throttle applies.
+    # Login and password reset are overridden FIRST so their throttles apply.
     path("api/auth/login/", views.ThrottledLoginView.as_view(), name="rest_login"),
+    path(
+        "api/auth/password/reset/",
+        views.ThrottledPasswordResetView.as_view(),
+        name="rest_password_reset",
+    ),
+    path(
+        "api/auth/password/reset/confirm/",
+        views.ThrottledPasswordResetConfirmView.as_view(),
+        name="rest_password_reset_confirm",
+    ),
     path("api/auth/", include("dj_rest_auth.urls")),
     path("api/", include("apps.accounts.urls")),
     path("api/", include("apps.books.urls")),

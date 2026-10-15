@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { isAxiosError } from "axios"
 
 import { useAuth } from "@/contexts/AuthContext"
@@ -92,6 +92,9 @@ export default function AuthPage() {
             <Button type="submit" size="lg" disabled={pending}>
               {pending ? "Please wait…" : "Log in"}
             </Button>
+            <Link to="/forgot-password" className="self-center text-sm font-semibold text-primary hover:underline">
+              Forgot password?
+            </Link>
           </form>
         </div>
 
