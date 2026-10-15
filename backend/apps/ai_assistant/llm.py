@@ -93,17 +93,6 @@ def determine_level(summary: dict, writing: str) -> dict:
     }
 
 
-def check_exercise_answer(prompt: str, correct_answer: str, user_answer: str) -> str:
-    msg = (
-        f"Exercise: {prompt}\n"
-        f"Expected answer: {correct_answer}\n"
-        f"Student's answer: {user_answer}\n\n"
-        "Briefly tell the student if they are right. If wrong or close, explain the "
-        "difference in one or two sentences. Be encouraging."
-    )
-    return _complete(TUTOR_SYSTEM, msg)
-
-
 def chat(message: str, history: list[dict] | None = None) -> str:
     """`history` is a list of {"role": "user" | "assistant", "content": str}."""
     contents = []

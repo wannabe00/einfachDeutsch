@@ -113,12 +113,6 @@ def grade_parts(exercise: Exercise, answer) -> list[bool]:
     return [grade_part(p, answers[i] if i < len(answers) else None) for i, p in enumerate(parts)]
 
 
-def grade(exercise: Exercise, answer) -> bool:
-    """True if every part of `answer` is right."""
-    results = grade_parts(exercise, answer)
-    return bool(results) and all(results)
-
-
 def public_part(part: dict) -> dict:
     """A part as the client may see it, with the answers removed."""
     payload = {

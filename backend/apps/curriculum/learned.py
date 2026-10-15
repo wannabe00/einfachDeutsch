@@ -97,12 +97,3 @@ def finished_units(user) -> dict[int, object]:
         for u in units
         if done_count[u.id] >= len(u.lessons.all()) and level_rank(u.cefr_level) <= rank
     }
-
-
-def last_completed_unit(user) -> Unit | None:
-    """The unit the user finished most recently (every lesson completed), for
-    the Dashboard's review. None until a whole unit is done."""
-    finished = finished_units(user)
-    if not finished:
-        return None
-    return Unit.objects.get(id=max(finished, key=finished.get))
