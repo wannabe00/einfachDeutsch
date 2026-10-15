@@ -1,10 +1,13 @@
 import { apiClient } from "./client"
-import type { Conversation, ConversationDetail, ConversationMessage } from "@/types"
+import type { ChatMode, Conversation, ConversationDetail, ConversationMessage } from "@/types"
 
 /* Saved AI conversations. Premium only; the server enforces it. */
 
-export async function fetchConversations(): Promise<Conversation[]> {
-  const { data } = await apiClient.get<Conversation[]>("/ai/conversations/")
+/** Pinned first, then most recent. `query` searches titles and messages. */
+export async function fetchConversations(query = ""): Promise<Conversation[]> {
+  const { data } = await apiClient.get<Conversation[]>("/ai/conversations/", {
+    params: query ? { q: query } : undefined,
+  })
   return data
 }
 
@@ -23,6 +26,17 @@ export async function renameConversation(id: number, title: string): Promise<Con
   return data
 }
 
+export async function setPinned(id: number, pinned: boolean): Promise<ConversationDetail> {
+  const { data } = await apiClient.patch<ConversationDetail>(`/ai/conversations/${id}/`, { pinned })
+  return data
+}
+
+/** Answer the last message again; returns the replaced assistant message. */
+export async function retryLastAnswer(id: number): Promise<ConversationMessage> {
+  const { data } = await apiClient.post<ConversationMessage>(`/ai/conversations/${id}/retry/`)
+  return data
+}
+
 export async function deleteConversation(id: number): Promise<void> {
   await apiClient.delete(`/ai/conversations/${id}/`)
 }
@@ -31,10 +45,11 @@ export async function deleteConversation(id: number): Promise<void> {
 export async function sendMessage(
   id: number,
   message: string,
+  mode: ChatMode,
 ): Promise<{ conversation: Conversation; messages: ConversationMessage[] }> {
   const { data } = await apiClient.post<{
     conversation: Conversation
     messages: ConversationMessage[]
-  }>(`/ai/conversations/${id}/messages/`, { message })
+  }>(`/ai/conversations/${id}/messages/`, { message, mode })
   return data
 }

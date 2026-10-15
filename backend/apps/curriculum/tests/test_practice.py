@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.books.models import Book, Chapter
 from apps.curriculum.content.dsl import fill, group, match, tr
-from apps.curriculum.management.commands.seed_a1_path import exercise_fields
+from apps.curriculum.management.commands.seed_path import exercise_fields
 from apps.curriculum.models import Lesson, LessonItem, PathLessonProgress, Unit
 from apps.exercises.models import Exercise, ExerciseAttempt
 from apps.grammar.models import GrammarRule

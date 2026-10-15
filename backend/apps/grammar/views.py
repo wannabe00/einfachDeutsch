@@ -9,7 +9,9 @@ from .models import GrammarRule
 from .serializers import GrammarRuleSerializer
 
 
-class GrammarRuleViewSet(viewsets.ModelViewSet):
+class GrammarRuleViewSet(viewsets.ReadOnlyModelViewSet):
+    """Grammar is shared content: read-only over the API (edit it in the admin)."""
+
     queryset = GrammarRule.objects.select_related("chapter").all()
     serializer_class = GrammarRuleSerializer
 

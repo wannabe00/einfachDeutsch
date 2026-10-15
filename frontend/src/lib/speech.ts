@@ -13,15 +13,17 @@ export function canSpeak(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window
 }
 
-/** Read `text` in German. `slow` reads it at about two-thirds speed. */
-export function speak(text: string, slow = false) {
+/** Read `text` aloud, in German unless `lang` says otherwise. `slow` reads it
+    at about two-thirds speed. */
+export function speak(text: string, slow = false, lang = "de-DE") {
   if (!canSpeak()) return
   const synth = window.speechSynthesis
   synth.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = "de-DE"
+  utterance.lang = lang
   utterance.rate = slow ? 0.65 : 0.95
-  const voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith("de"))
+  const prefix = lang.slice(0, 2).toLowerCase()
+  const voice = synth.getVoices().find((v) => v.lang.toLowerCase().startsWith(prefix))
   if (voice) utterance.voice = voice
   synth.speak(utterance)
 }

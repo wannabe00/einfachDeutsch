@@ -163,3 +163,30 @@ class ImageSearchTests(TestCase):
     def test_network_errors_mean_no_picture(self):
         with mock.patch.object(images, "_get", side_effect=OSError):
             self.assertEqual(images.find_image("castle"), ("", ""))
+
+    def test_falls_back_to_the_next_source_and_skips_excluded(self):
+        calls = []
+
+        def down(query, exclude):
+            calls.append(("down", query))
+            raise OSError
+
+        def empty(query, exclude):
+            return "", ""
+
+        def museum(query, exclude):
+            url = "https://www.artic.edu/iiif/2/b/full/843,/0/default.jpg"
+            return ("", "") if url in exclude else (url, "Someone, CC0, Art Institute of Chicago")
+
+        with mock.patch.object(images, "SOURCES", (down, empty, museum)):
+            self.assertEqual(
+                images.find_image("Martin Luther", "Luther")[1],
+                "Someone, CC0, Art Institute of Chicago",
+            )
+            self.assertEqual(len(calls), 1)  # a source that errors is not asked again
+            excluded = {"https://www.artic.edu/iiif/2/b/full/843,/0/default.jpg"}
+            self.assertEqual(images.find_image("Luther", exclude=excluded), ("", ""))
+
+    def test_museum_pictures_must_name_the_topic(self):
+        self.assertTrue(images._mentions("Martin Luther", "Portrait of Martin Luther"))
+        self.assertFalse(images._mentions("Luther", "Relief Fragment, Pyramid Temple"))

@@ -1,30 +1,21 @@
 import { useState, type FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { createWord } from "@/api/vocabulary"
-import type { Chapter } from "@/types"
+import { saveWord } from "@/api/vocabulary"
+import { errorText } from "@/lib/apiError"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/Select"
 
-interface WordFormProps {
-  chapters: Chapter[]
-  defaultChapterId?: number
-  onDone?: () => void
-}
-
-export function WordForm({ chapters, defaultChapterId, onDone }: WordFormProps) {
+/** Add a word to the learner's own words (shared words are edited by staff). */
+export function WordForm({ onDone }: { onDone?: () => void }) {
   const qc = useQueryClient()
   const [english, setEnglish] = useState("")
   const [german, setGerman] = useState("")
-  const [chapterId, setChapterId] = useState<number>(
-    defaultChapterId ?? chapters[0]?.id ?? 0,
-  )
   const [notes, setNotes] = useState("")
 
   const mutation = useMutation({
-    mutationFn: createWord,
+    mutationFn: saveWord,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["words"] })
+      qc.invalidateQueries({ queryKey: ["saved-words"] })
       setEnglish("")
       setGerman("")
       setNotes("")
@@ -34,43 +25,32 @@ export function WordForm({ chapters, defaultChapterId, onDone }: WordFormProps) 
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!english.trim() || !german.trim() || !chapterId) return
-    mutation.mutate({ english: english.trim(), german: german.trim(), chapter: chapterId, notes })
+    if (!german.trim()) return
+    mutation.mutate({ german: german.trim(), english: english.trim(), notes: notes.trim() })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap gap-2">
-      <Input
-        placeholder="English"
-        value={english}
-        onChange={(e) => setEnglish(e.target.value)}
-        className="w-36"
-        required
-      />
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
       <Input
         placeholder="German (e.g. der Hund)"
+        aria-label="German"
         value={german}
         onChange={(e) => setGerman(e.target.value)}
         className="w-48"
         required
       />
-      <div className="w-56">
-            <Select
-              label="Chapter"
-              value={chapterId}
-              onChange={setChapterId}
-              options={chapters.map((c) => ({ value: c.id, label: c.title }))}
-            />
-          </div>
+      <Input placeholder="English" aria-label="English" value={english} onChange={(e) => setEnglish(e.target.value)} className="w-40" />
       <Input
         placeholder="Notes (optional)"
+        aria-label="Notes"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         className="w-40"
       />
       <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "Adding…" : "Add Word"}
+        {mutation.isPending ? "Adding…" : "Add word"}
       </Button>
+      {mutation.isError && <p className="w-full text-sm text-danger">{errorText(mutation.error)}</p>}
     </form>
   )
 }

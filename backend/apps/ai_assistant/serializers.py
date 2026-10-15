@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Conversation, Message
+from .models import AISettings, Conversation, Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class ConversationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ["id", "title", "created_at", "updated_at"]
+        fields = ["id", "title", "pinned", "mode", "created_at", "updated_at"]
 
 
 class ConversationDetailSerializer(serializers.ModelSerializer):
@@ -22,4 +22,10 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ["id", "title", "created_at", "updated_at", "messages"]
+        fields = ["id", "title", "pinned", "mode", "created_at", "updated_at", "messages"]
+
+
+class AISettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AISettings
+        fields = ["reply_language", "tone", "corrections", "interests", "about"]

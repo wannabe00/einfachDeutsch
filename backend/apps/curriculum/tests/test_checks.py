@@ -63,7 +63,7 @@ class NewTypesGradingTests(TestCase):
 class CheckFlowTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        call_command("seed_a1_path", stdout=open("/dev/null", "w"))
+        call_command("seed_path", stdout=open("/dev/null", "w"))
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
@@ -191,8 +191,29 @@ class CheckFlowTests(TestCase):
     def test_every_authored_task_is_solvable(self):
         from apps.exercises.models import Exercise
 
-        authored = Exercise.objects.filter(source__startswith="seed-a1-check-")
-        self.assertEqual(authored.filter(source__contains="-u").count(), 48)
+        authored = Exercise.objects.filter(source__contains="-check-")
+        for level in ("a1", "a2"):
+            # A gap task and a translation task for each of the 24 Lektionen.
+            lektion_tasks = authored.filter(source__startswith=f"seed-{level}-check-u")
+            self.assertEqual(lektion_tasks.count(), 48, level)
         for exercise in authored:
             answer = self.right_answer(f"e:{exercise.id}")
             self.assertTrue(all(grading.grade_parts(exercise, answer)), exercise.source)
+
+    def test_a2_review_uses_typed_formats(self):
+        self.user.profile.cefr_level = "A2"
+        self.user.profile.save()
+        unit = Unit.objects.get(cefr_level="A2", order=1)
+        for lesson in unit.lessons.all():
+            PathLessonProgress.objects.create(
+                user=self.user, lesson=lesson, completed_at=timezone.now()
+            )
+        data = self.start(kind="review", unit=unit.id).json()
+        types = {t["type"] for t in data["tasks"]}
+        self.assertNotIn("matching", types)  # stage 4: no matching batches
+        authored = [t for t in data["tasks"] if t["task_id"].startswith("e:")]
+        parts = [p["type"] for t in authored for p in t["payload"].get("parts", [t])]
+        self.assertEqual(set(parts), {"fill_blank", "translation"})
+        # A1 counts as learned below the user's level, so every A1 Modul test is open.
+        moduls = self.api.get("/api/curriculum/checks/").json()["moduls"]
+        self.assertTrue(all(m["unlocked"] for m in moduls if m["cefr_level"] == "A1"))

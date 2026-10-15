@@ -8,10 +8,10 @@ from collections import Counter
 
 from django.test import SimpleTestCase
 
-from apps.curriculum.content.a1 import A1_UNITS
 from apps.curriculum.content.dsl import DEFAULT_MAX_PARTS, art, fill, group
+from apps.curriculum.content.levels import ALL_UNITS, LEVELS
 from apps.curriculum.grading import grade_parts, public_exercise, solution_of
-from apps.curriculum.management.commands.seed_a1_path import exercise_fields
+from apps.curriculum.management.commands.seed_path import exercise_fields
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.pos import PART_OF_SPEECH_CHOICES
@@ -68,17 +68,20 @@ def single_exercises(unit):
 
 class ContentTests(SimpleTestCase):
     def test_units_are_numbered_in_order(self):
-        self.assertEqual([u["order"] for u in A1_UNITS], list(range(1, len(A1_UNITS) + 1)))
+        for level, spec in LEVELS.items():
+            orders = [u["order"] for u in spec["units"]]
+            self.assertEqual(orders, list(range(1, len(orders) + 1)), level)
 
     def test_words(self):
         seen = {}
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             germans = [w[1] for w in u["words"]]
             dupes = [g for g, n in Counter(germans).items() if n > 1]
             self.assertFalse(dupes, f"Unit {u['order']} lists twice: {dupes}")
             for w in u["words"]:
                 self.assertIn(len(w), (3, 4), w)
                 self.assertIn(w[2], POS, w)
+                # Across levels too: a word is taught once, then it's learned.
                 key = w[1].lower()
                 if key in seen:
                     self.fail(f"{w[1]!r} is in unit {seen[key]} and unit {u['order']}")
@@ -86,13 +89,13 @@ class ContentTests(SimpleTestCase):
 
     def test_english_meanings_are_unique_within_a_unit(self):
         # Generated "what does X mean?" and translation drills rely on this.
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             english = [w[0] for w in u["words"]]
             dupes = [e for e, n in Counter(english).items() if n > 1]
             self.assertFalse(dupes, f"Unit {u['order']} has two words meaning {dupes}")
 
     def test_grammar_rules_are_valid_and_taught(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             titles = [g["title"] for g in u["grammar"]]
             self.assertEqual(len(titles), len(set(titles)), u["title"])
             taught = {
@@ -103,7 +106,7 @@ class ContentTests(SimpleTestCase):
                 self.assertIn(g["title"], taught, f"No lesson teaches {g['title']!r}")
 
     def test_lessons_and_references(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             words = {w[1] for w in u["words"]}
             rules = {g["title"] for g in u["grammar"]}
             self.assertIn(len(u["lessons"]), LESSONS_PER_UNIT, u["title"])
@@ -118,12 +121,12 @@ class ContentTests(SimpleTestCase):
                         self.assertIn(item["grammar"], rules, where)
 
     def test_every_word_is_taught_by_exactly_one_lesson(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             taught = [g for les in u["lessons"] for g in les["teaches"]]
             self.assertCountEqual(taught, [w[1] for w in u["words"]], u["title"])
 
     def test_every_exercise_grades_correctly(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             for les, item in exercises(u):
                 where = f"unit {u['order']} / {les['title']} / {item['prompt']!r}"
                 ex = Exercise(**exercise_fields(item))
@@ -147,7 +150,7 @@ class ContentTests(SimpleTestCase):
                     self.assertGreaterEqual(len(item["answer"]), 3, where)
 
     def test_no_repeated_exercises_within_a_unit(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             keys = [
                 (i["type"], i["prompt"], str(right_answer(i)), i.get("text", ""))
                 for _, i in single_exercises(u)
@@ -156,7 +159,7 @@ class ContentTests(SimpleTestCase):
             self.assertFalse(dupes, f"Unit {u['order']} repeats: {dupes[:3]}")
 
     def test_no_em_dashes(self):
-        for u in A1_UNITS:
+        for _, u in ALL_UNITS:
             for _, item in exercises(u):
                 self.assertNotIn("—", str(item), item["prompt"])
 
