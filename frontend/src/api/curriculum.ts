@@ -1,6 +1,9 @@
 import { apiClient } from "./client"
 import type {
   AnswerResult,
+  CheckData,
+  CheckStart,
+  CheckStatus,
   CompleteResult,
   ExamResult,
   ExamStart,
@@ -129,5 +132,38 @@ export async function answerPractice(taskId: string, answer: unknown): Promise<A
     task_id: taskId,
     answer,
   })
+  return data
+}
+
+/* ---- Checks: Lektion reviews and Modul tests ---- */
+
+/** What can be reviewed or tested. */
+export async function fetchChecks(): Promise<CheckStatus> {
+  const { data } = await apiClient.get<CheckStatus>("/curriculum/checks/")
+  return data
+}
+
+/** Start a check, or resume the unfinished one for the same Lektion or Modul. */
+export async function startCheck(what: CheckStart): Promise<CheckData> {
+  const { data } = await apiClient.post<CheckData>("/curriculum/checks/start/", what)
+  return data
+}
+
+export async function fetchCheck(id: number): Promise<CheckData> {
+  const { data } = await apiClient.get<CheckData>(`/curriculum/checks/${id}/`)
+  return data
+}
+
+export async function answerCheck(id: number, taskId: string, answer: unknown): Promise<AnswerResult> {
+  const { data } = await apiClient.post<AnswerResult>(`/curriculum/checks/${id}/answer/`, {
+    task_id: taskId,
+    answer,
+  })
+  return data
+}
+
+/** Score a check whose tasks are all answered. */
+export async function finishCheck(id: number): Promise<CheckData> {
+  const { data } = await apiClient.post<CheckData>(`/curriculum/checks/${id}/finish/`)
   return data
 }

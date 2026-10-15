@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils"
  */
 function formatSolution(solution: PartSolution, type: string): string {
   if (!Array.isArray(solution)) return solution
+  // Find the mistake: [index of the wrong word, the corrected sentence].
+  if (type === "error_spot") return String(solution[1] ?? "")
   if (solution.some(Array.isArray)) {
     return (solution as [string, string][]).map(([l, r]) => `${l} = ${r}`).join(", ")
   }

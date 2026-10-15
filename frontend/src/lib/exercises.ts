@@ -10,6 +10,7 @@ export function isAnswered(content: PartContent, value: unknown): boolean {
     return Array.isArray(value) && parts.every((part, i) => isAnswered(part, value[i]))
   }
   if (content.type === "multiple_choice") return typeof value === "string" && !!value
+  if (content.type === "error_spot") return typeof value === "number"
   if (content.type === "sentence_order") {
     return Array.isArray(value) && value.length === (content.payload.tokens?.length ?? 0)
   }

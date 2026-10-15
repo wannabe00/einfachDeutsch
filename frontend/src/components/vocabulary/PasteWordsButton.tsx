@@ -5,6 +5,7 @@ import { ClipboardList } from "lucide-react"
 import { bulkAddWords } from "@/api/vocabulary"
 import type { Chapter } from "@/types"
 import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/Select"
 
 interface PasteWordsButtonProps {
   chapters: Chapter[]
@@ -58,17 +59,14 @@ export function PasteWordsButton({ chapters, defaultChapterId }: PasteWordsButto
             One word per line: <code className="font-mono">German - English</code>{" "}
             (separators <code className="font-mono">- , = tab</code> all work).
           </p>
-          <select
-            value={chapterId}
-            onChange={(e) => setChapterId(Number(e.target.value))}
-            className="mb-2 min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
-          >
-            {chapters.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </select>
+          <div className="mb-2 sm:w-72">
+            <Select
+              label="Chapter"
+              value={chapterId}
+              onChange={setChapterId}
+              options={chapters.map((c) => ({ value: c.id, label: c.title }))}
+            />
+          </div>
           <textarea
             value={text}
             onChange={(e) => {

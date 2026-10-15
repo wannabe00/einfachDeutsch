@@ -26,6 +26,7 @@ import PathPage from "@/pages/path/PathPage"
 import UnitPage from "@/pages/UnitPage"
 import LessonPlayerPage from "@/pages/LessonPlayerPage"
 import ExamPage from "@/pages/ExamPage"
+import CheckPage from "@/pages/CheckPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
 function Loading() {
@@ -149,6 +150,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route path="/path" element={<PathPage />} />
           <Route path="/path/exam" element={<ExamPage />} />
+          <Route path="/check/:checkId" element={<CheckPage />} />
           <Route path="/path/:unitId" element={<UnitPage />} />
           <Route path="/path/:unitId/lesson/:lessonId" element={<LessonPlayerPage />} />
           <Route path="/videos" element={<VideosPage />} />

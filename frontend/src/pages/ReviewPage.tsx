@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link, useLocation, useSearchParams } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { ArrowRight, CheckCircle2, GraduationCap, RotateCcw } from "lucide-react"
 
 import { fetchDueCounts, type DueCounts } from "@/api/vocabulary"
@@ -18,19 +18,15 @@ import { SessionBar } from "@/components/ui/SessionBar"
 
 /*
  * Flashcard review of learned words, scheduled by SM-2. Pick a chapter or
- * everything; `?scope=last-unit` (from the Dashboard) starts straight into a
- * short review of the unit finished most recently, and the Word Bank can send
- * its own selection of words. It needs an account and at least one finished
+ * everything, or the Word Bank can send its own selection of words. (The
+ * Dashboard's review of the last Lektion is a check: see CheckPage.) It needs an account and at least one finished
  * lesson: until then there is nothing to review and no choices are shown.
  */
 export default function ReviewPage() {
   const { user } = useAuth()
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: fetchStats, enabled: !!user })
-  const [params] = useSearchParams()
   const picked = (useLocation().state as { words?: Word[] } | null)?.words
-  const session = useReviewSession(
-    picked?.length ? { words: picked } : params.get("scope") === "last-unit" ? "last-unit" : null,
-  )
+  const session = useReviewSession(picked?.length ? { words: picked } : null)
   const { data: books } = useQuery({ queryKey: ["books"], queryFn: fetchBooks })
   const { data: counts } = useQuery({
     queryKey: ["due-counts"],
@@ -98,11 +94,9 @@ export default function ReviewPage() {
   const sessionLabel =
     session.selection === "all"
       ? "All chapters"
-      : session.selection === "last-unit"
-        ? "Your last unit"
-        : typeof session.selection === "object"
-          ? "Your Word Bank selection"
-          : chapterTitle(session.selection as number)
+      : typeof session.selection === "object"
+        ? "Your Word Bank selection"
+        : chapterTitle(session.selection as number)
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-8">

@@ -1,5 +1,5 @@
 import { apiClient as client } from "./client"
-import type { LastUnitReview, Word, WordProgress, ReviewQuality } from "@/types"
+import type { Word, WordProgress, ReviewQuality } from "@/types"
 
 export async function fetchWords(chapter?: number): Promise<Word[]> {
   const params = chapter ? { chapter } : {}
@@ -17,12 +17,6 @@ export async function fetchDueWords(chapter?: number): Promise<Word[]> {
     a random set from the lowest level. */
 export async function fetchDrillWords(): Promise<Word[]> {
   const { data } = await client.get<Word[]>("/vocabulary/words/drill/")
-  return data
-}
-
-/** Up to 20 learned words of the unit finished most recently, due ones first. */
-export async function fetchLastUnitReview(): Promise<LastUnitReview> {
-  const { data } = await client.get<LastUnitReview>("/vocabulary/words/last-unit/")
   return data
 }
 

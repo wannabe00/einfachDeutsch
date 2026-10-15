@@ -2,9 +2,8 @@ import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 
 import { fetchStats, fetchActivity } from "@/api/stats"
-import { fetchGamification, fetchPath } from "@/api/curriculum"
+import { fetchChecks, fetchGamification, fetchPath } from "@/api/curriculum"
 import { fetchStreak } from "@/api/leveling"
-import { fetchLastUnitReview } from "@/api/vocabulary"
 import { useAuth } from "@/contexts/AuthContext"
 import { Hero } from "./Hero"
 import { TodayRings } from "./TodayRings"
@@ -32,7 +31,7 @@ export default function DashboardPage() {
   })
   const { data: streak } = useQuery({ queryKey: ["streak"], queryFn: fetchStreak, enabled: signedIn })
   const { data: path } = useQuery({ queryKey: ["path"], queryFn: fetchPath, enabled: signedIn })
-  const { data: lastUnit } = useQuery({ queryKey: ["last-unit"], queryFn: fetchLastUnitReview })
+  const { data: checks } = useQuery({ queryKey: ["checks"], queryFn: fetchChecks, enabled: signedIn })
 
   const level = game?.level ?? user?.cefr_level ?? "A1"
   const dueToday = stats?.due_today ?? 0
@@ -71,8 +70,8 @@ export default function DashboardPage() {
     },
   ]
 
-  const showLastUnit = !!lastUnit?.unit && lastUnit.words.length > 0
-  const nextCount = (nextUp && nextUnit ? 1 : 0) + (showLastUnit ? 1 : 0)
+  const lastUnit = checks?.last_unit ?? null
+  const nextCount = (nextUp && nextUnit ? 1 : 0) + (lastUnit ? 1 : 0)
 
   return (
     <div className="dash flex flex-col gap-5 sm:gap-6">
@@ -115,13 +114,7 @@ export default function DashboardPage() {
             {nextUp && nextUnit && (
               <ContinueCard nextUp={nextUp} unit={nextUnit} href={continueHref} />
             )}
-            {showLastUnit && lastUnit.unit && (
-              <ReviewLastUnitCard
-                unit={lastUnit.unit}
-                level={level}
-                wordCount={lastUnit.words.length}
-              />
-            )}
+            {lastUnit && <ReviewLastUnitCard unit={lastUnit} />}
           </div>
         </section>
       )}

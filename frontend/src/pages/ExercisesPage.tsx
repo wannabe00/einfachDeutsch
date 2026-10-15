@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { ArrowRight, BookOpenCheck, Keyboard, Repeat, Target } from "lucide-react"
+import { ArrowRight, BookOpenCheck, Keyboard, Layers, Repeat, Target } from "lucide-react"
 
 import { answerPractice, fetchPracticeOptions, startPractice } from "@/api/curriculum"
 import type { AnswerResult, PracticeOptions, PracticeTask } from "@/types"
@@ -12,6 +12,8 @@ import { LockedFeature } from "@/components/auth/LockedFeature"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Select, type SelectOption } from "@/components/ui/Select"
+import { LektionCover } from "@/components/lektion/LektionCover"
 import { SessionBar } from "@/components/ui/SessionBar"
 import { isAnswered } from "@/lib/exercises"
 
@@ -65,8 +67,32 @@ function StartScreen({
     },
   })
 
-  const selectClass =
-    "h-12 w-full rounded-xl border border-transparent bg-surface-2 px-3.5 text-base focus-visible:border-ring focus-visible:outline-none"
+  const unitOptions: SelectOption<number>[] = [
+    {
+      value: 0,
+      label: "All finished units",
+      leading: (
+        <span className="flex h-9 w-7 shrink-0 items-center justify-center rounded-md bg-border/70 text-muted-foreground">
+          <Layers className="size-4" aria-hidden="true" />
+        </span>
+      ),
+    },
+    ...(options?.units ?? []).map((u) => ({
+      value: u.id,
+      label: `Lektion ${u.order}: ${u.title}`,
+      group: u.cefr_level,
+      leading: <LektionCover order={u.order} level={u.cefr_level} size="sm" className="h-9 w-7 shrink-0 rounded-md" />,
+    })),
+  ]
+  const topicOptions: SelectOption<number>[] = [
+    { value: 0, label: "Any topic" },
+    ...(options?.topics ?? []).map((t) => ({
+      value: t.id,
+      label: t.title,
+      description: `${t.cefr_level} · Lektion ${t.lektion}`,
+      group: t.cefr_level,
+    })),
+  ]
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -113,37 +139,20 @@ function StartScreen({
         <Card>
           <div className="flex flex-col gap-5 p-6 sm:p-7">
             <h2 className="text-xl font-bold">Build a set</h2>
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-muted-foreground">
-              Unit
-              <select
-                className={selectClass}
-                value={unit ?? ""}
-                onChange={(e) => setUnit(e.target.value ? Number(e.target.value) : undefined)}
-              >
-                <option value="">All finished units</option>
-                {options?.units.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    Lektion {u.order}: {u.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-muted-foreground">Unit</span>
+              <Select label="Unit" value={unit ?? 0} onChange={(v) => setUnit(v || undefined)} options={unitOptions} />
+            </div>
             {!!options?.topics.length && (
-              <label className="flex flex-col gap-1.5 text-sm font-medium text-muted-foreground">
-                Grammar topic
-                <select
-                  className={selectClass}
-                  value={topic ?? ""}
-                  onChange={(e) => setTopic(e.target.value ? Number(e.target.value) : undefined)}
-                >
-                  <option value="">Any topic</option>
-                  {options.topics.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-muted-foreground">Grammar topic</span>
+                <Select
+                  label="Grammar topic"
+                  value={topic ?? 0}
+                  onChange={(v) => setTopic(v || undefined)}
+                  options={topicOptions}
+                />
+              </div>
             )}
             <Button size="lg" className="mt-1" disabled={!options || start.isPending} onClick={() => start.mutate()}>
               {start.isPending ? "Building your set…" : "Start a set"}

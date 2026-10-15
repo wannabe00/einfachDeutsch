@@ -21,7 +21,9 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.books.models import Book, Chapter
+from apps.curriculum.checks import MODUL_SIZE, check_source
 from apps.curriculum.content.a1 import A1_LEVEL, A1_UNITS
+from apps.curriculum.content.a1.checks import LEKTION_CHECKS, MODUL_CHECKS
 from apps.curriculum.models import Lesson, LessonItem, Unit
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
@@ -45,6 +47,12 @@ def exercise_fields(item: dict) -> dict:
     }
     if etype == "multiple_choice":
         fields["payload"] = {"options": item["options"], "answer": item["answer"]}
+    elif etype == "error_spot":
+        fields["payload"] = {
+            "tokens": item["tokens"],
+            "answer": item["answer"],
+            "correction": item["correction"],
+        }
     elif etype == "sentence_order":
         fields["payload"] = {"tokens": item["tokens"], "answer": item["answer"]}
     elif etype == "word_bank":
@@ -59,9 +67,11 @@ def exercise_fields(item: dict) -> dict:
         fields["payload"] = {
             "parts": [{k: v for k, v in p.items() if k != "kind"} for p in item["parts"]]
         }
-    else:  # translation, fill_blank, article, conjugation
+    else:  # translation, fill_blank, article, conjugation, dictation
         fields["payload"] = {}
         fields["correct_answer"] = item["answer"]
+    if item.get("context"):  # a dialogue or reading text shown above the task
+        fields["payload"]["context"] = item["context"]
     return fields
 
 
@@ -266,6 +276,23 @@ class Command(BaseCommand):
                             **exercise_fields(item),
                         }
                     item_specs.append((n, (les["order"], les["title"]), idx, item, source))
+        # The checks' gap, translation and Modul-test exercises (no lesson items).
+        for n, tasks in LEKTION_CHECKS.items():
+            for name, item in tasks.items():
+                source = check_source(A1_LEVEL, f"u{n}", name)
+                desired_exercises[source] = {
+                    "source": source,
+                    "chapter_id": chapters[n].id,
+                    **exercise_fields(item),
+                }
+        for m, tasks in MODUL_CHECKS.items():
+            for name, item in tasks.items():
+                source = check_source(A1_LEVEL, f"m{m}", name)
+                desired_exercises[source] = {
+                    "source": source,
+                    "chapter_id": chapters[m * MODUL_SIZE].id,
+                    **exercise_fields(item),
+                }
         existing_exercises = {
             e.source: e for e in Exercise.objects.filter(source__startswith=SOURCE_PREFIX)
         }

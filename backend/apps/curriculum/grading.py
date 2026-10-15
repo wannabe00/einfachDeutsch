@@ -9,6 +9,7 @@ whitespace, trailing punctuation) but is strict about the German itself.
 Umlauts and ß are kept, since "schon" and "schön" are different words.
 """
 
+import base64
 import re
 import unicodedata
 
@@ -25,7 +26,20 @@ def normalize(text: str) -> str:
     return text.strip().casefold()
 
 
-SIMPLE_TYPES = {"translation", "fill_blank", "article", "conjugation"}
+SIMPLE_TYPES = {"translation", "fill_blank", "article", "conjugation", "dictation"}
+_ANY_PUNCT = re.compile(r"[^\w\s]")
+
+
+def _loose(text: str) -> str:
+    """For dictation: punctuation anywhere doesn't count, only the words."""
+    return normalize(_ANY_PUNCT.sub(" ", unicodedata.normalize("NFC", str(text))))
+
+
+def encode_speech(text: str) -> str:
+    """Text the browser reads aloud (dictation, "which word do you hear?").
+    It has to reach the client, so it's only encoded, to keep it from being
+    readable at a glance in the page data."""
+    return base64.b64encode(text.encode()).decode()
 
 
 def parts_of(exercise: Exercise) -> list[dict]:
@@ -69,6 +83,13 @@ def grade_part(part: dict, answer) -> bool:
         return _same_list(answer, part.get("answer", []))
     if ptype == "word_bank":
         return _same_list(answer, part.get("answers", []))
+    if ptype == "error_spot":
+        return str(answer) == str(part.get("answer"))
+    if ptype == "dictation":
+        if not isinstance(answer, str):
+            return False
+        given = _loose(answer)
+        return bool(given) and any(given == _loose(a) for a in _accepted(part))
     if ptype == "matching":
         if not isinstance(answer, dict):
             return False
@@ -103,8 +124,13 @@ def public_part(part: dict) -> dict:
     payload = {
         k: v
         for k, v in part.items()
-        if k not in ("type", "prompt", "hint", "explanation", "answer", "answers")
+        if k
+        not in ("type", "prompt", "hint", "explanation", "answer", "answers", "correction", "say")
     }
+    if part.get("say"):  # a word to hear, set by the checks
+        payload["say"] = encode_speech(part["say"])
+    if part.get("type") == "dictation":
+        payload["say"] = encode_speech(_accepted(part)[0])
     if part.get("type") == "matching":
         pairs = payload.pop("pairs", [])
         payload["left"] = [p[0] for p in pairs]
@@ -130,6 +156,8 @@ def public_exercise(exercise: Exercise) -> dict:
             "hint": exercise.hint,
             "payload": {"parts": [public_part(p) for p in parts_of(exercise)]},
         }
+        if (exercise.payload or {}).get("context"):
+            out["payload"]["context"] = exercise.payload["context"]
     else:
         out = public_part(parts_of(exercise)[0])
     return {"exercise_id": exercise.id, **out}
@@ -144,6 +172,8 @@ def solution_of_part(part: dict):
         return part.get("answers", [])
     if ptype == "matching":
         return part.get("pairs", [])
+    if ptype == "error_spot":
+        return [str(part.get("answer", "")), part.get("correction", "")]
     return _accepted(part)[:1] or [""]
 
 

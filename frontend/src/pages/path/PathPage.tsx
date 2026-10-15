@@ -6,6 +6,7 @@ import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
 import { cn } from "@/lib/utils"
 import { LektionCover } from "@/components/lektion/LektionCover"
+import { ModulTests } from "@/components/checks/CheckCards"
 import { LessonRows } from "@/components/lektion/LessonRows"
 import { ProgressRing } from "@/components/lektion/ProgressRing"
 import { lektionColor } from "@/components/lektion/lektionColor"
@@ -84,6 +85,8 @@ export default function PathPage() {
       )}
 
       {units.length === 0 && <Message>No Lektionen for your level yet.</Message>}
+
+      <ModulTests level={level} />
 
       {opened.length > 0 && (
         <ChapterList title={current ? "Finished" : "Your Lektionen"} units={opened} />

@@ -1,4 +1,4 @@
-"""Review only covers learned words; the Dashboard reviews the last unit."""
+"""Review only covers learned words; the Dashboard reviews the last finished unit."""
 
 from datetime import timedelta
 
@@ -50,17 +50,16 @@ class ReviewScopeTests(TestCase):
 
     def test_last_unit_needs_a_finished_unit(self):
         self.complete(self.units[0], 1)
-        res = self.api.get("/api/vocabulary/words/last-unit/").json()
-        self.assertEqual(res, {"unit": None, "words": []})
+        res = self.api.get("/api/curriculum/checks/").json()
+        self.assertIsNone(res["last_unit"])
 
     def test_last_unit_is_the_most_recently_finished(self):
         self.complete(self.units[0], 1, days_ago=3)
         self.complete(self.units[0], 2, days_ago=3)
         self.complete(self.units[1], 1, days_ago=1)
         self.complete(self.units[1], 2, days_ago=1)
-        res = self.api.get("/api/vocabulary/words/last-unit/").json()
-        self.assertEqual(res["unit"]["order"], 2)
-        self.assertEqual(sorted(w["german"] for w in res["words"]), ["Wort21", "Wort22"])
+        res = self.api.get("/api/curriculum/checks/").json()
+        self.assertEqual(res["last_unit"]["order"], 2)
 
     def test_dashboard_counts_learned_words(self):
         self.complete(self.units[0], 1)

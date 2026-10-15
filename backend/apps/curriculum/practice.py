@@ -82,13 +82,30 @@ def options(user) -> dict:
     for item, unit, topic in _practice_items(user):
         if not _practisable_parts(item.exercise):
             continue
-        units[unit.id] = {"id": unit.id, "order": unit.order, "title": unit.title}
+        units[unit.id] = {
+            "id": unit.id,
+            "order": unit.order,
+            "title": unit.title,
+            "cefr_level": unit.cefr_level,
+        }
         if topic:
             topics[topic] = None
-    rules = GrammarRule.objects.filter(id__in=topics).order_by("chapter__number", "id")
+    rules = (
+        GrammarRule.objects.filter(id__in=topics)
+        .select_related("chapter")
+        .order_by("chapter__cefr_level", "chapter__number", "id")
+    )
     return {
-        "units": sorted(units.values(), key=lambda u: u["order"]),
-        "topics": [{"id": r.id, "title": r.title} for r in rules],
+        "units": sorted(units.values(), key=lambda u: (u["cefr_level"], u["order"])),
+        "topics": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "cefr_level": r.chapter.cefr_level,
+                "lektion": r.chapter.number,
+            }
+            for r in rules
+        ],
     }
 
 

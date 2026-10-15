@@ -56,6 +56,7 @@ export default function ExamPage() {
       if (res.promoted_to) await refreshUser()
       qc.invalidateQueries({ queryKey: ["exam"] })
       qc.invalidateQueries({ queryKey: ["path"] })
+      qc.invalidateQueries({ queryKey: ["checks"] })
     },
   })
 
