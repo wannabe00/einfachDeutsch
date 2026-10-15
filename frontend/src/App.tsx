@@ -5,6 +5,7 @@ import { Layout } from "@/components/layout/Layout"
 import { LockedFeature } from "@/components/auth/LockedFeature"
 import { PremiumLock } from "@/components/premium/PremiumLock"
 import AuthPage from "@/pages/AuthPage"
+import { ForgotPasswordPage, ResetPasswordPage } from "@/pages/PasswordResetPages"
 import OAuthCallbackPage from "@/pages/OAuthCallbackPage"
 import WelcomePage from "@/pages/WelcomePage"
 import OnboardingPage from "@/pages/OnboardingPage"
@@ -99,6 +100,9 @@ function App() {
         path="/login"
         element={user ? <Navigate to="/" replace /> : <AuthPage />}
       />
+      {/* Password reset: ask for an e-mail link, then set a new password from it. */}
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
       {/* Old links to /register still work. */}
       <Route path="/register" element={<Navigate to="/login" replace />} />
       {/* OAuth providers redirect here before we have a token. */}

@@ -5,10 +5,10 @@ from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
-from dj_rest_auth.views import LoginView
+from dj_rest_auth.views import LoginView, PasswordResetConfirmView, PasswordResetView
 from django.conf import settings
 
-from ..throttles import LoginThrottle
+from ..throttles import LoginThrottle, PasswordResetThrottle
 
 
 class CompatOAuth2Client(OAuth2Client):
@@ -47,6 +47,18 @@ class ThrottledLoginView(LoginView):
     anonymous rate is far too generous for password guessing."""
 
     throttle_classes = [LoginThrottle]
+
+
+class ThrottledPasswordResetView(PasswordResetView):
+    """Send the reset e-mail, at most a few times per hour per IP."""
+
+    throttle_classes = [PasswordResetThrottle]
+
+
+class ThrottledPasswordResetConfirmView(PasswordResetConfirmView):
+    """Set the new password from the e-mail link, throttled the same way."""
+
+    throttle_classes = [PasswordResetThrottle]
 
 
 class GoogleLogin(SocialLoginView):

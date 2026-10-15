@@ -1,4 +1,10 @@
+from allauth.account.utils import user_pk_to_url_str
+from dj_rest_auth.serializers import (
+    PasswordResetConfirmSerializer as BasePasswordResetConfirmSerializer,
+)
+from dj_rest_auth.serializers import PasswordResetSerializer as BasePasswordResetSerializer
 from dj_rest_auth.serializers import UserDetailsSerializer as BaseUserDetailsSerializer
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -56,3 +62,26 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "trial_started_at",
             "is_staff",
         )
+
+
+def frontend_reset_url(request, user, temp_key) -> str:
+    """The link in the reset e-mail opens the app's reset page, not the API."""
+    return f"{settings.FRONTEND_URL}/reset-password/{user_pk_to_url_str(user)}/{temp_key}"
+
+
+class PasswordResetSerializer(BasePasswordResetSerializer):
+    """Same as dj-rest-auth (no hint whether the e-mail exists), with the app's link."""
+
+    def get_email_options(self):
+        return {"url_generator": frontend_reset_url}
+
+
+class PasswordResetConfirmSerializer(BasePasswordResetConfirmSerializer):
+    """After a reset, sign the account out everywhere: whoever knew the old
+    password may still hold a login token."""
+
+    def save(self):
+        from rest_framework.authtoken.models import Token
+
+        super().save()
+        Token.objects.filter(user=self.user).delete()

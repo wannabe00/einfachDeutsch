@@ -86,7 +86,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # project overrides (e.g. the reset e-mail)
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -177,6 +177,8 @@ REST_FRAMEWORK = {
         "login": os.getenv("THROTTLE_LOGIN", "5/min"),
         # One-shot onboarding endpoint (per user, defence in depth).
         "onboarding": os.getenv("THROTTLE_ONBOARDING", "5/min"),
+        # Reset e-mails and reset attempts (per IP), so nobody can flood an inbox.
+        "password_reset": os.getenv("THROTTLE_PASSWORD_RESET", "5/hour"),
     },
 }
 
@@ -228,7 +230,11 @@ REST_AUTH = {
     "TOKEN_MODEL": "rest_framework.authtoken.models.Token",
     "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
     "LOGIN_SERIALIZER": "apps.accounts.serializers.LoginSerializer",
+    "PASSWORD_RESET_SERIALIZER": "apps.accounts.serializers.PasswordResetSerializer",
+    "PASSWORD_RESET_CONFIRM_SERIALIZER": "apps.accounts.serializers.PasswordResetConfirmSerializer",
 }
+# The reset e-mail's subject; allauth would otherwise prefix the Sites domain.
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "einfachDeutsch: "
 
 # Email: real SMTP when EMAIL_HOST is configured (production), else the dev
 # console backend. Only used for password reset (no email verification).

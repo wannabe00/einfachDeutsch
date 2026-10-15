@@ -13,12 +13,20 @@ from .danger import deactivate_account, delete_account, logout_all, reset_progre
 from .leveling import placement_test, set_level, streak
 from .premium import premium_status, start_trial
 from .profile import complete_onboarding, export_data, update_profile, upload_avatar
-from .social import GitHubLogin, GoogleLogin, ThrottledLoginView
+from .social import (
+    GitHubLogin,
+    GoogleLogin,
+    ThrottledLoginView,
+    ThrottledPasswordResetConfirmView,
+    ThrottledPasswordResetView,
+)
 
 __all__ = [
     "GitHubLogin",
     "GoogleLogin",
     "ThrottledLoginView",
+    "ThrottledPasswordResetConfirmView",
+    "ThrottledPasswordResetView",
     "complete_onboarding",
     "premium_status",
     "start_trial",
