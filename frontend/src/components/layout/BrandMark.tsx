@@ -1,0 +1,28 @@
+import { cn } from "@/lib/utils"
+
+/*
+ * The einfachDeutsch symbol: a blue square, a pink triangle on top and a
+ * yellow circle. The thin gap where they overlap takes the page background, so
+ * it works in light and dark mode. Paths come from scripts/make_brand.py; re-run
+ * it and paste the new values if the shapes change.
+ */
+const SQUARE =
+  "M21.09 48.57L48.94 45.64Q53.91 45.12 54.43 50.09L57.36 77.94Q57.88 82.91 52.91 83.43L25.06 86.36Q20.09 86.88 19.57 81.91L16.64 54.06Q16.12 49.09 21.09 48.57Z"
+const TRIANGLE =
+  "M36.19 54.71L69.33 55.29Q76.26 55.41 72.90 49.35L56.83 20.36Q53.47 14.30 49.91 20.24L32.84 48.65Q29.27 54.59 36.19 54.71Z"
+
+export function BrandMark({ className }: { className?: string }) {
+  const gap = {
+    stroke: "hsl(var(--background))",
+    strokeWidth: 3.4,
+    strokeLinejoin: "round" as const,
+    paintOrder: "stroke",
+  }
+  return (
+    <svg viewBox="13.42 12.22 80.78 80.78" className={cn("size-7 shrink-0", className)} aria-hidden="true">
+      <path d={SQUARE} fill="#0A6CDB" style={gap} />
+      <path d={TRIANGLE} fill="#E2407E" style={gap} />
+      <circle cx="71" cy="65" r="20.5" fill="#FBBF24" style={gap} />
+    </svg>
+  )
+}
