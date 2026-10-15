@@ -132,10 +132,6 @@ def lesson(title: str, *items: dict, teaches=()) -> dict:
 # ---- vocabulary drills generated from a word list ---------------------------
 
 
-def _german_head(german: str) -> str:
-    return german.split(" ", 1)[1] if german.split(" ", 1)[0] in ARTICLES else german
-
-
 def vocab_lessons(words, title: str, group_size: int = 6) -> list[dict]:
     """Lessons that practise every word in `words`, `group_size` at a time.
 

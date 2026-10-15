@@ -42,21 +42,6 @@ def _run(fn, *args):
 @api_view(["POST"])
 @permission_classes(_AI_PERMISSIONS)
 @throttle_classes(_AI_THROTTLES)
-def check_answer(request):
-    error = _missing_fields_response(request.data, "prompt", "correct_answer", "user_answer")
-    if error:
-        return error
-    return _run(
-        llm.check_exercise_answer,
-        request.data["prompt"],
-        request.data["correct_answer"],
-        request.data["user_answer"],
-    )
-
-
-@api_view(["POST"])
-@permission_classes(_AI_PERMISSIONS)
-@throttle_classes(_AI_THROTTLES)
 def chat(request):
     error = _missing_fields_response(request.data, "message")
     if error:

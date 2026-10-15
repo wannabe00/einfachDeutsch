@@ -10,7 +10,7 @@ from django.test import SimpleTestCase
 
 from apps.curriculum.content.a1 import A1_UNITS
 from apps.curriculum.content.dsl import DEFAULT_MAX_PARTS, art, fill, group
-from apps.curriculum.grading import grade, grade_parts, public_exercise, solution_of
+from apps.curriculum.grading import grade_parts, public_exercise, solution_of
 from apps.curriculum.management.commands.seed_a1_path import exercise_fields
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
@@ -127,8 +127,12 @@ class ContentTests(SimpleTestCase):
             for les, item in exercises(u):
                 where = f"unit {u['order']} / {les['title']} / {item['prompt']!r}"
                 ex = Exercise(**exercise_fields(item))
-                self.assertTrue(grade(ex, right_answer(item)), f"Own answer fails: {where}")
-                self.assertFalse(grade(ex, wrong_answer(item)), f"Wrong answer passes: {where}")
+                self.assertTrue(
+                    all(grade_parts(ex, right_answer(item))), f"Own answer fails: {where}"
+                )
+                self.assertFalse(
+                    all(grade_parts(ex, wrong_answer(item))), f"Wrong answer passes: {where}"
+                )
                 if item["type"] == "group":
                     self.assertGreaterEqual(len(item["parts"]), 2, where)
                     self.assertLessEqual(len(item["parts"]), DEFAULT_MAX_PARTS, where)
@@ -166,8 +170,8 @@ class GroupGradingTests(SimpleTestCase):
 
     def test_each_part_is_marked(self):
         self.assertEqual(grade_parts(self.ex, ["der", "das", "bin"]), [True, False, True])
-        self.assertFalse(grade(self.ex, ["der", "das", "bin"]))
-        self.assertTrue(grade(self.ex, ["der", "die", "bin"]))
+        self.assertFalse(all(grade_parts(self.ex, ["der", "das", "bin"])))
+        self.assertTrue(all(grade_parts(self.ex, ["der", "die", "bin"])))
 
     def test_missing_or_malformed_answers_score_nothing(self):
         self.assertEqual(grade_parts(self.ex, ["der"]), [True, False, False])

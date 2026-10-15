@@ -17,15 +17,3 @@ export async function aiChat(
   return data.content
 }
 
-export async function aiCheckAnswer(
-  prompt: string,
-  correctAnswer: string,
-  userAnswer: string,
-): Promise<string> {
-  const { data } = await apiClient.post<AIResponse>("/ai/check-answer/", {
-    prompt,
-    correct_answer: correctAnswer,
-    user_answer: userAnswer,
-  })
-  return data.content
-}
