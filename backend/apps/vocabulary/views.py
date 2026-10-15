@@ -5,7 +5,8 @@ from django.db.models import Count, Prefetch, Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,9 +15,9 @@ from apps.accounts.scheduling import record_activity
 from apps.exercises.models import Exercise, ExerciseAttempt
 from apps.grammar.models import GrammarRule
 
-from .models import ReviewLog, Word, WordProgress
+from .models import ReviewLog, SavedWord, Word, WordProgress
 from .progress import apply_review, record_review
-from .serializers import WordProgressSerializer, WordSerializer
+from .serializers import SavedWordSerializer, WordProgressSerializer, WordSerializer
 
 # Words handed to the drills per round of loading.
 DRILL_POOL_SIZE = 60
@@ -72,7 +73,8 @@ class WordViewSet(viewsets.ModelViewSet):
     serializer_class = WordSerializer
 
     def get_permissions(self):
-        # Content edits require an account; reading + (guest-safe) review do not.
+        # Words are shared content, so only staff may change them (a learner's
+        # own words are SavedWord). Reading and (guest-safe) review are open.
         if self.action in {
             "create",
             "update",
@@ -81,7 +83,7 @@ class WordViewSet(viewsets.ModelViewSet):
             "import_csv",
             "bulk",
         }:
-            return [IsAuthenticated()]
+            return [IsAdminUser()]
         return [AllowAny()]
 
     def _with_user_progress(self, qs):
@@ -342,3 +344,20 @@ class ActivityView(APIView):
                     counts[d] += 1
 
         return Response([{"date": d.isoformat(), "count": counts[d]} for d in days])
+
+
+class SavedWordViewSet(viewsets.ModelViewSet):
+    """The learner's own words (list, add, edit, delete), only ever their own."""
+
+    serializer_class = SavedWordSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "patch", "delete"]
+
+    def get_queryset(self):
+        return SavedWord.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        german = serializer.validated_data["german"]
+        if SavedWord.objects.filter(user=self.request.user, german=german).exists():
+            raise ValidationError({"german": "You've already saved this word."})
+        serializer.save(user=self.request.user)

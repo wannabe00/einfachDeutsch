@@ -1,26 +1,50 @@
 import {
+  Baby,
   BedDouble,
+  Bike,
   BookOpen,
   Briefcase,
   Building2,
   Cake,
+  ChefHat,
+  Church,
   Clock,
   CloudSun,
+  ConciergeBell,
+  Croissant,
+  Drama,
+  Dumbbell,
+  Factory,
+  GraduationCap,
   Guitar,
   Hand,
+  HeartPulse,
   House,
+  IdCard,
+  Lamp,
+  Languages,
   Laptop,
+  Library,
+  Map,
   Mic,
   NotebookPen,
+  Package,
   Palette,
   PartyPopper,
+  Plane,
+  Salad,
   Shirt,
+  ShoppingBasket,
   Signpost,
   Smile,
   Sofa,
   Stethoscope,
+  Sun,
+  Ticket,
   TrafficCone,
   TramFront,
+  Trees,
+  Tv,
   Users,
   UtensilsCrossed,
   WashingMachine,
@@ -32,7 +56,7 @@ import { lektionColor } from "./lektionColor"
 /*
  * A generated cover for a Lektion: its unit colour, a large icon for the topic
  * and one German word from it. No photos, so the picture always matches what
- * the Lektion teaches. Only A1 is mapped so far; other levels get a book icon.
+ * the Lektion teaches. A1 and A2 are mapped; other levels get a book icon.
  */
 const A1: Record<number, [LucideIcon, string]> = {
   1: [Hand, "Hallo!"],
@@ -61,6 +85,35 @@ const A1: Record<number, [LucideIcon, string]> = {
   24: [Cake, "feiern"],
 }
 
+const A2: Record<number, [LucideIcon, string]> = {
+  1: [Croissant, "der Bäcker"],
+  2: [Lamp, "die Kommode"],
+  3: [Trees, "die Ruhe"],
+  4: [ShoppingBasket, "das Kilo"],
+  5: [Church, "der Dom"],
+  6: [Ticket, "das Konzert"],
+  7: [Dumbbell, "joggen"],
+  8: [HeartPulse, "das Herz"],
+  9: [Factory, "die Firma"],
+  10: [ChefHat, "reserviert"],
+  11: [Baby, "die Freude"],
+  12: [Salad, "der Salat"],
+  13: [Languages, "die Sprache"],
+  14: [Package, "das Päckchen"],
+  15: [Tv, "die Sendung"],
+  16: [ConciergeBell, "die Rezeption"],
+  17: [Map, "die Reise"],
+  18: [Sun, "die Wärme"],
+  19: [Drama, "die Kultur"],
+  20: [Library, "das Buch"],
+  21: [IdCard, "der Ausweis"],
+  22: [Bike, "die Mobilität"],
+  23: [GraduationCap, "der Beruf"],
+  24: [Plane, "das Ausland"],
+}
+
+const LEVELS: Record<string, Record<number, [LucideIcon, string]>> = { A1, A2 }
+
 export function LektionCover({
   order,
   level,
@@ -74,7 +127,7 @@ export function LektionCover({
   className?: string
 }) {
   const sm = size === "sm"
-  const [Icon, word] = (level === "A1" && A1[order]) || [BookOpen, ""]
+  const [Icon, word] = LEVELS[level]?.[order] ?? [BookOpen, ""]
   const color = lektionColor(order)
 
   return (

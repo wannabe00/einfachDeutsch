@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Word, WordProgress
+from .models import SavedWord, Word, WordProgress
 
 
 class WordProgressSerializer(serializers.ModelSerializer):
@@ -65,3 +65,26 @@ class WordSerializer(serializers.ModelSerializer):
     def get_plural(self, obj) -> str:
         notes = obj.notes or ""
         return notes.removeprefix("Pl.").strip() if notes.startswith("Pl.") else ""
+
+
+ARTICLES = ("der", "die", "das")
+
+
+def capitalize_noun(german: str) -> str:
+    """'der hund' -> 'der Hund': German nouns always show capitalised."""
+    head, _, rest = " ".join(german.split()).partition(" ")
+    if head.lower() in ARTICLES and rest:
+        return f"{head.lower()} {rest[:1].upper()}{rest[1:]}"
+    return f"{head} {rest}".strip()
+
+
+class SavedWordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedWord
+        fields = ["id", "german", "english", "notes", "created_at"]
+
+    def validate_german(self, value):
+        value = capitalize_noun(value)
+        if not value:
+            raise serializers.ValidationError("Write the German word.")
+        return value

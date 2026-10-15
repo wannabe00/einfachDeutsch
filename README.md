@@ -47,7 +47,7 @@ python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activa
 pip install -r requirements.txt
 cp .env.example .env              # GEMINI_API_KEY is optional; the rest has dev defaults
 python manage.py migrate
-python manage.py seed_a1_path     # the A1 learning path
+python manage.py seed_path        # the learning path (A1 and A2)
 python manage.py create_dev_user  # a ready-to-use login, since OAuth rarely works on localhost
 python manage.py runserver        # http://localhost:8000
 

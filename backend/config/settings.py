@@ -298,6 +298,8 @@ RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
 # ---- AI-written history lessons (premium) ----
 # Most lessons one user may have the AI write per day.
 HISTORY_AI_DAILY_LIMIT = int(os.getenv("HISTORY_AI_DAILY_LIMIT", "5"))
+# Optional last-resort picture source for history lessons (free key from pexels.com).
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 
 # ---- Video / show suggestions ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).

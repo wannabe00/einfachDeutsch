@@ -120,12 +120,45 @@ export interface ConversationMessage {
   created_at: string
 }
 
+/** The learning tool a chat uses. */
+export type ChatMode = "chat" | "quiz" | "correct" | "roleplay" | "explain"
+
 /** Sidebar row. */
 export interface Conversation {
   id: number
   title: string
+  pinned: boolean
+  mode: ChatMode
   created_at: string
   updated_at: string
+}
+
+/** A chat starter from the learner's progress. `send` false = switch to the
+    tool and let the learner type. */
+export interface ChatStarter {
+  label: string
+  message: string
+  mode: ChatMode
+  send: boolean
+}
+
+export interface AISettings {
+  reply_language: "auto" | "en" | "mixed" | "de"
+  tone: "friendly" | "strict"
+  corrections: "major" | "all"
+  interests: string
+  about: string
+  /** What "By my level" means for this learner right now. */
+  auto_language?: "en" | "mixed" | "de"
+}
+
+/** A word the learner keeps for themselves (Word Bank, saved from chat). */
+export interface SavedWord {
+  id: number
+  german: string
+  english: string
+  notes: string
+  created_at: string
 }
 
 export interface ConversationDetail extends Conversation {
@@ -183,6 +216,8 @@ export interface User {
   has_premium: boolean
   premium_until: string | null
   trial_started_at: string | null
+  /** Staff may edit shared content (the API enforces it). */
+  is_staff: boolean
 }
 
 /** Premium status for the upsell (GET /accounts/premium/). */

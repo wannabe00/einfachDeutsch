@@ -38,6 +38,8 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
     has_premium = serializers.BooleanField(source="profile.has_premium", read_only=True)
     premium_until = serializers.DateTimeField(source="profile.premium_until", read_only=True)
     trial_started_at = serializers.DateTimeField(source="profile.trial_started_at", read_only=True)
+    # Only hides the shared-content tools in the UI; the API checks it itself.
+    is_staff = serializers.BooleanField(read_only=True)
 
     class Meta(BaseUserDetailsSerializer.Meta):
         fields = (
@@ -52,4 +54,5 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "has_premium",
             "premium_until",
             "trial_started_at",
+            "is_staff",
         )

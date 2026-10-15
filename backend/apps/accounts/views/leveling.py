@@ -14,11 +14,18 @@ VALID_LEVELS = {code for code, _ in CEFR_LEVELS}
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def set_level(request):
-    """Set the user's CEFR level and mark onboarding complete."""
+    """Set the starting CEFR level once, in onboarding. After that only the level
+    exam moves a learner up (no free skipping); staff can still change it in the
+    admin."""
     level = str(request.data.get("cefr_level", "")).upper()
     if level not in VALID_LEVELS:
         return Response({"detail": "Invalid level."}, status=400)
     profile = request.user.profile
+    if profile.level_set:
+        return Response(
+            {"detail": "Your level is already set. Pass the level exam to move up."},
+            status=403,
+        )
     profile.cefr_level = level
     profile.level_set = True
     profile.save(update_fields=["cefr_level", "level_set"])

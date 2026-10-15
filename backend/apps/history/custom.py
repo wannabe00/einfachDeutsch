@@ -145,7 +145,9 @@ def create_lesson(user, topic: str) -> CustomHistoryLesson:
     if lesson is None:
         raise CustomLessonError("I couldn't write a good lesson on that. Try other words.", 502)
 
-    image_url, image_credit = find_image(lesson.pop("image_query"))
+    image_url, image_credit = find_image(
+        lesson.pop("image_query"), lesson["title"], f"{lesson.get('era', '')} {lesson['title']}"
+    )
     return CustomHistoryLesson.objects.create(
         user=user,
         topic=topic,

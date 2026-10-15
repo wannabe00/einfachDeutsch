@@ -93,8 +93,9 @@ def determine_level(summary: dict, writing: str) -> dict:
     }
 
 
-def chat(message: str, history: list[dict] | None = None) -> str:
-    """`history` is a list of {"role": "user" | "assistant", "content": str}."""
+def chat(message: str, history: list[dict] | None = None, system: str = TUTOR_SYSTEM) -> str:
+    """`history` is a list of {"role": "user" | "assistant", "content": str}.
+    `system` is the learner's tutor prompt (see ai_assistant.context)."""
     contents = []
     for turn in history or []:
         role = turn.get("role")
@@ -104,7 +105,7 @@ def chat(message: str, history: list[dict] | None = None) -> str:
             gem_role = "model" if role == "assistant" else "user"
             contents.append(types.Content(role=gem_role, parts=[types.Part.from_text(text=text)]))
     contents.append(types.Content(role="user", parts=[types.Part.from_text(text=message)]))
-    return _complete(TUTOR_SYSTEM, contents)
+    return _complete(system, contents)
 
 
 # ---- AI-written history lessons (premium) ----------------------------------

@@ -87,3 +87,25 @@ class ReviewLog(models.Model):
 
     def __str__(self):
         return f"{self.word.english} @ {self.reviewed_at:%Y-%m-%d} (q{self.quality})"
+
+
+class SavedWord(models.Model):
+    """A word a learner keeps for themselves: added in the Word Bank or saved
+    from an AI chat. Per-user, so it never changes the shared `Word` list."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_words"
+    )
+    german = models.CharField(max_length=200)
+    english = models.CharField(max_length=200, blank=True)
+    notes = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "german"], name="unique_saved_word_per_user")
+        ]
+
+    def __str__(self):
+        return f"{self.user}: {self.german}"

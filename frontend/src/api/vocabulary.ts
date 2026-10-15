@@ -1,5 +1,5 @@
 import { apiClient as client } from "./client"
-import type { Word, WordProgress, ReviewQuality } from "@/types"
+import type { SavedWord, Word, WordProgress, ReviewQuality } from "@/types"
 
 export async function fetchWords(chapter?: number): Promise<Word[]> {
   const params = chapter ? { chapter } : {}
@@ -27,16 +27,6 @@ export interface DueCounts {
 
 export async function fetchDueCounts(): Promise<DueCounts> {
   const { data } = await client.get<DueCounts>("/vocabulary/words/due-counts/")
-  return data
-}
-
-export async function createWord(payload: {
-  english: string
-  german: string
-  chapter: number
-  notes?: string
-}): Promise<Word> {
-  const { data } = await client.post<Word>("/vocabulary/words/", payload)
   return data
 }
 
@@ -71,4 +61,20 @@ export async function reviewWord(
     { quality },
   )
   return data
+}
+
+/* ---- The learner's own words ---- */
+
+export async function fetchSavedWords(): Promise<SavedWord[]> {
+  const { data } = await client.get<SavedWord[]>("/vocabulary/saved/")
+  return data
+}
+
+export async function saveWord(word: { german: string; english?: string; notes?: string }): Promise<SavedWord> {
+  const { data } = await client.post<SavedWord>("/vocabulary/saved/", word)
+  return data
+}
+
+export async function deleteSavedWord(id: number): Promise<void> {
+  await client.delete(`/vocabulary/saved/${id}/`)
 }

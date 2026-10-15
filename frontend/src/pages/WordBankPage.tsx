@@ -17,6 +17,7 @@ import { SearchField } from "@/components/ui/SearchField"
 import { LektionCover } from "@/components/lektion/LektionCover"
 import { ArticleBadge } from "@/components/vocabulary/ArticleBadge"
 import { WordForm } from "@/components/vocabulary/WordForm"
+import { SavedWords } from "@/components/vocabulary/SavedWords"
 import { CSVImportButton } from "@/components/vocabulary/CSVImportButton"
 import { PasteWordsButton } from "@/components/vocabulary/PasteWordsButton"
 
@@ -132,34 +133,38 @@ export default function WordBankPage() {
                 )
               }
             />
-            <Button onClick={() => setShowForm((v) => !v)}>
-              {showForm ? (
-                "Cancel"
-              ) : (
-                <>
-                  <Plus /> Add words
-                </>
-              )}
-            </Button>
+            {user && (
+              <Button onClick={() => setShowForm((v) => !v)}>
+                {showForm ? (
+                  "Cancel"
+                ) : (
+                  <>
+                    <Plus /> Add words
+                  </>
+                )}
+              </Button>
+            )}
           </>
         }
       />
 
-      {showForm && allChapters.length > 0 && (
+      {showForm && (
         <Card>
           <div className="flex flex-col gap-4 p-5 sm:p-6">
-            <WordForm
-              chapters={allChapters}
-              defaultChapterId={allChapters[0]?.id}
-              onDone={() => setShowForm(false)}
-            />
-            <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-              <PasteWordsButton chapters={allChapters} defaultChapterId={allChapters[0]?.id} />
-              <CSVImportButton chapters={allChapters} defaultChapterId={allChapters[0]?.id} />
-            </div>
+            <p className="text-sm text-muted-foreground">Words you add are yours: they show under “Your words”.</p>
+            <WordForm onDone={() => setShowForm(false)} />
+            {/* Shared words for everyone: staff only (the API checks it too). */}
+            {user?.is_staff && allChapters.length > 0 && (
+              <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                <PasteWordsButton chapters={allChapters} defaultChapterId={allChapters[0]?.id} />
+                <CSVImportButton chapters={allChapters} defaultChapterId={allChapters[0]?.id} />
+              </div>
+            )}
           </div>
         </Card>
       )}
+
+      {user && <SavedWords />}
 
       {!!words?.length && (
         <div className="grid grid-cols-3 gap-3">

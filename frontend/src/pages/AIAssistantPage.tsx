@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import {
-  Check,
+  BookOpenText,
+  CheckCheck,
+  HelpCircle,
   Loader2,
+  MessageCircle,
   MessageSquarePlus,
-  MessagesSquare,
-  Pencil,
+  PanelLeft,
   Send,
+  SlidersHorizontal,
   Sparkles,
-  Trash2,
-  X,
+  Theater,
 } from "lucide-react"
 import { isAxiosError } from "axios"
 
@@ -21,65 +21,116 @@ import {
   fetchConversation,
   fetchConversations,
   renameConversation,
+  retryLastAnswer,
   sendMessage,
+  setPinned,
 } from "@/api/conversations"
-import type { Conversation } from "@/types"
+import { fetchAISettings, fetchStarters } from "@/api/ai"
+import type { ChatMode, ChatStarter } from "@/types"
 import { Button } from "@/components/ui/button"
+import { AISettingsDialog } from "@/components/ai/AISettingsDialog"
+import { ChatMessage } from "@/components/ai/ChatMessage"
+import { ConversationSidebar } from "@/components/ai/ConversationSidebar"
 import { cn } from "@/lib/utils"
 
 /*
- * AI Assistant: saved conversations on the left, the open chat on the right.
- * Both sides of each chat are stored on the server, so chats survive a refresh
- * and can be resumed, renamed or deleted. Premium only (checked by the route
- * and by the API).
+ * AI Assistant: saved chats in a list you can hide (a drawer on phones), the
+ * open chat on the right. Learning tools (quiz, correct my text, role-play,
+ * explain) switch how the tutor answers; starters come from what you've
+ * learned; "Personalise" sets the tutor's language, tone and corrections.
+ * Premium only (checked by the route and by the API).
  */
-const SUGGESTIONS = [
-  "Suggest words for greetings",
-  "Explain the German case system",
-  "When do I use 'doch'?",
+const MODES: { id: ChatMode; label: string; icon: typeof MessageCircle; placeholder: string }[] = [
+  { id: "chat", label: "Chat", icon: MessageCircle, placeholder: "Ask about German…" },
+  { id: "quiz", label: "Quiz me", icon: HelpCircle, placeholder: "Answer, or say what to be quizzed on…" },
+  { id: "correct", label: "Correct my text", icon: CheckCheck, placeholder: "Write German to check…" },
+  { id: "roleplay", label: "Role-play", icon: Theater, placeholder: "Say what situation, or start talking…" },
+  { id: "explain", label: "Explain", icon: BookOpenText, placeholder: "Which grammar should I explain?" },
 ]
+
+const LIST_KEY = "ai.chatList" // remembered per browser: "open" | "closed"
+
+function readListOpen(): boolean {
+  try {
+    return localStorage.getItem(LIST_KEY) !== "closed"
+  } catch {
+    return true
+  }
+}
 
 export default function AIAssistantPage() {
   const qc = useQueryClient()
   const [activeId, setActiveId] = useState<number | null>(null)
   const [input, setInput] = useState("")
+  const [mode, setMode] = useState<ChatMode>("chat")
   const [error, setError] = useState("")
-  // Phones show either the chat or the list of chats.
-  const [showList, setShowList] = useState(false)
+  const [query, setQuery] = useState("")
+  const [listOpen, setListOpen] = useState(readListOpen) // wide screens
+  const [drawerOpen, setDrawerOpen] = useState(false) // phones
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const { data: conversations } = useQuery({
-    queryKey: ["conversations"],
-    queryFn: fetchConversations,
+    queryKey: ["conversations", query.trim()],
+    queryFn: () => fetchConversations(query.trim()),
+    placeholderData: (previous) => previous,
   })
-
   const { data: thread } = useQuery({
     queryKey: ["conversation", activeId],
     queryFn: () => fetchConversation(activeId!),
     enabled: activeId !== null,
   })
+  const { data: starters } = useQuery({ queryKey: ["ai-starters"], queryFn: fetchStarters })
+  const { data: settings } = useQuery({ queryKey: ["ai-settings"], queryFn: fetchAISettings })
 
   const messages = thread?.messages ?? []
+  const replyLanguage = settings?.reply_language === "auto" ? settings.auto_language : settings?.reply_language
+
+  function toggleList() {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      const next = !listOpen
+      setListOpen(next)
+      try {
+        localStorage.setItem(LIST_KEY, next ? "open" : "closed")
+      } catch {
+        /* storage blocked: the choice just isn't remembered */
+      }
+    } else {
+      setDrawerOpen((v) => !v)
+    }
+  }
+
+  function showError(err: unknown) {
+    setError(
+      isAxiosError(err) && err.response?.status === 503
+        ? "AI is not configured yet. Add GEMINI_API_KEY to backend/.env to enable it."
+        : "Something went wrong. Please try again.",
+    )
+  }
 
   const send = useMutation({
-    mutationFn: async (text: string) => {
+    mutationFn: async ({ text, as }: { text: string; as: ChatMode }) => {
       // First message with no chat open? Start one, then send into it.
       const id = activeId ?? (await createConversation()).id
       if (activeId === null) setActiveId(id)
-      return sendMessage(id, text)
+      return sendMessage(id, text, as)
     },
     onSuccess: (res) => {
       setError("")
       qc.invalidateQueries({ queryKey: ["conversation", res.conversation.id] })
       qc.invalidateQueries({ queryKey: ["conversations"] })
     },
-    onError: (err) => {
-      setError(
-        isAxiosError(err) && err.response?.status === 503
-          ? "AI is not configured yet. Add GEMINI_API_KEY to backend/.env to enable it."
-          : "Something went wrong. Please try again.",
-      )
+    onError: showError,
+  })
+
+  const retry = useMutation({
+    mutationFn: () => retryLastAnswer(activeId!),
+    onSuccess: () => {
+      setError("")
+      qc.invalidateQueries({ queryKey: ["conversation", activeId] })
     },
+    onError: showError,
   })
 
   const remove = useMutation({
@@ -89,9 +140,12 @@ export default function AIAssistantPage() {
       qc.invalidateQueries({ queryKey: ["conversations"] })
     },
   })
-
   const rename = useMutation({
     mutationFn: ({ id, title }: { id: number; title: string }) => renameConversation(id, title),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] }),
+  })
+  const pin = useMutation({
+    mutationFn: ({ id, pinned }: { id: number; pinned: boolean }) => setPinned(id, pinned),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] }),
   })
 
@@ -99,285 +153,187 @@ export default function AIAssistantPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
   }, [messages.length, send.isPending])
 
-  function submit(e: FormEvent) {
-    e.preventDefault()
+  function submit(e?: FormEvent) {
+    e?.preventDefault()
     const text = input.trim()
     if (!text || send.isPending) return
     setInput("")
-    send.mutate(text)
+    send.mutate({ text, as: mode })
   }
 
-  const list = (
-    <ConversationList
+  function startFrom(s: ChatStarter) {
+    setMode(s.mode)
+    if (s.send) send.mutate({ text: s.message, as: s.mode })
+    else inputRef.current?.focus()
+  }
+
+  function newChat() {
+    setActiveId(null)
+    setMode("chat")
+    setDrawerOpen(false)
+  }
+
+  const sidebar = (onClose?: () => void) => (
+    <ConversationSidebar
       conversations={conversations ?? []}
       activeId={activeId}
-      onNew={() => {
-        setActiveId(null)
-        setShowList(false)
-      }}
+      query={query}
+      onQuery={setQuery}
+      onNew={newChat}
       onOpen={(id) => {
         setActiveId(id)
-        setShowList(false)
+        // A chat opens with the tool it was last used with.
+        setMode(conversations?.find((c) => c.id === id)?.mode ?? "chat")
+        setDrawerOpen(false)
       }}
       onRename={(id, title) => rename.mutate({ id, title })}
+      onPin={(id, pinned) => pin.mutate({ id, pinned })}
       onDelete={(id) => remove.mutate(id)}
+      onClose={onClose}
     />
   )
 
+  const lastAnswerId = [...messages].reverse().find((m) => m.role === "assistant")?.id
+  const lastIsAnswer = messages.length > 0 && messages[messages.length - 1].role === "assistant"
+  const current = MODES.find((m) => m.id === mode) ?? MODES[0]
+
   return (
-    <div className="flex h-[calc(100svh-12.5rem)] min-h-[420px] flex-col gap-3 lg:h-[calc(100vh-9rem)] lg:flex-row lg:gap-5">
-      {/* Phones: a bar to switch between the chat and the list of chats. */}
-      <div className="flex items-center justify-between gap-2 lg:hidden">
-        <h1 className="text-2xl font-extrabold">AI Assistant</h1>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setShowList((v) => !v)} aria-expanded={showList}>
-            <MessagesSquare /> {showList ? "Back to chat" : "Chats"}
-          </Button>
-          <Button
-            size="icon"
-            className="size-9"
-            aria-label="New chat"
-            onClick={() => {
-              setActiveId(null)
-              setShowList(false)
-            }}
-          >
-            <MessageSquarePlus />
-          </Button>
-        </div>
+    <div className="flex h-[calc(100svh-12.5rem)] min-h-[420px] flex-col gap-3 lg:h-[calc(100vh-9rem)]">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={toggleList}
+          aria-label={listOpen ? "Hide chat list" : "Show chat list"}
+          aria-expanded={drawerOpen || listOpen}
+          title="Chats"
+        >
+          <PanelLeft />
+        </Button>
+        <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold">AI Assistant</h1>
+        <Button variant="secondary" size="sm" onClick={() => setSettingsOpen(true)}>
+          <SlidersHorizontal /> <span className="hidden sm:inline">Personalise</span>
+        </Button>
+        <Button size="icon" aria-label="New chat" title="New chat" onClick={newChat}>
+          <MessageSquarePlus />
+        </Button>
       </div>
 
-      {/* Conversation list: a side card on desktop, a full view on phones. */}
-      <aside className="hidden w-64 shrink-0 lg:flex">{list}</aside>
-      {showList && <div className="flex min-h-0 flex-1 lg:hidden">{list}</div>}
+      <div className="flex min-h-0 flex-1 gap-5">
+        {/* Wide screens: a side card you can hide. */}
+        {listOpen && <aside className="hidden w-64 shrink-0 lg:flex">{sidebar()}</aside>}
 
-      {/* Thread */}
-      <div className={cn("min-w-0 flex-1 flex-col", showList ? "hidden lg:flex" : "flex")}>
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-          {messages.length === 0 && !send.isPending ? (
-            <div className="flex h-full flex-col items-center justify-center gap-3 px-2 py-8 text-center">
-              <span className="flex size-16 items-center justify-center rounded-2xl bg-[hsl(var(--section-3))] text-white">
-                <Sparkles className="size-8" aria-hidden="true" />
-              </span>
-              <h2 className="mt-2 text-3xl font-extrabold">Ask me anything about German</h2>
-              <p className="max-w-md text-muted-foreground">
-                Grammar, words, how to say something. Your chats are saved, so you can come back to them.
-              </p>
-              <div className="mt-4 grid w-full max-w-xl gap-2.5 sm:grid-cols-3">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => send.mutate(s)}
-                    className="lift min-h-[64px] rounded-2xl bg-surface p-4 text-left text-[15px] font-medium shadow-card"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+        {/* Phones: the list slides in as a drawer. */}
+        {drawerOpen && (
+          <div className="fixed inset-0 z-40 flex lg:hidden" role="dialog" aria-modal="true" aria-label="Chats">
+            <div className="absolute inset-0 bg-black/40 animate-in fade-in-0 duration-150" onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+            <div className="relative h-full w-[min(20rem,85vw)] p-3 animate-in slide-in-from-left duration-200">
+              {sidebar(() => setDrawerOpen(false))}
             </div>
-          ) : (
-            <div className="mx-auto flex max-w-3xl flex-col gap-4 pb-4 pt-1">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={cn(
-                    "flex animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
-                    m.role === "user" ? "justify-end" : "justify-start",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "max-w-[85%] rounded-[22px] px-4 py-3 text-[15px] leading-relaxed",
-                      m.role === "user"
-                        ? "rounded-br-md bg-primary text-primary-foreground"
-                        : "rounded-bl-md bg-surface text-foreground shadow-card",
-                      "[&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:font-mono",
-                      "[&_table]:my-2 [&_table]:w-full [&_table]:border-collapse",
-                      "[&_th]:border [&_th]:border-border [&_th]:px-2 [&_th]:py-1 [&_th]:text-left",
-                      "[&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1",
-                      "[&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_strong]:font-semibold",
-                    )}
-                  >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-                  </div>
-                </div>
-              ))}
-              {send.isPending && (
-                <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-[22px] rounded-bl-md bg-surface px-4 py-3 text-[15px] text-muted-foreground shadow-card">
-                    <Loader2 className="size-4 animate-spin" /> Thinking…
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="mx-auto mb-2 w-full max-w-3xl rounded-xl bg-danger-bg px-4 py-2.5 text-sm font-medium text-danger" role="alert">
-            {error}
           </div>
         )}
 
-        <form
-          onSubmit={submit}
-          className="mx-auto mt-2 flex w-full max-w-3xl items-center gap-2 rounded-full bg-surface p-1.5 pl-5 shadow-card focus-within:ring-2 focus-within:ring-ring"
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about German…"
-            aria-label="Message the AI tutor"
-            className="min-w-0 flex-1 bg-transparent py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            aria-label="Send"
-            className="shrink-0"
-            disabled={send.isPending || !input.trim()}
-          >
-            <Send />
-          </Button>
-        </form>
-      </div>
-    </div>
-  )
-}
+        {/* Thread */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+            {messages.length === 0 && !send.isPending ? (
+              <div className="flex h-full flex-col items-center justify-center gap-3 px-2 py-8 text-center">
+                <span className="flex size-16 items-center justify-center rounded-2xl bg-[hsl(var(--section-3))] text-white">
+                  <Sparkles className="size-8" aria-hidden="true" />
+                </span>
+                <h2 className="mt-2 text-3xl font-extrabold">Ask me anything about German</h2>
+                <p className="max-w-md text-muted-foreground">
+                  Pick a tool below, or start from what you've learned. Your chats are saved.
+                </p>
+                <div className="mt-4 grid w-full max-w-2xl gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                  {(starters ?? []).map((s) => (
+                    <button
+                      key={s.label}
+                      onClick={() => startFrom(s)}
+                      className="lift min-h-[64px] rounded-2xl bg-surface p-4 text-left text-[15px] font-medium shadow-card"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mx-auto flex max-w-3xl flex-col gap-4 pb-4 pt-1">
+                {messages.map((m) => (
+                  <ChatMessage
+                    key={m.id}
+                    message={m}
+                    canRetry={m.id === lastAnswerId && lastIsAnswer && !send.isPending}
+                    retrying={retry.isPending}
+                    onRetry={() => retry.mutate()}
+                    englishReplies={replyLanguage === "en"}
+                  />
+                ))}
+                {send.isPending && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-2 rounded-[22px] rounded-bl-md bg-surface px-4 py-3 text-[15px] text-muted-foreground shadow-card">
+                      <Loader2 className="size-4 animate-spin" /> Thinking…
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
-function ConversationList({
-  conversations,
-  activeId,
-  onNew,
-  onOpen,
-  onRename,
-  onDelete,
-}: {
-  conversations: Conversation[]
-  activeId: number | null
-  onNew: () => void
-  onOpen: (id: number) => void
-  onRename: (id: number, title: string) => void
-  onDelete: (id: number) => void
-}) {
-  return (
-    <div className="flex min-h-0 w-full flex-col rounded-[24px] bg-surface p-3 shadow-card">
-      <Button className="w-full" onClick={onNew}>
-        <MessageSquarePlus /> New chat
-      </Button>
-      <p className="mt-4 px-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
-        Your chats
-      </p>
-      <div className="mt-1.5 min-h-0 flex-1 overflow-y-auto">
-        {conversations.length === 0 ? (
-          <p className="px-2 py-3 text-sm text-muted-foreground">No chats yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-0.5">
-            {conversations.map((c) => (
-              <ConversationRow
-                key={c.id}
-                conversation={c}
-                active={c.id === activeId}
-                onOpen={() => onOpen(c.id)}
-                onRename={(title) => onRename(c.id, title)}
-                onDelete={() => onDelete(c.id)}
-              />
+          {error && (
+            <div className="mx-auto mb-2 w-full max-w-3xl rounded-xl bg-danger-bg px-4 py-2.5 text-sm font-medium text-danger" role="alert">
+              {error}
+            </div>
+          )}
+
+          {/* Learning tools: how the tutor answers the next message. */}
+          <div className="mx-auto mt-2 flex w-full max-w-3xl gap-1.5 overflow-x-auto pb-1" role="radiogroup" aria-label="Learning tool">
+            {MODES.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={mode === id}
+                onClick={() => setMode(id)}
+                className={cn(
+                  "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border-2 px-3 text-sm font-semibold transition-colors",
+                  mode === id
+                    ? "border-[hsl(var(--choice))] bg-[hsl(var(--choice-bg))]"
+                    : "border-transparent bg-surface-2 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" aria-hidden="true" /> {label}
+              </button>
             ))}
-          </ul>
-        )}
+          </div>
+
+          <form
+            onSubmit={submit}
+            className="mx-auto mt-1 flex w-full max-w-3xl items-end gap-2 rounded-[24px] bg-surface p-1.5 pl-5 shadow-card focus-within:ring-2 focus-within:ring-ring"
+          >
+            <textarea
+              ref={inputRef}
+              value={input}
+              rows={mode === "correct" ? 3 : 1}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault()
+                  submit()
+                }
+              }}
+              placeholder={current.placeholder}
+              aria-label="Message the AI tutor"
+              className="max-h-40 min-w-0 flex-1 resize-none bg-transparent py-2.5 text-base placeholder:text-muted-foreground focus-visible:outline-none"
+            />
+            <Button type="submit" size="icon" aria-label="Send" className="shrink-0" disabled={send.isPending || !input.trim()}>
+              <Send />
+            </Button>
+          </form>
+        </div>
       </div>
+
+      {settingsOpen && <AISettingsDialog onClose={() => setSettingsOpen(false)} />}
     </div>
-  )
-}
-
-/* Row actions show on touch screens always; with a mouse, on hover or focus. */
-const ROW_ACTION =
-  "flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
-
-function ConversationRow({
-  conversation,
-  active,
-  onOpen,
-  onRename,
-  onDelete,
-}: {
-  conversation: Conversation
-  active: boolean
-  onOpen: () => void
-  onRename: (title: string) => void
-  onDelete: () => void
-}) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(conversation.title)
-
-  if (editing) {
-    return (
-      <li className="flex items-center gap-1 rounded-xl bg-surface-2 p-1">
-        <input
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && draft.trim()) {
-              onRename(draft.trim())
-              setEditing(false)
-            }
-            if (e.key === "Escape") setEditing(false)
-          }}
-          aria-label="Chat title"
-          className="min-w-0 flex-1 rounded-lg bg-surface px-2.5 py-1.5 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-        <button
-          aria-label="Save title"
-          onClick={() => {
-            if (draft.trim()) onRename(draft.trim())
-            setEditing(false)
-          }}
-          className="p-1 text-muted-foreground hover:text-foreground"
-        >
-          <Check className="size-3.5" />
-        </button>
-        <button
-          aria-label="Cancel rename"
-          onClick={() => setEditing(false)}
-          className="p-1 text-muted-foreground hover:text-foreground"
-        >
-          <X className="size-3.5" />
-        </button>
-      </li>
-    )
-  }
-
-  return (
-    <li
-      className={cn(
-        "group flex min-h-[44px] items-center gap-0.5 rounded-xl px-1 transition-colors",
-        active ? "bg-primary/10" : "hover:bg-surface-2",
-      )}
-    >
-      <button
-        onClick={onOpen}
-        className={cn("min-w-0 flex-1 truncate px-2 py-2.5 text-left text-[15px]", active && "font-semibold")}
-      >
-        {conversation.title || "New chat"}
-      </button>
-      <button
-        aria-label="Rename chat"
-        onClick={() => {
-          setDraft(conversation.title)
-          setEditing(true)
-        }}
-        className={cn(ROW_ACTION, "hover:text-foreground", active && "lg:opacity-100")}
-      >
-        <Pencil className="size-3.5" />
-      </button>
-      <button
-        aria-label="Delete chat"
-        onClick={onDelete}
-        className={cn(ROW_ACTION, "hover:text-danger", active && "lg:opacity-100")}
-      >
-        <Trash2 className="size-3.5" />
-      </button>
-    </li>
   )
 }
