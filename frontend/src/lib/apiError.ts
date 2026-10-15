@@ -2,11 +2,12 @@ import { isAxiosError } from "axios"
 
 /** Pull a human-readable message out of a DRF error response body. */
 export function errorText(e: unknown): string {
-  if (isAxiosError(e) && e.response?.data) {
-    const d = e.response.data as Record<string, unknown>
-    const first = Object.values(d)[0]
-    if (Array.isArray(first)) return String(first[0])
-    if (typeof first === "string") return first
+  const data = isAxiosError(e) ? e.response?.data : undefined
+  // Only a JSON object holds a message; a server error page is an HTML string.
+  if (data && typeof data === "object") {
+    const first = Object.values(data as Record<string, unknown>)[0]
+    const text = Array.isArray(first) ? String(first[0] ?? "") : typeof first === "string" ? first : ""
+    if (text.trim()) return text
   }
-  return "Something went wrong."
+  return "Something went wrong. Please try again."
 }
