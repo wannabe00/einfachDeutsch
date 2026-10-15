@@ -1,12 +1,17 @@
 """Auth entry points: social login (Google/GitHub code exchange) and the
 throttled username/password login."""
 
+import logging
+import smtplib
+
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.views import LoginView, PasswordResetConfirmView, PasswordResetView
 from django.conf import settings
+from rest_framework import status
+from rest_framework.response import Response
 
 from ..throttles import LoginThrottle, PasswordResetThrottle
 
@@ -50,9 +55,21 @@ class ThrottledLoginView(LoginView):
 
 
 class ThrottledPasswordResetView(PasswordResetView):
-    """Send the reset e-mail, at most a few times per hour per IP."""
+    """Send the reset e-mail, at most a few times per hour per IP. If the mail
+    server fails (bad login, blocked port), answer with a clear 503 instead of
+    a crash, and log the real error for the server logs."""
 
     throttle_classes = [PasswordResetThrottle]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except (smtplib.SMTPException, OSError):
+            logging.getLogger(__name__).exception("Password reset e-mail could not be sent")
+            return Response(
+                {"detail": "We couldn't send the e-mail right now. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
 
 class ThrottledPasswordResetConfirmView(PasswordResetConfirmView):

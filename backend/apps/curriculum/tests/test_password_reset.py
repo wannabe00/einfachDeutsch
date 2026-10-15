@@ -87,3 +87,14 @@ class PasswordResetTests(TestCase):
     def test_reset_emails_are_rate_limited(self):
         codes = [self.api.post(RESET, {"email": "x@example.com"}).status_code for _ in range(6)]
         self.assertEqual(codes[-1], 429)
+
+    def test_mail_server_failure_is_a_clear_503(self):
+        from unittest import mock
+
+        with mock.patch(
+            "django.core.mail.backends.locmem.EmailBackend.send_messages",
+            side_effect=OSError("blocked"),
+        ):
+            res = self.api.post(RESET, {"email": "anna@example.com"})
+        self.assertEqual(res.status_code, 503)
+        self.assertIn("couldn't send", res.json()["detail"])
