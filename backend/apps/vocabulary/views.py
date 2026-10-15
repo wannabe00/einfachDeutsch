@@ -15,11 +15,9 @@ from apps.exercises.models import Exercise, ExerciseAttempt
 from apps.grammar.models import GrammarRule
 
 from .models import ReviewLog, Word, WordProgress
+from .progress import apply_review, record_review
 from .serializers import WordProgressSerializer, WordSerializer
-from .srs import calculate_next_review
 
-# Words in the Dashboard's "review last unit" session.
-LAST_UNIT_REVIEW_SIZE = 20
 # Words handed to the drills per round of loading.
 DRILL_POOL_SIZE = 60
 
@@ -152,37 +150,6 @@ class WordViewSet(viewsets.ModelViewSet):
             random.shuffle(words)
         return Response(self.get_serializer(words, many=True).data)
 
-    @action(
-        detail=False, methods=["get"], url_path="last-unit", permission_classes=[IsAuthenticated]
-    )
-    def last_unit(self, request):
-        """A short review of the unit finished most recently: its learned
-        words, due ones first. `unit` is null until a whole unit is done."""
-        from apps.curriculum.learned import last_completed_unit, learned_word_ids
-
-        unit = last_completed_unit(request.user)
-        if unit is None or unit.chapter_id is None:
-            return Response({"unit": None, "words": []})
-
-        today = date.today()
-        words = self._with_user_progress(
-            Word.objects.select_related("chapter")
-            .prefetch_related("chapter__units")
-            .filter(chapter_id=unit.chapter_id, id__in=learned_word_ids(request.user))
-        )
-
-        def next_review(word):
-            records = word.user_progress
-            return records[0].next_review if records else today
-
-        picked = sorted(words, key=lambda w: (next_review(w), w.id))[:LAST_UNIT_REVIEW_SIZE]
-        return Response(
-            {
-                "unit": {"id": unit.id, "order": unit.order, "title": unit.title},
-                "words": self.get_serializer(picked, many=True).data,
-            }
-        )
-
     @action(detail=False, methods=["get"], url_path="due-counts")
     def due_counts(self, request):
         """Count of due words per chapter, plus the overall total."""
@@ -200,32 +167,9 @@ class WordViewSet(viewsets.ModelViewSet):
         if user is None:
             # Guest: compute the next SM-2 state for display but don't persist it
             # (progress is account-only). Starts from defaults each time.
-            progress = WordProgress(word=word)
+            progress = apply_review(WordProgress(word=word), quality)
         else:
-            progress, _ = WordProgress.objects.get_or_create(user=user, word=word)
-
-        new_reps, new_ef, new_interval, next_review_date = calculate_next_review(
-            progress.repetitions,
-            progress.ease_factor,
-            progress.interval,
-            quality,
-        )
-
-        progress.repetitions = new_reps
-        progress.ease_factor = new_ef
-        progress.interval = new_interval
-        progress.next_review = next_review_date
-        progress.last_reviewed = timezone.now()
-        progress.times_seen += 1
-        if quality == 0:
-            progress.times_wrong += 1
-            progress.lapses += 1
-        else:
-            progress.times_correct += 1
-
-        if user is not None:
-            progress.save()
-            ReviewLog.objects.create(word=word, quality=quality, user=user)
+            progress = record_review(user, word, quality)
             record_activity(user)
 
         return Response(WordProgressSerializer(progress).data)

@@ -322,3 +322,221 @@ def sections(authored: list[dict], vocab: list[dict]) -> list[dict]:
     if talk:
         out.append(_lesson_from("Kommunikation und Wiederholung", _topic_blocks(talk)))
     return out
+
+
+# ---- checks: the review and Modul tests (see apps.curriculum.checks) ---------
+#
+# Check content is written once per Lektion (gap sentences and translations)
+# and once per Modul (the extra test formats). The difficulty ramp decides
+# which format each piece takes, so the same sentence is a chip gap early on and
+# a typed gap later.
+
+# (first Lektion, stage) per level; a level not listed is stage 4 throughout.
+RAMP = {"A1": [(1, 1), (7, 2), (13, 3)]}
+
+# What each stage allows. Stage 1 recognises, stage 2 builds from tiles, stage 3
+# types, stage 4 translates freely.
+STAGES = {
+    1: {
+        "words": ("pick_de", "pick_en", "article"),
+        "match_batches": True,
+        "gap": "chips",
+        "translate": "choose",
+        "form": "choose",
+        "extras": ("dialogue", "qa", "odd", "reading", "form"),
+    },
+    2: {
+        "words": ("pick_de", "pick_en", "article", "listen"),
+        "match_batches": True,
+        "gap": "chips",
+        "translate": "tiles",
+        "form": "choose",
+        "extras": ("dialogue", "qa", "odd", "reading", "form", "mistake"),
+    },
+    3: {
+        "words": ("pick_de", "article", "listen", "type_de"),
+        "match_batches": False,
+        "gap": "typed",
+        "translate": "tiles",
+        "form": "typed",
+        "extras": ("dialogue", "qa", "odd", "reading", "form", "mistake", "dictation"),
+    },
+    4: {
+        "words": ("type_de", "listen", "article", "pick_en"),
+        "match_batches": False,
+        "gap": "typed",
+        "translate": "typed",
+        "form": "typed",
+        "extras": ("dialogue", "qa", "odd", "reading", "form", "mistake", "dictation"),
+    },
+}
+
+
+def stage_of(level: str, lektion: int) -> int:
+    """The difficulty stage of a Lektion (1 easiest)."""
+    steps = RAMP.get(level)
+    if not steps:
+        return 4
+    return max(stage for first, stage in steps if lektion >= first)
+
+
+def _gap_parts(sentence: str) -> tuple[str, list[str]]:
+    """'Ich [heiße] Anna.' -> ('Ich ___ Anna.', ['heiße'])."""
+    answers, text, rest = [], "", sentence
+    while "[" in rest:
+        before, _, after = rest.partition("[")
+        answer, _, rest = after.partition("]")
+        text += before + "___"
+        answers.append(answer)
+    return text + rest, answers
+
+
+def _swap_variant(german: str) -> str:
+    """A wrong version of a sentence for multiple choice: the verb moved out of
+    position 2 (the most common A1 word-order mistake)."""
+    words = german.rstrip(".?!").split()
+    end = german[len(german.rstrip(".?!")) :]
+    if len(words) < 3:
+        return " ".join(reversed(words)) + end
+    words[1], words[2] = words[2], words[1]
+    return " ".join(words) + end
+
+
+def gap_task(sentences, distractors=(), stage: int = 1) -> dict:
+    """Gap sentences written as 'Ich [heiße] Anna.', or (sentence, hint) where
+    typing needs a hint. Chips: one text with a shared word bank (answers plus
+    distractors); typed: one part per sentence."""
+    sentences = [s if isinstance(s, tuple) else (s, "") for s in sentences]
+    hints = [h for _, h in sentences]
+    parsed = [_gap_parts(s) for s, _ in sentences]
+    if STAGES[stage]["gap"] == "chips":
+        text = "\n".join(f"{i}. {t}" for i, (t, _) in enumerate(parsed, start=1))
+        # A gap may accept alternatives ("[bin|heiße]"); the chip is the first.
+        answers = [a.split("|")[0] for _, ans in parsed for a in ans]
+        return bank(text, answers, *distractors, prompt="Fill the gaps with words you've learned.")
+    assert all(len(ans) == 1 for _, ans in parsed), "typed gaps take one gap per sentence"
+    parts = [fill(t, ans[0], hint=h) for (t, ans), h in zip(parsed, hints, strict=True)]
+    return group("Write the missing word.", *parts) if len(parts) > 1 else parts[0]
+
+
+def translate_task(pairs, stage: int = 1) -> dict:
+    """English -> German. `pairs` are (english, german, *alternatives).
+    choose: pick the right German; tiles: build it; typed: write it."""
+    mode = STAGES[stage]["translate"]
+    parts = []
+    for i, (english, german, *alts) in enumerate(pairs):
+        if mode == "choose":
+            other = pairs[(i + 1) % len(pairs)][1]
+            wrong = [_swap_variant(german)] + ([other] if other != german else [])
+            parts.append(mc(english, german, *wrong))
+        elif mode == "tiles":
+            parts.append(order(german, prompt=english))
+        else:
+            parts.append(_exercise("translation", english, "", answer="|".join([german, *alts])))
+    prompts = {
+        "choose": "Which is the German for this?",
+        "tiles": "Build the German sentence.",
+        "typed": "Translate into German.",
+    }
+    return group(prompts[mode], *parts) if len(parts) > 1 else parts[0]
+
+
+def dialogue_task(lines, answer: str, *wrong: str) -> dict:
+    """A short dialogue with one line missing ('___'); choose the line."""
+    context = "\n".join(lines)
+    assert context.count("___") == 1, lines
+    item = mc("Which line fits the gap?", answer, *wrong)
+    item["context"] = context
+    return item
+
+
+def qa_task(pairs) -> dict:
+    """Match each question to its answer."""
+    return match(pairs, "Match each question to its answer.")
+
+
+def odd_task(rows) -> dict:
+    """Odd one out. Each row is (odd word, *the words that belong together)."""
+    parts = [mc("", o, *rest) for o, *rest in rows]
+    return group("Which word doesn't belong?", *parts)
+
+
+def reading_task(text: str, statements) -> dict:
+    """A short original text and (statement, is_true) pairs."""
+    parts = [
+        _exercise(
+            "multiple_choice",
+            s,
+            "",
+            options=["Richtig", "Falsch"],
+            answer="Richtig" if ok else "Falsch",
+        )
+        for s, ok in statements
+    ]
+    item = group("Read the text. Richtig oder falsch?", *parts)
+    item["context"] = " ".join(text.split())  # one paragraph, however it was wrapped
+    return item
+
+
+def form_task(rows, stage: int = 1) -> dict:
+    """Form the word. Each row is (prompt with ___, answer, *wrong forms):
+    chosen early on, typed later."""
+    if STAGES[stage]["form"] == "choose":
+        parts = [mc(p, a, *w) for p, a, *w in rows]
+    else:
+        parts = [fill(p, a) for p, a, *_ in rows]
+    return group("Form the word.", *parts)
+
+
+def mistake_task(rows) -> dict:
+    """Find the mistake. Each row is a sentence with the wrong word in *stars*
+    and the corrected sentence: ('Ich *heißt* Anna.', 'Ich heiße Anna.')."""
+    parts = []
+    for marked, corrected in rows:
+        words = marked.split()
+        wrong = [i for i, w in enumerate(words) if w.strip(".,?!").startswith("*")]
+        assert len(wrong) == 1, marked
+        tokens = [w.replace("*", "") for w in words]
+        parts.append(
+            _exercise(
+                "error_spot",
+                "",
+                "",
+                tokens=tokens,
+                answer=str(wrong[0]),
+                correction=corrected,
+            )
+        )
+    return group("Tap the word that's wrong.", *parts)
+
+
+def dictation_task(sentences) -> dict:
+    """Listen and write what you hear (the browser reads the sentence)."""
+    parts = [_exercise("dictation", "", "", answer=s) for s in sentences]
+    return group("Listen and write what you hear.", *parts)
+
+
+def lektion_check(level: str, lektion: int, gaps, translations, distractors=()) -> dict:
+    """The authored part of a Lektion's review: one gap task, one translation task."""
+    stage = stage_of(level, lektion)
+    return {
+        "gap": gap_task(gaps, distractors, stage),
+        "translate": translate_task(translations, stage),
+    }
+
+
+def modul_check(level: str, last_lektion: int, **extras) -> dict:
+    """The extra formats of a Modul test, as the ramp allows at its last Lektion.
+    Keys: dialogue, qa, odd, reading, form, mistake, dictation."""
+    stage = stage_of(level, last_lektion)
+    allowed = STAGES[stage]["extras"]
+    builders = {
+        "dialogue": lambda v: dialogue_task(*v),
+        "qa": qa_task,
+        "odd": odd_task,
+        "reading": lambda v: reading_task(*v),
+        "form": lambda v: form_task(v, stage),
+        "mistake": mistake_task,
+        "dictation": dictation_task,
+    }
+    return {k: builders[k](v) for k, v in extras.items() if k in allowed}

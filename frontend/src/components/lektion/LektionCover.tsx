@@ -69,7 +69,7 @@ export function LektionCover({
 }: {
   order: number
   level: string
-  /** "sm" for list thumbnails: smaller icons, no word. */
+  /** "sm" for list thumbnails: a smaller icon, no word. */
   size?: "sm" | "lg"
   className?: string
 }) {
@@ -84,16 +84,8 @@ export function LektionCover({
       style={{ background: `linear-gradient(145deg, ${color}, color-mix(in srgb, ${color} 55%, black))` }}
     >
       <Icon
-        className={
-          sm
-            ? "absolute -bottom-2 -right-3 size-14 text-white/25"
-            : "absolute -bottom-4 -right-4 size-32 text-white/25"
-        }
-        strokeWidth={1.5}
-      />
-      <Icon
-        className={sm ? "absolute left-2.5 top-2.5 size-6 text-white" : "absolute left-4 top-4 size-9 text-white"}
-        strokeWidth={2}
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white ${sm ? "h-1/2 w-1/2" : "size-16"}`}
+        strokeWidth={sm ? 2 : 1.75}
       />
       {word && !sm && (
         <span className="absolute bottom-3 left-4 rounded-full bg-black/25 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">

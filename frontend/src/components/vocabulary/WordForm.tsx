@@ -4,6 +4,7 @@ import { createWord } from "@/api/vocabulary"
 import type { Chapter } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/Select"
 
 interface WordFormProps {
   chapters: Chapter[]
@@ -53,17 +54,14 @@ export function WordForm({ chapters, defaultChapterId, onDone }: WordFormProps) 
         className="w-48"
         required
       />
-      <select
-        value={chapterId}
-        onChange={(e) => setChapterId(Number(e.target.value))}
-        className="min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
-      >
-        {chapters.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.title}
-          </option>
-        ))}
-      </select>
+      <div className="w-56">
+            <Select
+              label="Chapter"
+              value={chapterId}
+              onChange={setChapterId}
+              options={chapters.map((c) => ({ value: c.id, label: c.title }))}
+            />
+          </div>
       <Input
         placeholder="Notes (optional)"
         value={notes}

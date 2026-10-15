@@ -16,6 +16,20 @@ urlpatterns = [
     url_path(
         "curriculum/practice/answer/", views.practice_answer, name="curriculum-practice-answer"
     ),
+    # Checks: reviews of finished Lektionen and Modul tests.
+    url_path("curriculum/checks/", views.checks_status, name="curriculum-checks"),
+    url_path("curriculum/checks/start/", views.check_start, name="curriculum-check-start"),
+    url_path("curriculum/checks/<int:check_id>/", views.check_detail, name="curriculum-check"),
+    url_path(
+        "curriculum/checks/<int:check_id>/answer/",
+        views.check_answer,
+        name="curriculum-check-answer",
+    ),
+    url_path(
+        "curriculum/checks/<int:check_id>/finish/",
+        views.check_finish,
+        name="curriculum-check-finish",
+    ),
     url_path("curriculum/units/<int:unit_id>/", views.unit_detail, name="curriculum-unit"),
     url_path("curriculum/lessons/<int:lesson_id>/", views.lesson_detail, name="curriculum-lesson"),
     url_path(

@@ -62,7 +62,10 @@ class PracticeTests(TestCase):
 
     def test_topic_filter_and_options(self):
         opts = self.api.get("/api/curriculum/practice/").json()
-        self.assertEqual(opts["topics"], [{"id": self.rule.id, "title": "sein"}])
+        self.assertEqual(
+            opts["topics"],
+            [{"id": self.rule.id, "title": "sein", "cefr_level": "A1", "lektion": 1}],
+        )
         tasks = self.start(topic=self.rule.id)["tasks"]
         self.assertEqual({t["task_id"].split(":")[0] for t in tasks}, {str(self.group_ex.id)})
 

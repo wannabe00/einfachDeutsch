@@ -10,9 +10,9 @@ from apps.accounts.scheduling import record_activity
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
+from . import checks, gating, grading, practice
 from . import energy as energy_lib
 from . import exam as exam_lib
-from . import gating, grading, practice
 from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
 from .serializers import (
     LessonDetailSerializer,
@@ -381,3 +381,71 @@ def practice_answer(request):
         return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
     record_activity(request.user)
     return Response(result)
+
+
+# ---- checks: Lektion reviews and Modul tests ----------------------------------
+
+
+def _check_error(err) -> Response:
+    return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def checks_status(request):
+    """What the user can review or test: finished Lektionen and Modul tests."""
+    return Response(checks.status(request.user))
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def check_start(request):
+    """Start (or resume) a review of a finished Lektion or a Modul test."""
+    data = request.data
+    modul = data.get("modul")
+    unit = data.get("unit")
+    try:
+        check = checks.start(
+            request.user,
+            str(data.get("kind", "")),
+            unit_id=int(unit) if str(unit or "").isdigit() else None,
+            level=str(data.get("level") or ""),
+            modul=int(modul) if str(modul or "").isdigit() else None,
+        )
+    except checks.CheckError as err:
+        return _check_error(err)
+    return Response(checks.payload(check))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_detail(request, check_id: int):
+    try:
+        return Response(checks.payload(checks.get_check(request.user, check_id)))
+    except checks.CheckError as err:
+        return _check_error(err)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def check_answer(request, check_id: int):
+    """Grade one task of a check and reveal its solution."""
+    try:
+        check = checks.get_check(request.user, check_id)
+        result = checks.answer(
+            request.user, check, str(request.data.get("task_id", "")), request.data.get("answer")
+        )
+    except checks.CheckError as err:
+        return _check_error(err)
+    return Response(result)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def check_finish(request, check_id: int):
+    """Score a check whose tasks are all answered."""
+    try:
+        check = checks.finish(request.user, checks.get_check(request.user, check_id))
+    except checks.CheckError as err:
+        return _check_error(err)
+    return Response(checks.payload(check))

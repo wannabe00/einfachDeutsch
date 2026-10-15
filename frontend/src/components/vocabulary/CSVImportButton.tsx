@@ -5,6 +5,7 @@ import { Upload } from "lucide-react"
 import { importWordsCsv } from "@/api/vocabulary"
 import type { Chapter, ImportResult } from "@/types"
 import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/Select"
 
 interface CSVImportButtonProps {
   chapters: Chapter[]
@@ -46,17 +47,14 @@ export function CSVImportButton({ chapters, defaultChapterId }: CSVImportButtonP
             (notes optional). Rows duplicating an existing word in the chosen chapter are skipped.
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <div className="w-64">
+            <Select
+              label="Chapter"
               value={chapterId}
-              onChange={(e) => setChapterId(Number(e.target.value))}
-              className="min-h-[44px] rounded-xl border border-transparent bg-surface-2 px-3.5 py-2 text-base focus-visible:border-ring focus-visible:outline-none"
-            >
-              {chapters.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
+              onChange={setChapterId}
+              options={chapters.map((c) => ({ value: c.id, label: c.title }))}
+            />
+          </div>
             <input
               ref={fileRef}
               type="file"

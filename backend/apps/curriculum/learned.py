@@ -76,11 +76,11 @@ def teaching_lessons(rule_ids) -> dict[int, Lesson]:
     return out
 
 
-def last_completed_unit(user) -> Unit | None:
-    """The unit the user finished most recently (every lesson completed), for
-    the Dashboard's "review last unit". None until a whole unit is done."""
+def finished_units(user) -> dict[int, object]:
+    """{unit id: when it was finished} for every unit at or below the user's
+    level whose lessons are all completed."""
     if user is None or not user.is_authenticated:
-        return None
+        return {}
     finished_at: dict[int, object] = {}
     done_count: dict[int, int] = {}
     rows = PathLessonProgress.objects.filter(user=user, completed_at__isnull=False).values_list(
@@ -92,9 +92,17 @@ def last_completed_unit(user) -> Unit | None:
 
     rank = level_rank(user.profile.cefr_level)
     units = Unit.objects.filter(id__in=done_count).prefetch_related("lessons")
-    finished = [
-        u
+    return {
+        u.id: finished_at[u.id]
         for u in units
         if done_count[u.id] >= len(u.lessons.all()) and level_rank(u.cefr_level) <= rank
-    ]
-    return max(finished, key=lambda u: finished_at[u.id], default=None)
+    }
+
+
+def last_completed_unit(user) -> Unit | None:
+    """The unit the user finished most recently (every lesson completed), for
+    the Dashboard's review. None until a whole unit is done."""
+    finished = finished_units(user)
+    if not finished:
+        return None
+    return Unit.objects.get(id=max(finished, key=finished.get))

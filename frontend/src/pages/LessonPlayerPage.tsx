@@ -89,6 +89,7 @@ function Player({ lesson, unitId }: { lesson: LessonDetail; unitId?: string }) {
     qc.invalidateQueries({ queryKey: ["path"] })
     qc.invalidateQueries({ queryKey: ["unit"] })
     qc.invalidateQueries({ queryKey: ["energy"] })
+    qc.invalidateQueries({ queryKey: ["checks"] })
   }
 
   return (

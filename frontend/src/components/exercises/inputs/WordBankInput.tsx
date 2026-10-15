@@ -44,7 +44,7 @@ export function WordBankInput({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-base leading-9">
+      <p className="whitespace-pre-line text-base leading-9">
         {parts.map((part, i) => (
           <span key={i}>
             {part}

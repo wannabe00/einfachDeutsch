@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom"
 
-import type { PathNextUp, PathUnit } from "@/types"
+import type { CheckUnit, PathNextUp, PathUnit } from "@/types"
+import { useStartCheck } from "@/hooks/useStartCheck"
+import { errorText } from "@/lib/apiError"
 import { LektionCover } from "@/components/lektion/LektionCover"
 import { lektionColor } from "@/components/lektion/lektionColor"
 
@@ -45,33 +47,31 @@ export function ContinueCard({
   )
 }
 
-/** "Review last unit": a short flashcard session over the last finished Lektion. */
-export function ReviewLastUnitCard({
-  unit,
-  level,
-  wordCount,
-}: {
-  unit: { order: number; title: string }
-  level: string
-  wordCount: number
-}) {
+/** "Review last unit": a quick check of the last finished Lektion, a third
+    of its words in batches of five, then gaps and a translation. */
+export function ReviewLastUnitCard({ unit }: { unit: CheckUnit }) {
+  const start = useStartCheck()
   return (
-    <Link to="/review?scope=last-unit" className="d-card d-lift flex overflow-hidden">
-      <LektionCover order={unit.order} level={level} className="min-h-[160px] w-[34%] shrink-0" />
+    <button
+      type="button"
+      onClick={() => start.mutate({ kind: "review", unit: unit.id })}
+      disabled={start.isPending}
+      className="d-card d-lift flex overflow-hidden text-left"
+    >
+      <LektionCover order={unit.order} level={unit.cefr_level} className="min-h-[160px] w-[34%] shrink-0" />
       <div className="flex min-w-0 flex-col justify-center gap-1.5 p-4 sm:p-5">
         <p className="d-kicker" style={{ color: lektionColor(unit.order) }}>
-          Review last unit
+          Wiederholung
         </p>
         <h3 className="text-lg font-bold leading-snug">
           Lektion {unit.order}: {unit.title}
         </h3>
-        <p className="text-sm text-[var(--d-muted)]">
-          {wordCount} {wordCount === 1 ? "word" : "words"}
-        </p>
+        <p className="text-sm text-[var(--d-muted)]">A quick check: some words, gaps and a translation.</p>
         <span className="mt-2 w-fit rounded-full bg-[var(--d-fill)] px-4 py-2 text-sm font-semibold">
-          Start review
+          {start.isPending ? "Starting…" : "Start check"}
         </span>
+        {start.isError && <span className="text-sm text-[hsl(var(--danger))]">{errorText(start.error)}</span>}
       </div>
-    </Link>
+    </button>
   )
 }

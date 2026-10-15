@@ -198,3 +198,47 @@ class LevelExamAttempt(models.Model):
     def __str__(self):
         state = "passed" if self.passed else ("failed" if self.completed_at else "in progress")
         return f"{self.user} · {self.cefr_level} exam ({state})"
+
+
+class Check(models.Model):
+    """A review or test of what a user has learned (see apps.curriculum.checks).
+
+    * review: one finished Lektion, at the start of the next one or from the
+      Dashboard: a third of its words in batches of five, plus a gap task and a
+      translation task.
+    * modul: after every three Lektionen, a longer mixed test across everything
+      learned so far, scored per skill.
+
+    The tasks are picked once, when the check starts, and kept here with the
+    answers given so far, so a check can be left and resumed and only its own
+    tasks can be answered. Checks never cost energy.
+    """
+
+    class Kind(models.TextChoices):
+        REVIEW = "review", "Review"
+        MODUL = "modul", "Modul test"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="checks"
+    )
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS)
+    # review: the Lektion reviewed. modul: the Modul's last Lektion.
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="checks")
+    modul = models.PositiveIntegerField(null=True, blank=True)
+    # [{"id": task id, "skill": "words" | "grammar" | "listening" | "reading"}]
+    tasks = models.JSONField(default=list)
+    # {task id: {"correct", "parts", "solution", "explanation"}}
+    results = models.JSONField(default=dict)
+    score = models.FloatField(null=True, blank=True)  # 0..1, set when finished
+    # {skill: [right parts, all parts]}
+    skills = models.JSONField(default=dict)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+
+    def __str__(self):
+        what = f"Modul {self.modul}" if self.kind == self.Kind.MODUL else f"L{self.unit.order}"
+        return f"{self.user} · {self.cefr_level} {what} ({self.kind})"

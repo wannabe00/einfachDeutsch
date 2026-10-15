@@ -17,6 +17,8 @@ class Exercise(models.Model):
         ("matching", "Match Pairs"),
         ("sentence_order", "Put Words in Order"),
         ("word_bank", "Fill Blanks from a Word Bank"),
+        ("error_spot", "Find the Mistake"),
+        ("dictation", "Dictation"),
         # Several parts on one screen, each an exercise of the types above.
         ("group", "Several Parts"),
     ]

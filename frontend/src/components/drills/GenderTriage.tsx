@@ -159,7 +159,11 @@ export function GenderTriage({ onExit }: { onExit: () => void }) {
               </>
             ) : (
               <>
-                <span className="text-muted-foreground/50">___</span> {current.noun}
+                <span
+                  aria-label="blank"
+                  className="inline-block h-[0.14em] w-[2.2em] rounded-full bg-muted-foreground/30 align-baseline"
+                />{" "}
+                {current.noun}
               </>
             )}
           </p>

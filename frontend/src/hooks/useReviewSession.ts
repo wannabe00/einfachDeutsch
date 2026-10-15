@@ -1,18 +1,16 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { fetchDueWords, fetchLastUnitReview, reviewWord } from "@/api/vocabulary"
+import { fetchDueWords, reviewWord } from "@/api/vocabulary"
 import { useGuestLimit } from "@/contexts/GuestLimitContext"
 import type { ReviewQuality, Word } from "@/types"
 
 // `null` = choosing; "all" = every chapter; number = a specific chapter id;
-// "last-unit" = the Dashboard's review of the unit finished most recently;
 // `{ words }` = words picked elsewhere (the Word Bank's "Practise these").
-export type Selection = number | "all" | "last-unit" | { words: Word[] } | null
+export type Selection = number | "all" | { words: Word[] } | null
 
 function fetchSelection(selection: Exclude<Selection, null>): Promise<Word[]> {
   if (typeof selection === "object") return Promise.resolve(selection.words)
-  if (selection === "last-unit") return fetchLastUnitReview().then((r) => r.words)
   return fetchDueWords(selection === "all" ? undefined : selection)
 }
 
@@ -63,7 +61,7 @@ export function useReviewSession(initial: Selection = null) {
 
   function finishIfEmpty(remaining: Word[]) {
     if (remaining.length === 0) {
-      for (const key of ["due-words", "words", "stats", "due-counts", "last-unit"]) {
+      for (const key of ["due-words", "words", "stats", "due-counts", "checks"]) {
         qc.invalidateQueries({ queryKey: [key] })
       }
       setDone(true)

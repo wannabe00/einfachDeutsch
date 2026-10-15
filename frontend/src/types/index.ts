@@ -266,10 +266,14 @@ export interface ExercisePayload {
   options?: string[] // multiple_choice
   left?: string[] // matching
   right?: string[] // matching (sorted)
-  tokens?: string[] // sentence_order
+  tokens?: string[] // sentence_order; error_spot: the sentence's words
   text?: string // word_bank ("Ich ___ in ___.")
   bank?: string[] // word_bank
   parts?: PartContent[] // group: the parts shown together on one screen
+  /** A dialogue or reading text shown above the task (multiple_choice, group). */
+  context?: string
+  /** Base64 of German the browser reads aloud ("which word do you hear?", dictation). */
+  say?: string
 }
 
 export type GrammarCategory =
@@ -508,20 +512,68 @@ export interface CompleteResult {
 }
 
 /** The Dashboard's short review of the unit finished most recently. */
-export interface LastUnitReview {
-  /** Null until a whole unit is finished. */
-  unit: { id: number; order: number; title: string } | null
-  words: Word[]
-}
-
 /* ---- Practice sets ---- */
 
 export interface PracticeOptions {
-  units: { id: number; order: number; title: string }[]
-  topics: { id: number; title: string }[]
+  units: { id: number; order: number; title: string; cefr_level: string }[]
+  /** `lektion` is the Lektion that teaches the topic. */
+  topics: { id: number; title: string; cefr_level: string; lektion: number }[]
 }
 
 export interface PracticeTask extends PartContent {
   /** "12" for an exercise, "12:0,3" for those parts of a multi-part one. */
   task_id: string
 }
+
+/* ---- Checks: Lektion reviews and Modul tests ---- */
+
+export type CheckSkill = "words" | "grammar" | "listening" | "reading"
+
+export interface CheckUnit {
+  id: number
+  order: number
+  title: string
+  cefr_level: string
+}
+
+export interface ModulTest {
+  cefr_level: string
+  modul: number
+  first: number
+  last: number
+  unlocked: boolean
+  /** 0..1, null until a test is finished. */
+  best_score: number | null
+  in_progress: boolean
+}
+
+export interface CheckStatus {
+  /** The Lektion finished most recently, for the Dashboard. */
+  last_unit: CheckUnit | null
+  /** Every Lektion that can be reviewed. */
+  units: CheckUnit[]
+  moduls: ModulTest[]
+}
+
+export interface CheckTask extends PartContent {
+  task_id: string
+  skill: CheckSkill
+}
+
+export interface CheckData {
+  id: number
+  kind: "review" | "modul"
+  cefr_level: string
+  modul: number | null
+  unit: CheckUnit
+  title: string
+  subtitle: string
+  tasks: CheckTask[]
+  /** Results of the tasks answered so far, by task id. */
+  results: Record<string, AnswerResult>
+  completed: boolean
+  score: number | null
+  skills: Partial<Record<CheckSkill, { right: number; total: number }>>
+}
+
+export type CheckStart = { kind: "review"; unit: number } | { kind: "modul"; level: string; modul: number }

@@ -8,6 +8,7 @@ import { BackLink } from "@/components/ui/BackLink"
 import { Card } from "@/components/ui/card"
 import { Markdown } from "@/components/ui/Markdown"
 import { LektionCover } from "@/components/lektion/LektionCover"
+import { LektionCheckCard } from "@/components/checks/CheckCards"
 import { LessonRows } from "@/components/lektion/LessonRows"
 import { ProgressRing } from "@/components/lektion/ProgressRing"
 import { lektionColor } from "@/components/lektion/lektionColor"
@@ -52,6 +53,8 @@ export default function UnitPage() {
           </div>
         </div>
       </header>
+
+      <LektionCheckCard unitId={data.id} level={data.cefr_level} order={data.order} />
 
       <section>
         <h2 className="mb-3 px-1 text-[22px] font-bold">Lessons</h2>

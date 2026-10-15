@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Field, Msg, Section, Toggle } from "./primitives"
+import { Select } from "@/components/ui/Select"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -91,14 +92,15 @@ export function PreferencesSection() {
       <Section title="Localization">
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Interface language">
-            <select
+            <Select
+              label="Interface language"
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="h-11 w-full rounded-xl border border-transparent bg-surface-2 px-3.5 text-base focus-visible:border-ring focus-visible:outline-none"
-            >
-              <option value="en">English</option>
-              <option value="de">Deutsch</option>
-            </select>
+              onChange={setLanguage}
+              options={[
+                { value: "en", label: "English" },
+                { value: "de", label: "Deutsch" },
+              ]}
+            />
           </Field>
           <Field label="Timezone">
             <Input value={timezone} onChange={(e) => setTimezone(e.target.value)} />
