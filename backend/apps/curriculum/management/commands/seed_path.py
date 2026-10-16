@@ -82,6 +82,8 @@ def exercise_fields(item: dict) -> dict:
     else:  # translation, fill_blank, article, conjugation, dictation
         fields["payload"] = {}
         fields["correct_answer"] = item["answer"]
+    if item.get("clip"):  # a Hören recording for the whole Teil
+        fields["payload"]["clip"] = item["clip"]
     if item.get("context"):  # a dialogue or reading text shown above the task
         fields["payload"]["context"] = item["context"]
     return fields
@@ -315,7 +317,7 @@ class Command(BaseCommand):
                 }
         # Lesen and Schreiben sets: one per Modul, one exercise per Teil (no lesson items).
         for skill in SKILLS:
-            for m, teile in spec[skill].items():
+            for m, teile in spec.get(skill, {}).items():
                 for teil, item in enumerate(teile, start=1):
                     source = set_source(skill, level, m, teil)
                     desired_exercises[source] = {

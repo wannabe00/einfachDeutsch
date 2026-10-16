@@ -28,8 +28,8 @@ import UnitPage from "@/pages/UnitPage"
 import LessonPlayerPage from "@/pages/LessonPlayerPage"
 import ExamPage from "@/pages/ExamPage"
 import CheckPage from "@/pages/CheckPage"
-import LesenPage from "@/pages/LesenPage"
-import LesenSetPage from "@/pages/LesenSetPage"
+import QuizSetsPage from "@/pages/QuizSetsPage"
+import QuizSetPage from "@/pages/QuizSetPage"
 import SchreibenPage from "@/pages/SchreibenPage"
 import SchreibenSetPage from "@/pages/SchreibenSetPage"
 import PrivacyPage from "@/pages/PrivacyPage"
@@ -159,8 +159,10 @@ function App() {
           <Route path="/path" element={<PathPage />} />
           <Route path="/path/exam" element={<ExamPage />} />
           <Route path="/check/:checkId" element={<CheckPage />} />
-          <Route path="/lesen" element={<LesenPage />} />
-          <Route path="/lesen/:level/:modul" element={<LesenSetPage />} />
+          <Route path="/lesen" element={<QuizSetsPage skill="lesen" key="lesen" />} />
+          <Route path="/lesen/:level/:modul" element={<QuizSetPage skill="lesen" key="lesen" />} />
+          <Route path="/hoeren" element={<QuizSetsPage skill="hoeren" key="hoeren" />} />
+          <Route path="/hoeren/:level/:modul" element={<QuizSetPage skill="hoeren" key="hoeren" />} />
           <Route path="/schreiben" element={<SchreibenPage />} />
           <Route path="/schreiben/:level/:modul" element={<SchreibenSetPage />} />
           <Route path="/path/:unitId" element={<UnitPage />} />

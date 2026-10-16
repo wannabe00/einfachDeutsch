@@ -1,7 +1,7 @@
 """Exam-style sets, one per Modul, shared by Lesen and Schreiben.
 
 Each Teil of a set is a seeded exercise with the source
-`seed-<level>-<skill>-m<modul>-t<teil>` (skill `lesen` or `schreiben`), written
+`seed-<level>-<skill>-m<modul>-t<teil>` (skill `lesen`, `schreiben` or `hoeren`), written
 in `content/<level>/<skill>.py`. A set opens once its Modul's three Lektionen
 are finished; every set of a level below the user's is open, and levels above
 are never shown. Sets are passed at 60 %, as in the Goethe exams.
@@ -18,8 +18,8 @@ from .learned import finished_units
 from .models import Unit
 
 PASS_SHARE = 0.6
-SKILLS = ("lesen", "schreiben")
-_SOURCE = re.compile(r"^seed-([a-c]\d)-(lesen|schreiben)-m(\d+)-t(\d+)$")
+SKILLS = ("lesen", "schreiben", "hoeren")
+_SOURCE = re.compile(r"^seed-([a-c]\d)-(lesen|schreiben|hoeren)-m(\d+)-t(\d+)$")
 
 
 class SetNotFound(Exception):

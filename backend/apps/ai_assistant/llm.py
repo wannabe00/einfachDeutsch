@@ -281,3 +281,46 @@ def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
         "corrected": str(data.get("corrected") or ""),
         "tips": [str(t) for t in data.get("tips") or [] if t][:5],
     }
+
+
+# ---- speech (Hören recordings) ---------------------------------------------
+
+TTS_MODEL = "gemini-2.5-flash-preview-tts"
+VOICES = {"Frau": "Kore", "Mann": "Charon", "Ansage": "Aoede"}  # prebuilt Gemini voices
+TTS_STYLE = (
+    "Read this aloud in German as a clear, natural recording for a language exam. "
+    "Speak at a calm pace{slow}. Read only the text, nothing else."
+)
+
+
+def _voice(speaker: str) -> types.VoiceConfig:
+    return types.VoiceConfig(
+        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICES[speaker])
+    )
+
+
+def synthesize_speech(script: list, slow: bool = False) -> bytes:
+    """Speak a script of (speaker, line) pairs, one or two speakers, each with
+    their own voice. Returns 16-bit mono PCM at 24 kHz. Raises the SDK's
+    APIError on quota or server errors (the caller decides to retry later)."""
+    speakers = list(dict.fromkeys(s for s, _ in script))
+    style = TTS_STYLE.format(slow=", a little slower than normal, for beginners" if slow else "")
+    if len(speakers) == 1:
+        text = " ".join(line for _, line in script)
+        speech = types.SpeechConfig(voice_config=_voice(speakers[0]))
+    else:
+        text = "\n".join(f"{s}: {line}" for s, line in script)
+        speech = types.SpeechConfig(
+            multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+                speaker_voice_configs=[
+                    types.SpeakerVoiceConfig(speaker=s, voice_config=_voice(s)) for s in speakers
+                ]
+            )
+        )
+    client = _client()
+    resp = client.models.generate_content(
+        model=TTS_MODEL,
+        contents=f"{style}\n\n{text}",
+        config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech),
+    )
+    return resp.candidates[0].content.parts[0].inline_data.data

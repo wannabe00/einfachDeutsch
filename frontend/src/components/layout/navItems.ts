@@ -13,6 +13,7 @@ import {
   Sparkles,
   FileText,
   PenLine,
+  Headphones,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -53,6 +54,7 @@ export const navGroups: NavGroup[] = [
       { to: "/drills", label: "Drills", icon: Swords },
       { to: "/lesen", label: "Lesen", icon: FileText },
       { to: "/schreiben", label: "Schreiben", icon: PenLine },
+      { to: "/hoeren", label: "Hören", icon: Headphones },
       { to: "/speak", label: "Recite", icon: Mic },
     ],
   },

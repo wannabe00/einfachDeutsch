@@ -119,7 +119,17 @@ def public_part(part: dict) -> dict:
         k: v
         for k, v in part.items()
         if k
-        not in ("type", "prompt", "hint", "explanation", "answer", "answers", "correction", "say")
+        not in (
+            "type",
+            "prompt",
+            "hint",
+            "explanation",
+            "answer",
+            "answers",
+            "correction",
+            "say",
+            "clip",  # a Hören script is the transcript: only shown after answering
+        )
     }
     if part.get("say"):  # a word to hear, set by the checks
         payload["say"] = encode_speech(part["say"])

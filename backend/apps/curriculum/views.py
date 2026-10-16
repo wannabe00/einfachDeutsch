@@ -13,7 +13,7 @@ from apps.ai_assistant.throttles import AIBurstThrottle, AIDailyThrottle
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
-from . import checks, exam_sets, gating, grading, lesen, practice, schreiben
+from . import checks, exam_sets, gating, grading, hoeren, lesen, practice, schreiben
 from . import energy as energy_lib
 from . import exam as exam_lib
 from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
@@ -556,3 +556,30 @@ def schreiben_self_check(request, attempt_id: int):
 def schreiben_ai_grade(request, attempt_id: int):
     """Premium: Gemini grades the text on the exam's criteria."""
     return _exam_set(schreiben.ai_grade, request.user, attempt_id)
+
+
+# ---- Hören: exam-style listening sets ----------------------------------------
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def hoeren_status(request):
+    """Every recorded Hören set the user may see, with locks and best scores."""
+    return Response(hoeren.status(request.user))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def hoeren_set(request, level: str, modul: int):
+    """One open Hören set: questions and audio, no answers or scripts."""
+    return _exam_set(hoeren.detail, request.user, level, modul)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def hoeren_answer(request, exercise_id: int):
+    """Grade one Teil and reveal its solution and transcripts."""
+    response = _exam_set(hoeren.answer, request.user, exercise_id, request.data.get("answer"))
+    if response.status_code == 200:
+        record_activity(request.user)
+    return response

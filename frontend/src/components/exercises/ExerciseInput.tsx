@@ -4,6 +4,7 @@ import type { PartContent, PartSolution } from "@/types"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { MatchingInput, WordBankInput } from "@/components/exercises/inputs"
+import { AudioClip } from "@/components/exercises/AudioClip"
 import { canSpeak, decodeSpeech, speak } from "@/lib/speech"
 
 /*
@@ -53,6 +54,7 @@ export function ExerciseInput({
     const solutions = Array.isArray(solution) ? (solution as PartSolution[]) : []
     return (
       <div className="flex flex-col gap-4">
+        {content.payload.audio && <AudioClip audio={content.payload.audio} free={results !== undefined} />}
         {content.payload.context && <ContextText text={content.payload.context} />}
         <ol className="flex flex-col gap-3">
           {parts.map((part, i) => {
@@ -106,6 +108,7 @@ export function ExerciseInput({
     return (
       <div className="grid gap-2">
         {content.payload.context && <ContextText text={content.payload.context} />}
+        {content.payload.audio && <AudioClip audio={content.payload.audio} free={verdict !== undefined} />}
         {content.payload.say && <ListenButtons say={content.payload.say} />}
         {(content.payload.options ?? []).map((option) => {
           const checked = verdict !== undefined

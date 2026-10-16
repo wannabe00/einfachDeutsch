@@ -70,6 +70,15 @@ urlpatterns = [
         views.schreiben_ai_grade,
         name="curriculum-schreiben-ai",
     ),
+    url_path("curriculum/hoeren/", views.hoeren_status, name="curriculum-hoeren"),
+    url_path(
+        "curriculum/hoeren/<str:level>/<int:modul>/", views.hoeren_set, name="curriculum-hoeren-set"
+    ),
+    url_path(
+        "curriculum/hoeren/teil/<int:exercise_id>/answer/",
+        views.hoeren_answer,
+        name="curriculum-hoeren-answer",
+    ),
     url_path("curriculum/units/<int:unit_id>/", views.unit_detail, name="curriculum-unit"),
     url_path("curriculum/lessons/<int:lesson_id>/", views.lesson_detail, name="curriculum-lesson"),
     url_path(

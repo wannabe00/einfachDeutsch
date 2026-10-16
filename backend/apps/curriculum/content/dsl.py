@@ -655,3 +655,38 @@ def schreiben_text(what: str, situation: str, points, words, model: str, formal=
         formal=formal,
         model=_text(model),
     )
+
+
+# ---- Hören (exam-style listening, see apps.curriculum.hoeren) ---------------
+
+SPEAKERS = ("Frau", "Mann", "Ansage")  # each has its own voice (llm.VOICES)
+
+
+def clip(*lines, plays: int = 2) -> dict:
+    """A recording: (speaker, line) pairs, at most two speakers, heard
+    `plays` times (1 or 2, as in the exam). The script is also the transcript."""
+    script = [list(line) for line in lines]
+    speakers = {s for s, _ in script}
+    assert speakers <= set(SPEAKERS) and len(speakers) <= 2, script
+    assert plays in (1, 2), plays
+    return {"script": script, "plays": plays}
+
+
+def hoeren_mc(recording: dict, question: str, answer: str, *wrong: str) -> dict:
+    """One question with its own recording, a/b/c."""
+    return {**mc(question, answer, *wrong), "clip": recording}
+
+
+def hoeren_rf(recording: dict, statement: str, is_true: bool) -> dict:
+    """One richtig/falsch statement with its own recording."""
+    return {**_rf(statement, is_true), "clip": recording}
+
+
+def hoeren_teil(teil: int, instruction: str, *parts: dict, recording: dict | None = None):
+    """A Teil: questions with their own recordings, or (A2 Teil 2 and 4) one
+    `recording` for all of them."""
+    assert recording is not None or all("clip" in p for p in parts), instruction
+    item = group(f"Teil {teil} · {instruction}", *parts)
+    if recording is not None:
+        item["clip"] = recording
+    return item
