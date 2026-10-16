@@ -656,3 +656,98 @@ export interface LesenAnswerResult extends AnswerResult {
   total: number
   best: number
 }
+
+/* ---- Schreiben: exam-style writing, one set per Modul ---- */
+
+/** A free-writing task. The model answer arrives only after writing. */
+export interface WritingTask {
+  situation: string
+  points: string[]
+  min_words: number
+  max_words: number
+  formal: boolean
+}
+
+export type PointGrade = "full" | "partial" | "missing"
+
+export interface SchreibenBest {
+  score: number
+  out_of: number
+  graded_by: "auto" | "self" | "ai"
+}
+
+export interface SchreibenTeilSummary {
+  id: number
+  teil: number
+  title: string
+  best: SchreibenBest | null
+}
+
+interface SchreibenSetBase {
+  cefr_level: CEFRLevel
+  modul: number
+  first: number
+  last: number
+  /** Points over the whole set, once every Teil is graded. */
+  best: number | null
+  out_of: number | null
+  passed: boolean
+}
+
+export interface SchreibenSet extends SchreibenSetBase {
+  locked: boolean
+  teile: SchreibenTeilSummary[]
+}
+
+/** A form Teil (A1 Teil 1, a group) or a free-writing Teil. */
+export interface SchreibenTeil extends ExerciseContent {
+  teil: number
+  best: SchreibenBest | null
+  payload: ExercisePayload & Partial<WritingTask>
+}
+
+export interface SchreibenSetDetail extends SchreibenSetBase {
+  pass_share: number
+  teile: SchreibenTeil[]
+}
+
+export interface WritingChecks {
+  words: number
+  min_words: number
+  max_words: number
+  in_range: boolean
+  too_short: boolean
+  greeting: boolean
+  closing: boolean
+}
+
+export interface WritingAttempt {
+  id: number
+  exercise_id: number
+  /** The text, or the form's answers. */
+  answer: string | string[]
+  words: number
+  points: PointGrade[]
+  /** null until graded (self-check or AI). */
+  score: number | null
+  max_score: number
+  graded_by: "" | "auto" | "self" | "ai"
+  feedback: {
+    checks?: WritingChecks
+    grades?: { communication?: number; task?: string; language?: string | null }
+    comments?: string[]
+    corrected?: string
+    tips?: string[]
+  }
+  created_at: string
+}
+
+export interface WriteResult {
+  attempt: WritingAttempt
+  points: string[]
+  model: string
+}
+
+export interface FormResult extends AnswerResult {
+  attempt: WritingAttempt
+}

@@ -8,7 +8,7 @@ import json
 
 from django.conf import settings
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 
 MODEL = "gemini-2.5-flash"
 MAX_TOKENS = 1024
@@ -16,6 +16,10 @@ MAX_TOKENS = 1024
 
 class AIConfigError(RuntimeError):
     """Raised when the Gemini API key is not configured."""
+
+
+class AIResponseError(RuntimeError):
+    """Raised when Gemini's answer can't be used (views answer 502, try again)."""
 
 
 def _client() -> genai.Client:
@@ -32,6 +36,7 @@ def _complete(
     contents,
     max_tokens: int = MAX_TOKENS,
     response_mime_type: str | None = None,
+    response_schema: dict | None = None,
 ) -> str:
     # Bind the client to a local so it isn't garbage-collected mid-request
     # (that closes its httpx client and fails with "client has been closed").
@@ -43,6 +48,7 @@ def _complete(
             system_instruction=system,
             max_output_tokens=max_tokens,
             response_mime_type=response_mime_type,
+            response_schema=response_schema,
         ),
     )
     return (resp.text or "").strip()
@@ -197,3 +203,81 @@ def write_history_lesson(topic: str, level: str) -> dict:
         HISTORY_WRITER_SYSTEM, prompt, max_tokens=6000, response_mime_type="application/json"
     )
     return _json(raw)
+
+
+WRITING_SYSTEM = (
+    "You are an examiner for the Goethe-Institut German exams (Start Deutsch 1 / "
+    "Goethe-Zertifikat A2). You grade one short learner text against its task, at "
+    "the exam's level: judge content and comprehensibility, not native-like style. "
+    "For each of the three content points say whether the text covers it fully and "
+    "understandably (full), only partly or with errors that blur it (partial), or "
+    "not at all (missing). Grade the language A-E as in the A2 criteria: A = range "
+    "fits, only isolated slips that don't hurt understanding; B = mostly fits, "
+    "several slips that don't hurt understanding; C = partly fits, slips sometimes "
+    "hurt understanding; D = barely fits, slips seriously hurt understanding; E = "
+    "language unfit throughout. Write comments and tips in simple English. "
+    "`corrected` is the learner's own text with its mistakes fixed, changing as "
+    "little as possible. Give exactly three points, in the task's order, and one "
+    "or two tips."
+)
+
+_GRADE = {"type": "STRING", "enum": ["full", "partial", "missing"]}
+WRITING_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "points": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"grade": _GRADE, "comment": {"type": "STRING"}},
+                "required": ["grade", "comment"],
+            },
+        },
+        "language": {"type": "STRING", "enum": ["A", "B", "C", "D", "E"]},
+        "corrected": {"type": "STRING"},
+        "tips": {"type": "ARRAY", "items": {"type": "STRING"}},
+    },
+    "required": ["points", "language", "corrected", "tips"],
+}
+
+
+def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
+    """Grade a Schreiben text. Returns {points: [3 grades], comments, language,
+    corrected, tips}. The score is computed by the caller's rubric, never here.
+    Raises AIResponseError when the answer is unusable, so nothing is saved."""
+    bullets = "\n".join(f"{i}. {p}" for i, p in enumerate(task["points"], start=1))
+    contents = (
+        f"Level: {level}\nTask: {prompt}\nSituation: {task['situation']}\n"
+        f"Content points:\n{bullets}\n"
+        f"Length asked: {task['min_words']}-{task['max_words']} words. "
+        f"Register: {'formal (Sie)' if task['formal'] else 'informal (du)'}.\n\n"
+        f"Learner's text:\n{text}"
+    )
+    try:
+        # Room for 2.5-flash's thinking, which counts towards the output limit.
+        raw = _complete(
+            WRITING_SYSTEM,
+            contents,
+            max_tokens=4096,
+            response_mime_type="application/json",
+            response_schema=WRITING_SCHEMA,
+        )
+        data = _json(raw)
+    except errors.APIError as err:  # e.g. 503 "high demand": worth another try later
+        raise AIResponseError("The AI grader is busy.") from err
+    except (json.JSONDecodeError, ValueError) as err:
+        raise AIResponseError("The AI grader sent an unreadable answer.") from err
+    rows = data.get("points")
+    grades = (
+        [isinstance(r, dict) and r.get("grade") for r in rows] if isinstance(rows, list) else []
+    )
+    if len(grades) != 3 or not all(g in ("full", "partial", "missing") for g in grades):
+        raise AIResponseError("The AI grader didn't grade all three points.")
+    language = data.get("language")
+    return {
+        "points": grades,
+        "comments": [str(r.get("comment") or "") for r in rows],
+        "language": language if language in ("A", "B", "C", "D", "E") else "C",
+        "corrected": str(data.get("corrected") or ""),
+        "tips": [str(t) for t in data.get("tips") or [] if t][:5],
+    }

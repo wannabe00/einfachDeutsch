@@ -1,16 +1,19 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.permissions import IsPremium
 from apps.accounts.scheduling import record_activity
+from apps.ai_assistant.llm import AIConfigError, AIResponseError
+from apps.ai_assistant.throttles import AIBurstThrottle, AIDailyThrottle
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
-from . import checks, gating, grading, lesen, practice
+from . import checks, exam_sets, gating, grading, lesen, practice, schreiben
 from . import energy as energy_lib
 from . import exam as exam_lib
 from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
@@ -454,13 +457,20 @@ def check_finish(request, check_id: int):
 # ---- Lesen: exam-style reading sets ------------------------------------------
 
 
-def _lesen(fn, *args) -> Response:
+def _exam_set(fn, *args) -> Response:
+    """Run a Lesen/Schreiben call; missing sets are 404, locked ones 403."""
     try:
         return Response(fn(*args))
-    except lesen.LesenNotFound as err:
+    except exam_sets.SetNotFound as err:
         return Response({"detail": str(err)}, status=status.HTTP_404_NOT_FOUND)
-    except lesen.LesenLocked as err:
+    except exam_sets.SetLocked as err:
         return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
+    except schreiben.WritingError as err:
+        return Response({"detail": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+    except AIConfigError as err:
+        return Response({"detail": str(err)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    except AIResponseError as err:
+        return Response({"detail": f"{err} Please try again."}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @api_view(["GET"])
@@ -474,14 +484,75 @@ def lesen_status(request):
 @permission_classes([IsAuthenticated])
 def lesen_set(request, level: str, modul: int):
     """One open Lesen set, without answers."""
-    return _lesen(lesen.detail, request.user, level, modul)
+    return _exam_set(lesen.detail, request.user, level, modul)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def lesen_answer(request, exercise_id: int):
     """Grade one Teil of a Lesen set and reveal its solution."""
-    response = _lesen(lesen.answer, request.user, exercise_id, request.data.get("answer"))
+    response = _exam_set(lesen.answer, request.user, exercise_id, request.data.get("answer"))
     if response.status_code == 200:
         record_activity(request.user)
     return response
+
+
+# ---- Schreiben: exam-style writing sets --------------------------------------
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def schreiben_status(request):
+    """Every Schreiben set the user may see, with locks and best scores."""
+    return Response(schreiben.status(request.user))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def schreiben_set(request, level: str, modul: int):
+    """One open Schreiben set (no form answers, no model texts)."""
+    return _exam_set(schreiben.detail, request.user, level, modul)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def schreiben_form(request, exercise_id: int):
+    """Grade the A1 form (Teil 1) locally."""
+    response = _exam_set(
+        schreiben.answer_form, request.user, exercise_id, request.data.get("answer")
+    )
+    if response.status_code == 200:
+        record_activity(request.user)
+    return response
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def schreiben_write(request, exercise_id: int):
+    """Keep a written text; return the checks, the points and the model answer."""
+    response = _exam_set(schreiben.write, request.user, exercise_id, request.data.get("text"))
+    if response.status_code == 200:
+        record_activity(request.user)
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def schreiben_attempts(request, exercise_id: int):
+    """The user's past attempts at one Teil."""
+    return _exam_set(schreiben.attempts, request.user, exercise_id)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def schreiben_self_check(request, attempt_id: int):
+    """Score a text from the user's own rating of its three points."""
+    return _exam_set(schreiben.self_check, request.user, attempt_id, request.data.get("points"))
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsPremium])
+@throttle_classes([AIBurstThrottle, AIDailyThrottle])
+def schreiben_ai_grade(request, attempt_id: int):
+    """Premium: Gemini grades the text on the exam's criteria."""
+    return _exam_set(schreiben.ai_grade, request.user, attempt_id)

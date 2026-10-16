@@ -50,6 +50,7 @@ export function PremiumLock() {
           {[
             "Unlimited energy on the path",
             "The AI Assistant and AI explanations",
+            "AI feedback on your Schreiben texts",
             "Recite: read a text, retell it aloud, get feedback",
           ].map((perk) => (
             <li key={perk} className="flex items-start gap-2.5">

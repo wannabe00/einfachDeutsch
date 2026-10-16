@@ -9,8 +9,9 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.curriculum import grading, lesen
+from apps.curriculum import grading
 from apps.curriculum.content.levels import LEVELS
+from apps.curriculum.exam_sets import set_source
 from apps.curriculum.models import PathLessonProgress, ReadingResult, Unit
 from apps.exercises.models import Exercise
 
@@ -130,7 +131,7 @@ class LesenFlowTests(TestCase):
         self.assertEqual(ReadingResult.objects.filter(user=self.user).count(), 3)
 
     def test_locked_and_unknown_teile_cannot_be_answered(self):
-        locked = Exercise.objects.get(source=lesen.lesen_source("A1", 2, 1))
+        locked = Exercise.objects.get(source=set_source("lesen", "A1", 2, 1))
         res = self.api.post(f"/api/curriculum/lesen/teil/{locked.id}/answer/", {"answer": []})
         self.assertEqual(res.status_code, 403)
         other = Exercise.objects.exclude(source__contains="-lesen-m").first()

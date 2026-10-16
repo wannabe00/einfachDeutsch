@@ -30,6 +30,8 @@ import ExamPage from "@/pages/ExamPage"
 import CheckPage from "@/pages/CheckPage"
 import LesenPage from "@/pages/LesenPage"
 import LesenSetPage from "@/pages/LesenSetPage"
+import SchreibenPage from "@/pages/SchreibenPage"
+import SchreibenSetPage from "@/pages/SchreibenSetPage"
 import PrivacyPage from "@/pages/PrivacyPage"
 
 function Loading() {
@@ -159,6 +161,8 @@ function App() {
           <Route path="/check/:checkId" element={<CheckPage />} />
           <Route path="/lesen" element={<LesenPage />} />
           <Route path="/lesen/:level/:modul" element={<LesenSetPage />} />
+          <Route path="/schreiben" element={<SchreibenPage />} />
+          <Route path="/schreiben/:level/:modul" element={<SchreibenSetPage />} />
           <Route path="/path/:unitId" element={<UnitPage />} />
           <Route path="/path/:unitId/lesson/:lessonId" element={<LessonPlayerPage />} />
           <Route path="/videos" element={<VideosPage />} />

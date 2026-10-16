@@ -39,6 +39,37 @@ urlpatterns = [
         views.lesen_answer,
         name="curriculum-lesen-answer",
     ),
+    url_path("curriculum/schreiben/", views.schreiben_status, name="curriculum-schreiben"),
+    url_path(
+        "curriculum/schreiben/<str:level>/<int:modul>/",
+        views.schreiben_set,
+        name="curriculum-schreiben-set",
+    ),
+    url_path(
+        "curriculum/schreiben/teil/<int:exercise_id>/form/",
+        views.schreiben_form,
+        name="curriculum-schreiben-form",
+    ),
+    url_path(
+        "curriculum/schreiben/teil/<int:exercise_id>/write/",
+        views.schreiben_write,
+        name="curriculum-schreiben-write",
+    ),
+    url_path(
+        "curriculum/schreiben/teil/<int:exercise_id>/attempts/",
+        views.schreiben_attempts,
+        name="curriculum-schreiben-attempts",
+    ),
+    url_path(
+        "curriculum/schreiben/attempts/<int:attempt_id>/self/",
+        views.schreiben_self_check,
+        name="curriculum-schreiben-self",
+    ),
+    url_path(
+        "curriculum/schreiben/attempts/<int:attempt_id>/ai/",
+        views.schreiben_ai_grade,
+        name="curriculum-schreiben-ai",
+    ),
     url_path("curriculum/units/<int:unit_id>/", views.unit_detail, name="curriculum-unit"),
     url_path("curriculum/lessons/<int:lesson_id>/", views.lesson_detail, name="curriculum-lesson"),
     url_path(
