@@ -242,3 +242,27 @@ class Check(models.Model):
     def __str__(self):
         what = f"Modul {self.modul}" if self.kind == self.Kind.MODUL else f"L{self.unit.order}"
         return f"{self.user} · {self.cefr_level} {what} ({self.kind})"
+
+
+class ReadingResult(models.Model):
+    """A user's result on one Teil of a Lesen set (see apps.curriculum.lesen).
+    The Teil is a seeded exercise; the best score is kept for the set page."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reading_results"
+    )
+    exercise = models.ForeignKey(
+        "exercises.Exercise", on_delete=models.CASCADE, related_name="reading_results"
+    )
+    correct = models.PositiveIntegerField(default=0)  # last attempt
+    best_correct = models.PositiveIntegerField(default=0)
+    total = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "exercise"], name="unique_reading_result")
+        ]
+
+    def __str__(self):
+        return f"{self.user} · {self.exercise.source} {self.best_correct}/{self.total}"

@@ -10,7 +10,7 @@ from apps.accounts.scheduling import record_activity
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
 
-from . import checks, gating, grading, practice
+from . import checks, gating, grading, lesen, practice
 from . import energy as energy_lib
 from . import exam as exam_lib
 from .models import Lesson, LessonDraft, LessonItem, PathLessonProgress, Unit
@@ -449,3 +449,39 @@ def check_finish(request, check_id: int):
     except checks.CheckError as err:
         return _check_error(err)
     return Response(checks.payload(check))
+
+
+# ---- Lesen: exam-style reading sets ------------------------------------------
+
+
+def _lesen(fn, *args) -> Response:
+    try:
+        return Response(fn(*args))
+    except lesen.LesenNotFound as err:
+        return Response({"detail": str(err)}, status=status.HTTP_404_NOT_FOUND)
+    except lesen.LesenLocked as err:
+        return Response({"detail": str(err)}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def lesen_status(request):
+    """Every Lesen set the user may see, with locks and best scores."""
+    return Response(lesen.status(request.user))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def lesen_set(request, level: str, modul: int):
+    """One open Lesen set, without answers."""
+    return _lesen(lesen.detail, request.user, level, modul)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def lesen_answer(request, exercise_id: int):
+    """Grade one Teil of a Lesen set and reveal its solution."""
+    response = _lesen(lesen.answer, request.user, exercise_id, request.data.get("answer"))
+    if response.status_code == 200:
+        record_activity(request.user)
+    return response

@@ -30,6 +30,15 @@ urlpatterns = [
         views.check_finish,
         name="curriculum-check-finish",
     ),
+    url_path("curriculum/lesen/", views.lesen_status, name="curriculum-lesen"),
+    url_path(
+        "curriculum/lesen/<str:level>/<int:modul>/", views.lesen_set, name="curriculum-lesen-set"
+    ),
+    url_path(
+        "curriculum/lesen/teil/<int:exercise_id>/answer/",
+        views.lesen_answer,
+        name="curriculum-lesen-answer",
+    ),
     url_path("curriculum/units/<int:unit_id>/", views.unit_detail, name="curriculum-unit"),
     url_path("curriculum/lessons/<int:lesson_id>/", views.lesson_detail, name="curriculum-lesson"),
     url_path(

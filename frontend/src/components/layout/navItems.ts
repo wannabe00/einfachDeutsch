@@ -11,6 +11,7 @@ import {
   Tv,
   Landmark,
   Sparkles,
+  FileText,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -49,6 +50,7 @@ export const navGroups: NavGroup[] = [
       { to: "/review", label: "Review", icon: GraduationCap },
       { to: "/exercises", label: "Practice", icon: NotebookPen },
       { to: "/drills", label: "Drills", icon: Swords },
+      { to: "/lesen", label: "Lesen", icon: FileText },
       { to: "/speak", label: "Recite", icon: Mic },
     ],
   },

@@ -612,3 +612,47 @@ export interface CheckData {
 }
 
 export type CheckStart = { kind: "review"; unit: number } | { kind: "modul"; level: string; modul: number }
+
+/* ---- Lesen: exam-style reading, one set per Modul ---- */
+
+export interface LesenTeilSummary {
+  id: number
+  teil: number
+  title: string
+  questions: number
+  /** Best right answers so far; null until tried. */
+  best: number | null
+}
+
+interface LesenSetBase {
+  cefr_level: CEFRLevel
+  modul: number
+  first: number
+  last: number
+  questions: number
+  /** Best right answers over the whole set, once every Teil is done. */
+  best: number | null
+  passed: boolean
+}
+
+export interface LesenSet extends LesenSetBase {
+  locked: boolean
+  teile: LesenTeilSummary[]
+}
+
+export interface LesenTeil extends ExerciseContent {
+  teil: number
+  best: number | null
+}
+
+export interface LesenSetDetail extends LesenSetBase {
+  /** Share of right answers needed to pass, as in the exam (0.6). */
+  pass_share: number
+  teile: LesenTeil[]
+}
+
+export interface LesenAnswerResult extends AnswerResult {
+  right: number
+  total: number
+  best: number
+}

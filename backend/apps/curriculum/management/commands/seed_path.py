@@ -24,6 +24,7 @@ from django.db import transaction
 from apps.books.models import Book, Chapter
 from apps.curriculum.checks import MODUL_SIZE, check_source
 from apps.curriculum.content.levels import LEVELS
+from apps.curriculum.lesen import lesen_source
 from apps.curriculum.models import Lesson, LessonItem, Unit
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
@@ -304,6 +305,15 @@ class Command(BaseCommand):
         for m, tasks in spec["modul_checks"].items():
             for name, item in tasks.items():
                 source = check_source(level, f"m{m}", name)
+                desired_exercises[source] = {
+                    "source": source,
+                    "chapter_id": chapters[m * MODUL_SIZE].id,
+                    **exercise_fields(item),
+                }
+        # Lesen sets: one per Modul, one exercise per Teil (no lesson items).
+        for m, teile in spec["lesen"].items():
+            for teil, item in enumerate(teile, start=1):
+                source = lesen_source(level, m, teil)
                 desired_exercises[source] = {
                     "source": source,
                     "chapter_id": chapters[m * MODUL_SIZE].id,
