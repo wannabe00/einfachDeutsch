@@ -11,6 +11,7 @@ from .a1 import lesen as a1_lesen
 from .a1 import schreiben as a1_schreiben
 from .a2 import A2_LEVEL, A2_UNITS
 from .a2 import checks as a2_checks
+from .a2 import hoeren as a2_hoeren
 from .a2 import lesen as a2_lesen
 from .a2 import schreiben as a2_schreiben
 
@@ -31,8 +32,8 @@ LEVELS = {
         "modul_checks": a2_checks.MODUL_CHECKS,
         "lesen": a2_lesen.LESEN,
         "schreiben": a2_schreiben.SCHREIBEN,
-        "hoeren": {},  # A2 Hören comes later
-        "hoeren_live": set(),
+        "hoeren": a2_hoeren.HOEREN,
+        "hoeren_live": a2_hoeren.LIVE,
     },
 }
 

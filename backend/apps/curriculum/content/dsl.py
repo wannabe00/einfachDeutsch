@@ -690,3 +690,24 @@ def hoeren_teil(teil: int, instruction: str, *parts: dict, recording: dict | Non
     if recording is not None:
         item["clip"] = recording
     return item
+
+
+def hoeren_yn(statement: str, is_true: bool) -> dict:
+    """A ja/nein statement about the Teil's one recording (A2 Teil 4)."""
+    return _exercise(
+        "multiple_choice", statement, options=["Ja", "Nein"], answer="Ja" if is_true else "Nein"
+    )
+
+
+def hoeren_match(teil: int, instruction: str, recording: dict, choices: dict, rows) -> dict:
+    """A2 Teil 2: one recording, choices {letter: text} and (item, letter) rows.
+    Each letter fits one item at most, and there are more choices than items."""
+    letters = sorted(choices)
+    picked = [letter for _, letter in rows]
+    assert len(set(picked)) == len(picked) and len(letters) > len(rows), rows
+    parts = [
+        _exercise("multiple_choice", item, options=letters, answer=letter) for item, letter in rows
+    ]
+    item = hoeren_teil(teil, instruction, *parts, recording=recording)
+    item["context"] = "\n".join(f"{k}) {choices[k]}" for k in letters)
+    return item
