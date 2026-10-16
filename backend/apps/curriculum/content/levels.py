@@ -25,6 +25,7 @@ LEVELS = {
         "schreiben": a1_schreiben.SCHREIBEN,
         "hoeren": a1_hoeren.HOEREN,
         "hoeren_live": a1_hoeren.LIVE,
+        "hoeren_next": a1_hoeren.NEXT,
     },
     A2_LEVEL: {
         "units": A2_UNITS,

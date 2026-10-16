@@ -22,13 +22,53 @@ DIALOGUES = "Listen to the dialogues. Choose a, b or c. (You hear each dialogue 
 INTERVIEW = "Listen to the interview. Ja oder nein? (You hear it twice.)"
 
 
-def _set(radio, conversation, dialogues, interview) -> list:
+# Where each Modul's conversation (Teil 2) and dialogues (Teil 3) take place;
+# "" is a quiet room. The interviews (Teil 4) are in a quiet studio.
+SCENES = {
+    1: ("", ["cafe", "cafe", "park", "laden", ""]),
+    2: ("cafe", ["laden", "strasse", "cafe", "laden", "strasse"]),
+    3: ("cafe", ["buero", "park", "buero", "buero", "strasse"]),
+    4: ("cafe", ["cafe", "cafe", "", "cafe", ""]),
+    5: ("buero", ["laden", "", "cafe", "", ""]),
+    6: ("cafe", ["", "bahnhof", "", "", "strasse"]),
+    7: ("cafe", ["buero", "cafe", "strasse", "strasse", "bahnhof"]),
+    8: ("buero", ["cafe", "cafe", "buero", "cafe", "buero"]),
+}
+
+
+def _sound(who: str, text: str) -> dict:
+    """Teil 1: phone messages sound like a phone; announcements in a shop or a
+    station start with a gong over their background; radio texts stay clean."""
+    if who != "Ansage":
+        return {"phone": True}
+    if text.startswith("Liebe Kunden"):
+        return {"gong": True, "scene": "laden"}
+    if text.startswith(("Achtung am Gleis", "Liebe Fahrgäste")):
+        return {"gong": True, "scene": "bahnhof"}
+    if text.startswith("Liebe Mitarbeiter"):
+        return {"gong": True, "scene": "buero"}
+    if text.startswith(("Liebe Besucher", "Liebe Gäste")):
+        return {"gong": True}
+    return {}
+
+
+def _set(modul, radio, conversation, dialogues, interview) -> list:
     lines, choices, rows = conversation
     talk, statements = interview
+    talk_scene, dialogue_scenes = SCENES[modul]
     return [
-        hoeren_teil(1, RADIO, *[hoeren_mc(clip((who, text)), *q) for who, text, q in radio]),
-        hoeren_match(2, CONVERSATION, clip(*lines, plays=1), choices, rows),
-        hoeren_teil(3, DIALOGUES, *[hoeren_mc(clip(*s, plays=1), *q) for s, q in dialogues]),
+        hoeren_teil(
+            1, RADIO, *[hoeren_mc(clip((who, t), **_sound(who, t)), *q) for who, t, q in radio]
+        ),
+        hoeren_match(2, CONVERSATION, clip(*lines, plays=1, scene=talk_scene), choices, rows),
+        hoeren_teil(
+            3,
+            DIALOGUES,
+            *[
+                hoeren_mc(clip(*d, plays=1, scene=where), *q)
+                for (d, q), where in zip(dialogues, dialogue_scenes, strict=True)
+            ],
+        ),
         hoeren_teil(
             4,
             INTERVIEW,
@@ -41,6 +81,7 @@ def _set(radio, conversation, dialogues, interview) -> list:
 HOEREN = {
     # Modul 1 (Lektionen 1-3): family and childhood, furniture, holidays in nature.
     1: _set(
+        1,
         [
             (
                 "Ansage",
@@ -218,6 +259,7 @@ HOEREN = {
     ),
     # Modul 2 (Lektionen 4-6): shopping and quantities, sightseeing, culture.
     2: _set(
+        2,
         [
             (
                 "Ansage",
@@ -373,6 +415,7 @@ HOEREN = {
     ),
     # Modul 3 (Lektionen 7-9): sport, health, work.
     3: _set(
+        3,
         [
             (
                 "Ansage",
@@ -549,6 +592,7 @@ HOEREN = {
     ),
     # Modul 4 (Lektionen 10-12): restaurant, family news and feelings, food.
     4: _set(
+        4,
         [
             (
                 "Frau",
@@ -711,6 +755,7 @@ HOEREN = {
     ),
     # Modul 5 (Lektionen 13-15): learning languages, the post, media.
     5: _set(
+        5,
         [
             (
                 "Ansage",
@@ -894,6 +939,7 @@ HOEREN = {
     ),
     # Modul 6 (Lektionen 16-18): the hotel, travel and traffic, weather.
     6: _set(
+        6,
         [
             (
                 "Ansage",
@@ -1067,6 +1113,7 @@ HOEREN = {
     ),
     # Modul 7 (Lektionen 19-21): culture, books and the press, offices and crime.
     7: _set(
+        7,
         [
             (
                 "Ansage",
@@ -1240,6 +1287,7 @@ HOEREN = {
     ),
     # Modul 8 (Lektionen 22-24): mobility and the environment, jobs, living abroad.
     8: _set(
+        8,
         [
             (
                 "Ansage",

@@ -660,16 +660,23 @@ def schreiben_text(what: str, situation: str, points, words, model: str, formal=
 # ---- Hören (exam-style listening, see apps.curriculum.hoeren) ---------------
 
 SPEAKERS = ("Frau", "Mann", "Ansage")  # each has its own voice (llm.VOICES)
+# Background recordings in content/hoeren_scenes/<scene>.mp3 (see make_hoeren_audio).
+SCENES = ("bahnhof", "strasse", "cafe", "laden", "buero", "park")
 
 
-def clip(*lines, plays: int = 2) -> dict:
-    """A recording: (speaker, line) pairs, at most two speakers, heard
-    `plays` times (1 or 2, as in the exam). The script is also the transcript."""
+def clip(*lines, plays: int = 2, scene: str = "", phone: bool = False, gong: bool = False):
+    """A recording: (speaker, line) pairs, at most two speakers, heard `plays`
+    times (1 or 2, as in the exam). The script is also the transcript. Optional:
+    a `scene` playing quietly underneath, the thin sound of a `phone`, and a
+    `gong` before an announcement. Only the options given are stored, so a
+    recording's file name (a hash of this dict) stays the same until it changes."""
     script = [list(line) for line in lines]
     speakers = {s for s, _ in script}
     assert speakers <= set(SPEAKERS) and len(speakers) <= 2, script
     assert plays in (1, 2), plays
-    return {"script": script, "plays": plays}
+    assert not scene or scene in SCENES, scene
+    extra = {"scene": scene, "phone": phone, "gong": gong}
+    return {"script": script, "plays": plays, **{k: v for k, v in extra.items() if v}}
 
 
 def hoeren_mc(recording: dict, question: str, answer: str, *wrong: str) -> dict:
