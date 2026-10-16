@@ -28,8 +28,9 @@ def _results(user) -> dict:
     return {r.exercise_id: r for r in ReadingResult.objects.filter(user=user)}
 
 
-def status(user) -> list[dict]:
-    """Every set the user may see, lowest level first, with locks and best scores."""
+def status(user, skill: str = SKILL, keep=None) -> list[dict]:
+    """Every set the user may see, lowest level first, with locks and best scores.
+    Hören reuses this (`skill`), keeping only sets whose audio exists (`keep`)."""
     results = _results(user)
     return [
         {
@@ -47,13 +48,15 @@ def status(user) -> list[dict]:
                 for teil, e in teile
             ],
         }
-        for level, modul, teile, locked in visible_sets(user, SKILL)
+        for level, modul, teile, locked in visible_sets(user, skill)
+        if keep is None or keep(teile)
     ]
 
 
-def detail(user, level: str, modul: int) -> dict:
-    """One open set: its Teile without answers."""
-    teile = open_set(user, SKILL, level, modul)
+def detail(user, level: str, modul: int, skill: str = SKILL, public=None) -> dict:
+    """One open set: its Teile without answers (`public` shapes each Teil)."""
+    teile = open_set(user, skill, level, modul)
+    public = public or grading.public_exercise
     results = _results(user)
     return {
         **header(level.upper(), modul),
@@ -63,16 +66,16 @@ def detail(user, level: str, modul: int) -> dict:
             {
                 "teil": teil,
                 "best": results[e.id].best_correct if e.id in results else None,
-                **grading.public_exercise(e),
+                **public(e),
             }
             for teil, e in teile
         ],
     }
 
 
-def answer(user, exercise_id: int, given) -> dict:
+def answer(user, exercise_id: int, given, skill: str = SKILL) -> dict:
     """Grade one Teil, keep the best result and reveal the solution."""
-    exercise, _ = open_teil(user, SKILL, exercise_id)
+    exercise, _ = open_teil(user, skill, exercise_id)
     verdicts = grading.grade_parts(exercise, given)
     correct = sum(verdicts)
     result, _ = ReadingResult.objects.get_or_create(user=user, exercise=exercise)

@@ -2,8 +2,8 @@ import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { answerLesenTeil, fetchLesenSet } from "@/api/curriculum"
 import type { LesenAnswerResult, LesenSetDetail, LesenTeil } from "@/types"
+import { QUIZ_SKILLS, type QuizSkill } from "@/lib/examSkills"
 import { errorText } from "@/lib/apiError"
 import { isAnswered } from "@/lib/exercises"
 import { AnswerFeedback } from "@/components/exercises/AnswerFeedback"
@@ -13,35 +13,39 @@ import { Card } from "@/components/ui/card"
 import { SessionBar } from "@/components/ui/SessionBar"
 
 /*
- * One Lesen set, Teil by Teil: read, answer every question, check, then the
- * next Teil. The server grades each Teil and keeps the best result; the score
- * screen shows this run, passed at 60 % as in the exam.
+ * One Lesen or Hören set, Teil by Teil: read or listen, answer every question,
+ * check, then the next Teil. The server grades each Teil and keeps the best
+ * result; the score screen shows this run, passed at 60 % as in the exam.
+ * Hören also shows the transcripts after checking.
  */
-export default function LesenSetPage() {
+export default function QuizSetPage({ skill }: { skill: QuizSkill }) {
+  const def = QUIZ_SKILLS[skill]
   const { level = "", modul = "" } = useParams()
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["lesen", level, Number(modul)],
-    queryFn: () => fetchLesenSet(level, Number(modul)),
+    queryKey: [skill, level, Number(modul)],
+    queryFn: () => def.fetchSet(level, Number(modul)),
     retry: false,
   })
 
   if (isLoading) return <Centered>Loading…</Centered>
-  if (isError || !data) return <Centered>{isError ? errorText(error) : "Couldn’t load this reading set."}</Centered>
-  return <Player key={`${data.cefr_level}-${data.modul}`} set={data} />
+  if (isError || !data) return <Centered>{isError ? errorText(error) : `Couldn’t load this ${def.label} set.`}</Centered>
+  return <Player key={`${data.cefr_level}-${data.modul}`} set={data} skill={skill} />
 }
 
-function Player({ set }: { set: LesenSetDetail }) {
+function Player({ set, skill }: { set: LesenSetDetail; skill: QuizSkill }) {
+  const def = QUIZ_SKILLS[skill]
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [results, setResults] = useState<LesenAnswerResult[]>([])
   const [run, setRun] = useState(0)
   const step = results.length
-  const title = `Lesen · ${set.cefr_level} Modul ${set.modul}`
+  const title = `${def.title} · ${set.cefr_level} Modul ${set.modul}`
 
   if (step >= set.teile.length) {
     return (
       <Score
         set={set}
+        skill={skill}
         results={results}
         onAgain={() => {
           setResults([])
@@ -54,8 +58,8 @@ function Player({ set }: { set: LesenSetDetail }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <SessionBar
-        onClose={() => navigate("/lesen")}
-        closeLabel="Back to Lesen"
+        onClose={() => navigate(def.path)}
+        closeLabel={`Back to ${def.title}`}
         title={title}
         progress={(step / set.teile.length) * 100}
         counter={`Teil ${step + 1}/${set.teile.length}`}
@@ -63,20 +67,29 @@ function Player({ set }: { set: LesenSetDetail }) {
       <TeilStep
         key={`${run}-${step}`}
         teil={set.teile[step]}
+        answer={def.answer}
         onNext={(result) => {
           setResults((r) => [...r, result])
-          if (step + 1 >= set.teile.length) queryClient.invalidateQueries({ queryKey: ["lesen"] })
+          if (step + 1 >= set.teile.length) queryClient.invalidateQueries({ queryKey: [skill] })
         }}
       />
     </div>
   )
 }
 
-function TeilStep({ teil, onNext }: { teil: LesenTeil; onNext: (result: LesenAnswerResult) => void }) {
+function TeilStep({
+  teil,
+  answer: send,
+  onNext,
+}: {
+  teil: LesenTeil
+  answer: (exerciseId: number, answer: unknown) => Promise<LesenAnswerResult>
+  onNext: (result: LesenAnswerResult) => void
+}) {
   const [answer, setAnswer] = useState<unknown>([])
   const [feedback, setFeedback] = useState<LesenAnswerResult | null>(null)
   const check = useMutation({
-    mutationFn: () => answerLesenTeil(teil.exercise_id, answer),
+    mutationFn: () => send(teil.exercise_id, answer),
     onSuccess: setFeedback,
   })
   const ready = isAnswered(teil, answer)
@@ -96,6 +109,7 @@ function TeilStep({ teil, onNext }: { teil: LesenTeil; onNext: (result: LesenAns
           />
         </div>
         {feedback && <AnswerFeedback feedback={feedback} content={teil} />}
+        {feedback?.transcripts && <Transcripts transcripts={feedback.transcripts} />}
         {check.isError && <p className="mt-4 text-sm text-[hsl(var(--danger))]">{errorText(check.error)}</p>}
         <div className="mt-8">
           {feedback ? (
@@ -113,7 +127,37 @@ function TeilStep({ teil, onNext }: { teil: LesenTeil; onNext: (result: LesenAns
   )
 }
 
-function Score({ set, results, onAgain }: { set: LesenSetDetail; results: LesenAnswerResult[]; onAgain: () => void }) {
+function Transcripts({ transcripts }: { transcripts: string[] }) {
+  const numbered = transcripts.length > 1
+  return (
+    <details className="mt-5 rounded-2xl bg-surface-2/70 p-4 text-[15px]">
+      <summary className="cursor-pointer font-semibold">Transcript</summary>
+      <ol className="mt-3 flex flex-col gap-3">
+        {transcripts.map((t, i) =>
+          t ? (
+            <li key={i} className="whitespace-pre-line leading-relaxed">
+              {numbered && <span className="mr-1.5 font-semibold tabular-nums">{i + 1}.</span>}
+              {t}
+            </li>
+          ) : null,
+        )}
+      </ol>
+    </details>
+  )
+}
+
+function Score({
+  set,
+  skill,
+  results,
+  onAgain,
+}: {
+  set: LesenSetDetail
+  skill: QuizSkill
+  results: LesenAnswerResult[]
+  onAgain: () => void
+}) {
+  const def = QUIZ_SKILLS[skill]
   const right = results.reduce((n, r) => n + r.right, 0)
   const total = results.reduce((n, r) => n + r.total, 0)
   const passed = right >= set.pass_share * total
@@ -130,7 +174,7 @@ function Score({ set, results, onAgain }: { set: LesenSetDetail; results: LesenA
             <p className="mt-1 text-muted-foreground">
               {passed
                 ? "You'd pass this part of the exam."
-                : `You need ${Math.ceil(set.pass_share * total)} right to pass. Read the texts again and retry.`}
+                : `You need ${Math.ceil(set.pass_share * total)} right to pass. ${def.retry}`}
             </p>
           </div>
           <ul className="mt-7 flex flex-col gap-2">
@@ -148,7 +192,7 @@ function Score({ set, results, onAgain }: { set: LesenSetDetail; results: LesenA
               Try again
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <Link to="/lesen">All reading sets</Link>
+              <Link to={def.path}>All {def.label} sets</Link>
             </Button>
           </div>
         </div>

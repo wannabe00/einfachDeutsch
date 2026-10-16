@@ -239,3 +239,21 @@ export async function fetchWritingAttempts(exerciseId: number): Promise<WritingA
   const { data } = await apiClient.get<WritingAttempt[]>(`/curriculum/schreiben/teil/${exerciseId}/attempts/`)
   return data
 }
+
+/** Every recorded Hören set the user may see (same shape as Lesen). */
+export async function fetchHoerenSets(): Promise<LesenSet[]> {
+  const { data } = await apiClient.get<LesenSet[]>("/curriculum/hoeren/")
+  return data
+}
+
+export async function fetchHoerenSet(level: string, modul: number): Promise<LesenSetDetail> {
+  const { data } = await apiClient.get<LesenSetDetail>(`/curriculum/hoeren/${level}/${modul}/`)
+  return data
+}
+
+export async function answerHoerenTeil(exerciseId: number, answer: unknown): Promise<LesenAnswerResult> {
+  const { data } = await apiClient.post<LesenAnswerResult>(`/curriculum/hoeren/teil/${exerciseId}/answer/`, {
+    answer,
+  })
+  return data
+}

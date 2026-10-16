@@ -309,6 +309,8 @@ export interface ExercisePayload {
   context?: string
   /** Base64 of German the browser reads aloud ("which word do you hear?", dictation). */
   say?: string
+  /** A Hören recording and how often it may be played before checking. */
+  audio?: { url: string; plays: number }
 }
 
 export type GrammarCategory =
@@ -655,6 +657,8 @@ export interface LesenAnswerResult extends AnswerResult {
   right: number
   total: number
   best: number
+  /** Hören: the scripts, one per recording (a Teil's single recording, or one per question). */
+  transcripts?: string[]
 }
 
 /* ---- Schreiben: exam-style writing, one set per Modul ---- */
