@@ -17,16 +17,62 @@ ANNOUNCEMENTS = "Listen to the announcement. Richtig oder falsch? (You hear it o
 MESSAGES = "Listen to the message. Choose a, b or c. (You hear it twice.)"
 
 
-def _set(dialogues, announcements, messages) -> list:
-    return [
+def _set(dialogues, announcements, messages=None) -> list:
+    """Teil 3 is left out when `messages` is None (Modul 1 for now)."""
+    teile = [
         hoeren_teil(1, DIALOGUES, *[hoeren_mc(clip(*s), *q) for s, q in dialogues]),
         hoeren_teil(
             2,
             ANNOUNCEMENTS,
             *[hoeren_rf(clip(("Ansage", s), plays=1), *q) for s, q in announcements],
         ),
-        hoeren_teil(3, MESSAGES, *[hoeren_mc(clip((who, s)), *q) for who, s, q in messages]),
     ]
+    if messages is not None:
+        teile.append(
+            hoeren_teil(3, MESSAGES, *[hoeren_mc(clip((who, s)), *q) for who, s, q in messages])
+        )
+    return teile
+
+
+# Modul 1's Teil 3 (phone messages), set aside until its audio is recorded:
+# pass it as `_set(..., M1_MESSAGES)` below to add it back.
+M1_MESSAGES = [
+    (
+        "Frau",
+        "Hallo Tom, hier ist Anna. Meine Freundin Sofia ist da, sie kommt aus "
+        "Brasilien. Sie spricht ein bisschen Deutsch. Bis bald!",
+        ("Woher kommt Sofia?", "Aus Brasilien.", "Aus Spanien.", "Aus Georgien."),
+    ),
+    (
+        "Mann",
+        "Guten Tag, Frau Klein. Hier ist Peter Novak von der Firma Hoffmann. "
+        "Meine Telefonnummer ist null – sechs – neun, achtunddreißig, "
+        "einundfünfzig. Danke und auf Wiederhören!",
+        (
+            "Wie ist die Nummer von Herrn Novak?",
+            "069 38 51",
+            "069 83 51",
+            "069 38 15",
+        ),
+    ),
+    (
+        "Frau",
+        "Hallo Papa, hier ist Lena. Oma und Opa sind heute bei uns. Kommst du auch? Tschüs!",
+        ("Wer ist heute bei Lena?", "Oma und Opa", "Mama und Papa", "Ihr Bruder"),
+    ),
+    (
+        "Mann",
+        "Hallo Maria, hier ist Jonas. Mein Kollege Ben sucht eine Lehrerin für "
+        "Spanisch. Du bist doch Spanischlehrerin! Bis bald.",
+        ("Was sucht Ben?", "Eine Spanischlehrerin", "Einen Job", "Eine Kollegin"),
+    ),
+    (
+        "Frau",
+        "Guten Tag, hier ist die Sprachschule Lingua. Ihr Englischkurs ist in "
+        "Zimmer fünfzehn, nicht in Zimmer fünf. Auf Wiederhören!",
+        ("In welchem Zimmer ist der Kurs?", "Zimmer 15", "Zimmer 5", "Zimmer 50"),
+    ),
+]
 
 
 HOEREN = {
@@ -109,43 +155,6 @@ HOEREN = {
                 "Liebe Eltern, die Lehrerin von Klasse drei ist Frau Yilmaz. Ihre "
                 "Telefonnummer ist null – drei – null, vierundfünfzig, zweiundachtzig.",
                 ("Frau Yilmaz ist Lehrerin.", True),
-            ),
-        ],
-        [
-            (
-                "Frau",
-                "Hallo Tom, hier ist Anna. Meine Freundin Sofia ist da, sie kommt aus "
-                "Brasilien. Sie spricht ein bisschen Deutsch. Bis bald!",
-                ("Woher kommt Sofia?", "Aus Brasilien.", "Aus Spanien.", "Aus Georgien."),
-            ),
-            (
-                "Mann",
-                "Guten Tag, Frau Klein. Hier ist Peter Novak von der Firma Hoffmann. "
-                "Meine Telefonnummer ist null – sechs – neun, achtunddreißig, "
-                "einundfünfzig. Danke und auf Wiederhören!",
-                (
-                    "Wie ist die Nummer von Herrn Novak?",
-                    "069 38 51",
-                    "069 83 51",
-                    "069 38 15",
-                ),
-            ),
-            (
-                "Frau",
-                "Hallo Papa, hier ist Lena. Oma und Opa sind heute bei uns. Kommst du auch? Tschüs!",
-                ("Wer ist heute bei Lena?", "Oma und Opa", "Mama und Papa", "Ihr Bruder"),
-            ),
-            (
-                "Mann",
-                "Hallo Maria, hier ist Jonas. Mein Kollege Ben sucht eine Lehrerin für "
-                "Spanisch. Du bist doch Spanischlehrerin! Bis bald.",
-                ("Was sucht Ben?", "Eine Spanischlehrerin", "Einen Job", "Eine Kollegin"),
-            ),
-            (
-                "Frau",
-                "Guten Tag, hier ist die Sprachschule Lingua. Ihr Englischkurs ist in "
-                "Zimmer fünfzehn, nicht in Zimmer fünf. Auf Wiederhören!",
-                ("In welchem Zimmer ist der Kurs?", "Zimmer 15", "Zimmer 5", "Zimmer 50"),
             ),
         ],
     ),
