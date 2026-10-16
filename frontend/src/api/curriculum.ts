@@ -9,6 +9,9 @@ import type {
   ExamStart,
   ExamStatus,
   Gamification,
+  LesenAnswerResult,
+  LesenSet,
+  LesenSetDetail,
   LessonDetail,
   PathEnergy,
   PathResponse,
@@ -165,5 +168,23 @@ export async function answerCheck(id: number, taskId: string, answer: unknown): 
 /** Score a check whose tasks are all answered. */
 export async function finishCheck(id: number): Promise<CheckData> {
   const { data } = await apiClient.post<CheckData>(`/curriculum/checks/${id}/finish/`)
+  return data
+}
+
+/** Every Lesen set the user may see, with locks and best scores. */
+export async function fetchLesenSets(): Promise<LesenSet[]> {
+  const { data } = await apiClient.get<LesenSet[]>("/curriculum/lesen/")
+  return data
+}
+
+export async function fetchLesenSet(level: string, modul: number): Promise<LesenSetDetail> {
+  const { data } = await apiClient.get<LesenSetDetail>(`/curriculum/lesen/${level}/${modul}/`)
+  return data
+}
+
+export async function answerLesenTeil(exerciseId: number, answer: unknown): Promise<LesenAnswerResult> {
+  const { data } = await apiClient.post<LesenAnswerResult>(`/curriculum/lesen/teil/${exerciseId}/answer/`, {
+    answer,
+  })
   return data
 }

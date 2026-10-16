@@ -11,6 +11,7 @@ Words are `(english, german, part_of_speech)` or, for nouns, optionally
 
 import hashlib
 import random
+import textwrap
 
 ARTICLES = ("der", "die", "das")
 
@@ -536,3 +537,90 @@ def modul_check(level: str, last_lektion: int, **extras) -> dict:
         "dictation": dictation_task,
     }
     return {k: builders[k](v) for k, v in extras.items() if k in allowed}
+
+
+# ---- Lesen (exam-style reading, see apps.curriculum.lesen) -----------------
+
+RF = ("Richtig", "Falsch")
+
+
+def _text(text: str) -> str:
+    """An authored text with its line breaks kept (notes, signs, boards)."""
+    return textwrap.dedent(text).strip()
+
+
+def _rf(statement: str, is_true: bool, context: str = "") -> dict:
+    part = _exercise("multiple_choice", statement, options=list(RF), answer=RF[0 if is_true else 1])
+    if context:
+        part["context"] = _text(context)
+    return part
+
+
+def _choice(question: str, answer: str, *wrong: str, context: str = "") -> dict:
+    part = mc(question, answer, *wrong)
+    if context:
+        part["context"] = _text(context)
+    return part
+
+
+def lesen_notes(texts, statements, teil: int = 1) -> dict:
+    """A1 Teil 1: short notes or e-mails, then (statement, is_true) pairs."""
+    item = group(
+        f"Teil {teil} · Read the texts. Richtig oder falsch?",
+        *[_rf(s, ok) for s, ok in statements],
+    )
+    item["context"] = "\n\n".join(_text(t) for t in texts)
+    return item
+
+
+def lesen_adverts(rows, teil: int = 2) -> dict:
+    """A1 Teil 2: each row is (situation, advert a, advert b, "a" or "b")."""
+    parts = []
+    for situation, a, b, right in rows:
+        assert right in ("a", "b"), situation
+        part = _exercise("multiple_choice", situation, options=["a", "b"], answer=right)
+        part["context"] = f"a) {_text(a)}\n\nb) {_text(b)}"
+        parts.append(part)
+    return group(f"Teil {teil} · Read the adverts. Which one fits: a or b?", *parts)
+
+
+def lesen_signs(rows, teil: int = 3) -> dict:
+    """A1 Teil 3: each row is (sign or notice, statement, is_true)."""
+    parts = [_rf(statement, ok, context=sign) for sign, statement, ok in rows]
+    return group(f"Teil {teil} · Read the signs. Richtig oder falsch?", *parts)
+
+
+def lesen_text(what: str, text: str, rows, teil: int) -> dict:
+    """A2 Teil 1 / 3: one longer text (article, e-mail), then multiple choice.
+    Each row is (question, right answer, *wrong answers)."""
+    item = group(
+        f"Teil {teil} · Read the {what}. Choose the right answer.",
+        *[_choice(q, a, *w) for q, a, *w in rows],
+    )
+    item["context"] = _text(text)
+    return item
+
+
+def lesen_directory(board: str, rows, teil: int = 2) -> dict:
+    """A2 Teil 2: a store directory or information board. Each row is
+    (situation, right place, *wrong places)."""
+    item = group(
+        f"Teil {teil} · Read the board. Where do you go?",
+        *[_choice(q, a, *w) for q, a, *w in rows],
+    )
+    item["context"] = _text(board)
+    return item
+
+
+def lesen_people(ads: dict, people, teil: int = 4) -> dict:
+    """A2 Teil 4: adverts {letter: text} and (person, letter) rows. There is
+    one advert more than people, so the last one can't be guessed."""
+    letters = sorted(ads)
+    assert len(letters) > len(people), people
+    parts = []
+    for person, letter in people:
+        assert letter in ads, person
+        parts.append(_exercise("multiple_choice", person, options=letters, answer=letter))
+    item = group(f"Teil {teil} · Read the adverts. Which one fits each person?", *parts)
+    item["context"] = "\n\n".join(f"{k}) {_text(ads[k])}" for k in letters)
+    return item
