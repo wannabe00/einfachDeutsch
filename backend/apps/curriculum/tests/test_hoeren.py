@@ -24,7 +24,25 @@ BASE = "/api/curriculum/hoeren"
 A1_SHAPE = [(6, 2), (4, 1), (5, 2)]
 
 
+# A2 like Goethe A2: Teil 2 and 4 are one recording for the whole Teil.
+A2_SHAPE = [(5, 2), (5, 1), (5, 1), (5, 2)]
+
+
+def _plays(teil):
+    return (teil.get("clip") or teil["parts"][0]["clip"])["plays"]
+
+
 class ContentTests(TestCase):
+    def test_a2_sets_have_the_exam_shape(self):
+        for modul, teile in LEVELS["A2"]["hoeren"].items():
+            where = f"A2 Modul {modul}"
+            self.assertEqual([(len(t["parts"]), _plays(t)) for t in teile], A2_SHAPE, where)
+            for teil in teile:
+                self.assertGreater(len({p["answer"] for p in teil["parts"]}), 1, where)
+                for part in teil["parts"]:
+                    self.assertIn(part["answer"], part["options"], where)
+            self.assertTrue(teile[1]["context"] and teile[1]["clip"], where)  # choices + one talk
+
     def test_a1_sets_have_the_exam_shape(self):
         for modul, teile in LEVELS["A1"]["hoeren"].items():
             where = f"A1 Modul {modul}"
