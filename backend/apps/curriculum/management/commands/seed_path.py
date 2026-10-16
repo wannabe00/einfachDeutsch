@@ -24,8 +24,9 @@ from django.db import transaction
 from apps.books.models import Book, Chapter
 from apps.curriculum.checks import MODUL_SIZE, check_source
 from apps.curriculum.content.levels import LEVELS
-from apps.curriculum.lesen import lesen_source
+from apps.curriculum.exam_sets import SKILLS, set_source
 from apps.curriculum.models import Lesson, LessonItem, Unit
+from apps.curriculum.schreiben import WRITING_FIELDS
 from apps.exercises.models import Exercise
 from apps.grammar.models import GrammarRule
 from apps.vocabulary.models import Word
@@ -72,6 +73,8 @@ def exercise_fields(item: dict) -> dict:
         }
     elif etype == "matching":
         fields["payload"] = {"pairs": item["pairs"]}
+    elif etype == "free_text":  # a Schreiben task: graded by the rubric, not an answer
+        fields["payload"] = {k: item[k] for k in WRITING_FIELDS}
     elif etype == "group":
         fields["payload"] = {
             "parts": [{k: v for k, v in p.items() if k != "kind"} for p in item["parts"]]
@@ -310,15 +313,16 @@ class Command(BaseCommand):
                     "chapter_id": chapters[m * MODUL_SIZE].id,
                     **exercise_fields(item),
                 }
-        # Lesen sets: one per Modul, one exercise per Teil (no lesson items).
-        for m, teile in spec["lesen"].items():
-            for teil, item in enumerate(teile, start=1):
-                source = lesen_source(level, m, teil)
-                desired_exercises[source] = {
-                    "source": source,
-                    "chapter_id": chapters[m * MODUL_SIZE].id,
-                    **exercise_fields(item),
-                }
+        # Lesen and Schreiben sets: one per Modul, one exercise per Teil (no lesson items).
+        for skill in SKILLS:
+            for m, teile in spec[skill].items():
+                for teil, item in enumerate(teile, start=1):
+                    source = set_source(skill, level, m, teil)
+                    desired_exercises[source] = {
+                        "source": source,
+                        "chapter_id": chapters[m * MODUL_SIZE].id,
+                        **exercise_fields(item),
+                    }
         existing_exercises = {
             e.source: e for e in Exercise.objects.filter(source__startswith=prefix)
         }

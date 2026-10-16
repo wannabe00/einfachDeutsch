@@ -5,6 +5,7 @@ import type {
   CheckStart,
   CheckStatus,
   CompleteResult,
+  FormResult,
   ExamResult,
   ExamStart,
   ExamStatus,
@@ -17,7 +18,12 @@ import type {
   PathResponse,
   PathUnitDetail,
   PracticeOptions,
+  PointGrade,
   PracticeTask,
+  SchreibenSet,
+  SchreibenSetDetail,
+  WriteResult,
+  WritingAttempt,
 } from "@/types"
 
 /** XP + crowns + level progress for the Dashboard. */
@@ -186,5 +192,50 @@ export async function answerLesenTeil(exerciseId: number, answer: unknown): Prom
   const { data } = await apiClient.post<LesenAnswerResult>(`/curriculum/lesen/teil/${exerciseId}/answer/`, {
     answer,
   })
+  return data
+}
+
+/** Every Schreiben set the user may see, with locks and best scores. */
+export async function fetchSchreibenSets(): Promise<SchreibenSet[]> {
+  const { data } = await apiClient.get<SchreibenSet[]>("/curriculum/schreiben/")
+  return data
+}
+
+export async function fetchSchreibenSet(level: string, modul: number): Promise<SchreibenSetDetail> {
+  const { data } = await apiClient.get<SchreibenSetDetail>(`/curriculum/schreiben/${level}/${modul}/`)
+  return data
+}
+
+/** A1 Teil 1: grade the form. */
+export async function answerSchreibenForm(exerciseId: number, answer: unknown): Promise<FormResult> {
+  const { data } = await apiClient.post<FormResult>(`/curriculum/schreiben/teil/${exerciseId}/form/`, {
+    answer,
+  })
+  return data
+}
+
+/** Save a written text; returns the checks, the points and the model answer. */
+export async function writeSchreiben(exerciseId: number, text: string): Promise<WriteResult> {
+  const { data } = await apiClient.post<WriteResult>(`/curriculum/schreiben/teil/${exerciseId}/write/`, {
+    text,
+  })
+  return data
+}
+
+export async function selfCheckWriting(attemptId: number, points: PointGrade[]): Promise<WritingAttempt> {
+  const { data } = await apiClient.post<WritingAttempt>(`/curriculum/schreiben/attempts/${attemptId}/self/`, {
+    points,
+  })
+  return data
+}
+
+/** Premium: Gemini grades the text on the exam's criteria. */
+export async function aiGradeWriting(attemptId: number): Promise<WritingAttempt> {
+  const { data } = await apiClient.post<WritingAttempt>(`/curriculum/schreiben/attempts/${attemptId}/ai/`)
+  return data
+}
+
+export async function fetchWritingAttempts(exerciseId: number): Promise<WritingAttempt[]> {
+  const { data } = await apiClient.get<WritingAttempt[]>(`/curriculum/schreiben/teil/${exerciseId}/attempts/`)
   return data
 }

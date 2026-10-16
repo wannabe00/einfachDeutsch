@@ -624,3 +624,34 @@ def lesen_people(ads: dict, people, teil: int = 4) -> dict:
     item = group(f"Teil {teil} · Read the adverts. Which one fits each person?", *parts)
     item["context"] = "\n\n".join(f"{k}) {_text(ads[k])}" for k in letters)
     return item
+
+
+# ---- Schreiben (exam-style writing, see apps.curriculum.schreiben) ----------
+
+
+def schreiben_form(situation: str, fields, teil: int = 1) -> dict:
+    """A1 Teil 1: a short text about a person, then a form with five gaps.
+    Each field is (label, answer); `answer` may list variants as "a|b"."""
+    item = group(
+        f"Teil {teil} · Read the text and fill in the form.",
+        *[fill(label, answer) for label, answer in fields],
+    )
+    item["context"] = _text(situation)
+    return item
+
+
+def schreiben_text(what: str, situation: str, points, words, model: str, formal=False, teil=2):
+    """Free writing: a situation, three points to write about, a word range
+    (min, max) and an original model answer that's shown after the attempt."""
+    points = list(points)
+    assert len(points) == 3, situation
+    return _exercise(
+        "free_text",
+        f"Teil {teil} · {what}",
+        situation=_text(situation),
+        points=points,
+        min_words=words[0],
+        max_words=words[1],
+        formal=formal,
+        model=_text(model),
+    )

@@ -266,3 +266,36 @@ class ReadingResult(models.Model):
 
     def __str__(self):
         return f"{self.user} · {self.exercise.source} {self.best_correct}/{self.total}"
+
+
+class WritingAttempt(models.Model):
+    """One try at a Schreiben Teil (see apps.curriculum.schreiben), kept with its
+    text, score and feedback so the user can read past attempts again."""
+
+    class GradedBy(models.TextChoices):
+        AUTO = "auto", "Checked automatically"  # the form, or a text far too short
+        SELF = "self", "Self-check"
+        AI = "ai", "AI"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="writing_attempts"
+    )
+    exercise = models.ForeignKey(
+        "exercises.Exercise", on_delete=models.CASCADE, related_name="writing_attempts"
+    )
+    answer = models.JSONField(default=str)  # the text, or the form's answers
+    words = models.PositiveIntegerField(default=0)
+    # Per content point: "full" | "partial" | "missing".
+    points = models.JSONField(default=list, blank=True)
+    score = models.FloatField(null=True, blank=True)  # null until graded
+    max_score = models.FloatField(default=0)
+    graded_by = models.CharField(max_length=4, choices=GradedBy.choices, blank=True)
+    # Checks, grades per criterion, and the AI's corrected text and tips.
+    feedback = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.user} · {self.exercise.source} {self.score}/{self.max_score}"

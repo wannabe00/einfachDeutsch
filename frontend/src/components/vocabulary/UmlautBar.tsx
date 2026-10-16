@@ -3,7 +3,7 @@ import type { RefObject } from "react"
 const CHARS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"]
 
 interface UmlautBarProps {
-  inputRef: RefObject<HTMLInputElement | null>
+  inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement | null>
   value: string
   onChange: (next: string) => void
 }
