@@ -1,946 +1,866 @@
-"""A1 Hören sets, shaped like the Start Deutsch 1 listening paper: one set per
-Modul. Teil 1: 6 short dialogues, a/b/c, heard twice. Teil 2: 4 announcements,
-richtig/falsch, heard once. Teil 3: 5 phone messages, a/b/c, heard twice.
+"""A1 Hören sets, after the Start Deutsch 1 listening paper, 5 questions per Teil:
+Teil 1 one longer conversation (heard twice), Teil 2 five short announcements
+(richtig/falsch, heard once), Teil 3 one longer phone call or voicemail (heard
+twice). Recordings carry a quiet background `scene`, the thin `phone` sound or
+a `gong`, mixed in by `manage.py make_hoeren_audio`.
 
 All scripts are original and use the words taught up to the Modul's last
-Lektion. The audio is generated once with `manage.py make_hoeren_audio`.
-Moduls 1-2 for now; more follow the same pattern.
+Lektion (plus names, places and numbers).
 """
 
-from ..dsl import clip, hoeren_mc, hoeren_rf, hoeren_teil
+from ..dsl import clip, hoeren_mc, hoeren_rf, hoeren_teil, mc
 
 # The Moduls testers see in production; the rest stay local (DEBUG shows all).
 LIVE = {1}
 
-DIALOGUES = "Listen to the dialogue. Choose a, b or c. (You hear it twice.)"
-ANNOUNCEMENTS = "Listen to the announcement. Richtig oder falsch? (You hear it once.)"
-MESSAGES = "Listen to the message. Choose a, b or c. (You hear it twice.)"
+CONVERSATION = "Listen to the conversation. Choose a, b or c. (You hear it twice.)"
+ANNOUNCEMENTS = "Listen to the announcements. Richtig oder falsch? (You hear each once.)"
+PHONE = "Listen to the phone message. Choose a, b or c. (You hear it twice.)"
 
 
-def _set(dialogues, announcements, messages=None) -> list:
-    """Teil 3 is left out when `messages` is None (Modul 1 for now)."""
-    teile = [
-        hoeren_teil(1, DIALOGUES, *[hoeren_mc(clip(*s), *q) for s, q in dialogues]),
+def _set(conversation, announcements, phone) -> list:
+    """conversation / phone: (lines, scene or phone flags, questions);
+    announcements: (text, clip options, (statement, is_true))."""
+    talk, where, questions = conversation
+    call, call_questions = phone
+    return [
+        hoeren_teil(
+            1, CONVERSATION, *[mc(*q) for q in questions], recording=clip(*talk, scene=where)
+        ),
         hoeren_teil(
             2,
             ANNOUNCEMENTS,
+            *[hoeren_rf(clip(("Ansage", t), plays=1, **o), *q) for t, o, q in announcements],
+        ),
+        hoeren_teil(3, PHONE, *[mc(*q) for q in call_questions], recording=clip(*call, phone=True)),
+    ]
+
+
+def _old_set(dialogues, announcements) -> list:
+    """The first Modul 1 (short clips, 10 questions), live until M1_NEW is recorded."""
+    return [
+        hoeren_teil(
+            1,
+            "Listen to the dialogue. Choose a, b or c. (You hear it twice.)",
+            *[hoeren_mc(clip(*s), *q) for s, q in dialogues],
+        ),
+        hoeren_teil(
+            2,
+            "Listen to the announcement. Richtig oder falsch? (You hear it once.)",
             *[hoeren_rf(clip(("Ansage", s), plays=1), *q) for s, q in announcements],
         ),
     ]
-    if messages is not None:
-        teile.append(
-            hoeren_teil(3, MESSAGES, *[hoeren_mc(clip((who, s)), *q) for who, s, q in messages])
-        )
-    return teile
 
 
-# Modul 1's Teil 3 (phone messages), set aside until its audio is recorded:
-# pass it as `_set(..., M1_MESSAGES)` below to add it back.
-M1_MESSAGES = [
-    (
-        "Frau",
-        "Hallo Tom, hier ist Anna. Meine Freundin Sofia ist da, sie kommt aus "
-        "Brasilien. Sie spricht ein bisschen Deutsch. Bis bald!",
-        ("Woher kommt Sofia?", "Aus Brasilien.", "Aus Spanien.", "Aus Georgien."),
-    ),
-    (
-        "Mann",
-        "Guten Tag, Frau Klein. Hier ist Peter Novak von der Firma Hoffmann. "
-        "Meine Telefonnummer ist null – sechs – neun, achtunddreißig, "
-        "einundfünfzig. Danke und auf Wiederhören!",
+GONG = {"gong": True}
+STATION = {"gong": True, "scene": "bahnhof"}
+SHOP = {"gong": True, "scene": "laden"}
+OFFICE = {"gong": True, "scene": "buero"}
+STREET = {"scene": "strasse"}
+PARK = {"scene": "park"}
+CAFE = {"scene": "cafe"}
+NONE: dict = {}
+
+M1_LIVE = _old_set(
+    [
         (
-            "Wie ist die Nummer von Herrn Novak?",
-            "069 38 51",
-            "069 83 51",
-            "069 38 15",
+            [
+                ("Frau", "Guten Tag! Wie ist Ihr Name, bitte?"),
+                ("Mann", "Mein Name ist Schneider."),
+                ("Frau", "Wie schreibt man das?"),
+                ("Mann", "S – C – H – N – E – I – D – E – R."),
+            ],
+            ("Wie heißt der Mann?", "Schneider", "Schreiner", "Schröder"),
         ),
-    ),
-    (
-        "Frau",
-        "Hallo Papa, hier ist Lena. Oma und Opa sind heute bei uns. Kommst du auch? Tschüs!",
-        ("Wer ist heute bei Lena?", "Oma und Opa", "Mama und Papa", "Ihr Bruder"),
-    ),
-    (
-        "Mann",
-        "Hallo Maria, hier ist Jonas. Mein Kollege Ben sucht eine Lehrerin für "
-        "Spanisch. Du bist doch Spanischlehrerin! Bis bald.",
-        ("Was sucht Ben?", "Eine Spanischlehrerin", "Einen Job", "Eine Kollegin"),
-    ),
-    (
-        "Frau",
-        "Guten Tag, hier ist die Sprachschule Lingua. Ihr Englischkurs ist in "
-        "Zimmer fünfzehn, nicht in Zimmer fünf. Auf Wiederhören!",
-        ("In welchem Zimmer ist der Kurs?", "Zimmer 15", "Zimmer 5", "Zimmer 50"),
-    ),
-]
+        (
+            [
+                ("Mann", "Woher kommst du, Lucia?"),
+                ("Frau", "Ich komme aus Spanien, aus Madrid. Und du?"),
+                ("Mann", "Ich komme aus Italien."),
+            ],
+            ("Woher kommt Lucia?", "Aus Spanien.", "Aus Italien.", "Aus Brasilien."),
+        ),
+        (
+            [
+                ("Frau", "Was sind Sie von Beruf?"),
+                ("Mann", "Ich bin Lehrer. Und meine Frau ist Ärztin."),
+            ],
+            ("Was ist der Mann von Beruf?", "Lehrer", "Arzt", "Kellner"),
+        ),
+        (
+            [
+                ("Mann", "Wie alt ist deine Tochter?"),
+                ("Frau", "Sie ist zwölf. Und mein Sohn ist acht."),
+            ],
+            ("Wie alt ist die Tochter?", "12 Jahre", "8 Jahre", "20 Jahre"),
+        ),
+        (
+            [
+                ("Frau", "Wie ist deine Telefonnummer?"),
+                (
+                    "Mann",
+                    "Null – eins – sieben – null, fünfundvierzig, dreiundsechzig, neunundzwanzig.",
+                ),
+            ],
+            ("Wie ist die Telefonnummer?", "0170 45 63 29", "0170 54 63 29", "0170 45 36 29"),
+        ),
+        (
+            [
+                ("Mann", "Sprechen Sie Englisch?"),
+                (
+                    "Frau",
+                    "Ja. Und ich spreche auch ein bisschen Französisch. Aber kein Russisch.",
+                ),
+            ],
+            (
+                "Welche Sprachen spricht die Frau?",
+                "Englisch und Französisch",
+                "Englisch und Russisch",
+                "Französisch und Russisch",
+            ),
+        ),
+    ],
+    [
+        (
+            "Liebe Studenten, der Deutschkurs ist heute nicht in Zimmer zwölf. "
+            "Er ist in Zimmer zwanzig.",
+            ("Der Kurs ist heute in Zimmer 20.", True),
+        ),
+        (
+            "Achtung, bitte! Frau Weber, bitte kommen Sie zur Information. "
+            "Frau Weber, bitte zur Information.",
+            ("Frau Weber soll zum Telefon kommen.", False),
+        ),
+        (
+            "Guten Tag im Hotel Europa! Wir sprechen Deutsch, Englisch und Italienisch.",
+            ("Im Hotel sprechen sie Spanisch.", False),
+        ),
+        (
+            "Liebe Eltern, die Lehrerin von Klasse drei ist Frau Yilmaz. Ihre "
+            "Telefonnummer ist null – drei – null, vierundfünfzig, zweiundachtzig.",
+            ("Frau Yilmaz ist Lehrerin.", True),
+        ),
+    ],
+)
 
+# The new Modul 1. It replaces M1_LIVE in HOEREN once its audio is recorded.
+M1_NEW = _set(
+    (
+        [
+            ("Mann", "Hallo! Ist hier noch frei?"),
+            ("Frau", "Ja, bitte. Bist du auch im Deutschkurs?"),
+            ("Mann", "Ja. Ich heiße Pedro. Und du?"),
+            ("Frau", "Ich bin Mariam. Woher kommst du, Pedro?"),
+            ("Mann", "Aus Brasilien, aus Rio. Und du?"),
+            ("Frau", "Ich komme aus Georgien. Ich wohne jetzt in Köln."),
+            ("Mann", "Ich auch! Was machst du beruflich?"),
+            ("Frau", "Ich bin Krankenschwester. Und du?"),
+            ("Mann", "Ich bin Student. Ich studiere hier an der Universität."),
+            ("Frau", "Sprichst du auch Englisch?"),
+            ("Mann", "Ja, Englisch und Spanisch. Und ein bisschen Deutsch."),
+            ("Frau", "Ich spreche Georgisch, Russisch und Englisch."),
+            ("Mann", "Hast du Familie hier?"),
+            ("Frau", "Ja, meine Schwester wohnt auch in Köln. Sie ist zweiundzwanzig."),
+        ],
+        "cafe",
+        [
+            ("Woher kommt Pedro?", "Aus Brasilien.", "Aus Spanien.", "Aus Georgien."),
+            ("Wo wohnt Mariam?", "In Köln", "In Rio", "In Georgien"),
+            ("Was ist Mariam von Beruf?", "Krankenschwester", "Studentin", "Lehrerin"),
+            (
+                "Welche Sprachen spricht Pedro?",
+                "Englisch und Spanisch",
+                "Georgisch und Russisch",
+                "Nur Deutsch",
+            ),
+            ("Wie alt ist Mariams Schwester?", "22 Jahre", "20 Jahre", "12 Jahre"),
+        ],
+    ),
+    [
+        (
+            "Liebe Studenten, der Deutschkurs A1 ist heute in Zimmer zwanzig.",
+            GONG,
+            ("Der Kurs ist heute in Zimmer 20.", True),
+        ),
+        (
+            "Achtung, bitte! Frau Weber, bitte kommen Sie zur Information.",
+            SHOP,
+            ("Frau Weber soll zum Telefon kommen.", False),
+        ),
+        (
+            "Guten Tag im Hotel Europa! Wir sprechen Deutsch, Englisch und Italienisch.",
+            NONE,
+            ("Im Hotel sprechen sie Spanisch.", False),
+        ),
+        (
+            "Achtung, bitte: Familie Yilmaz aus der Türkei, bitte kommen Sie zur Information.",
+            STATION,
+            ("Familie Yilmaz kommt aus der Türkei.", True),
+        ),
+        (
+            "Liebe Eltern, die Telefonnummer von der Schule ist null – drei – null, vierundfünfzig, zweiundachtzig.",
+            GONG,
+            ("Die Telefonnummer ist 030 54 82.", True),
+        ),
+    ],
+    (
+        [
+            (
+                "Frau",
+                "Hallo Tom, hier ist Anna. Wie geht's? Meine Freundin Sofia ist jetzt in Köln. "
+                "Sie kommt aus Brasilien und ist Ärztin. Sie spricht ein bisschen Deutsch, aber "
+                "sehr gut Englisch. Sie hat zwei Kinder, einen Sohn und eine Tochter. Der Sohn ist "
+                "acht und die Tochter ist fünf. Meine Telefonnummer ist null – eins – sieben – null, "
+                "dreiundsechzig, neunundzwanzig. Ruf mich bitte an! Tschüs!",
+            )
+        ],
+        [
+            ("Wo ist Sofia jetzt?", "In Köln", "In Brasilien", "In Berlin"),
+            ("Was ist Sofia von Beruf?", "Ärztin", "Lehrerin", "Krankenschwester"),
+            ("Welche Sprache spricht Sofia sehr gut?", "Englisch", "Deutsch", "Spanisch"),
+            ("Wie alt ist Sofias Tochter?", "5 Jahre", "8 Jahre", "15 Jahre"),
+            ("Wie ist Annas Telefonnummer?", "0170 63 29", "0170 36 29", "0170 63 92"),
+        ],
+    ),
+)
 
 HOEREN = {
-    # Modul 1 (Lektionen 1-3): names, countries, jobs, numbers, family, languages.
-    1: _set(
-        [
-            (
-                [
-                    ("Frau", "Guten Tag! Wie ist Ihr Name, bitte?"),
-                    ("Mann", "Mein Name ist Schneider."),
-                    ("Frau", "Wie schreibt man das?"),
-                    ("Mann", "S – C – H – N – E – I – D – E – R."),
-                ],
-                ("Wie heißt der Mann?", "Schneider", "Schreiner", "Schröder"),
-            ),
-            (
-                [
-                    ("Mann", "Woher kommst du, Lucia?"),
-                    ("Frau", "Ich komme aus Spanien, aus Madrid. Und du?"),
-                    ("Mann", "Ich komme aus Italien."),
-                ],
-                ("Woher kommt Lucia?", "Aus Spanien.", "Aus Italien.", "Aus Brasilien."),
-            ),
-            (
-                [
-                    ("Frau", "Was sind Sie von Beruf?"),
-                    ("Mann", "Ich bin Lehrer. Und meine Frau ist Ärztin."),
-                ],
-                ("Was ist der Mann von Beruf?", "Lehrer", "Arzt", "Kellner"),
-            ),
-            (
-                [
-                    ("Mann", "Wie alt ist deine Tochter?"),
-                    ("Frau", "Sie ist zwölf. Und mein Sohn ist acht."),
-                ],
-                ("Wie alt ist die Tochter?", "12 Jahre", "8 Jahre", "20 Jahre"),
-            ),
-            (
-                [
-                    ("Frau", "Wie ist deine Telefonnummer?"),
-                    (
-                        "Mann",
-                        "Null – eins – sieben – null, fünfundvierzig, dreiundsechzig, neunundzwanzig.",
-                    ),
-                ],
-                ("Wie ist die Telefonnummer?", "0170 45 63 29", "0170 54 63 29", "0170 45 36 29"),
-            ),
-            (
-                [
-                    ("Mann", "Sprechen Sie Englisch?"),
-                    (
-                        "Frau",
-                        "Ja. Und ich spreche auch ein bisschen Französisch. Aber kein Russisch.",
-                    ),
-                ],
-                (
-                    "Welche Sprachen spricht die Frau?",
-                    "Englisch und Französisch",
-                    "Englisch und Russisch",
-                    "Französisch und Russisch",
-                ),
-            ),
-        ],
-        [
-            (
-                "Liebe Studenten, der Deutschkurs ist heute nicht in Zimmer zwölf. "
-                "Er ist in Zimmer zwanzig.",
-                ("Der Kurs ist heute in Zimmer 20.", True),
-            ),
-            (
-                "Achtung, bitte! Frau Weber, bitte kommen Sie zur Information. "
-                "Frau Weber, bitte zur Information.",
-                ("Frau Weber soll zum Telefon kommen.", False),
-            ),
-            (
-                "Guten Tag im Hotel Europa! Wir sprechen Deutsch, Englisch und Italienisch.",
-                ("Im Hotel sprechen sie Spanisch.", False),
-            ),
-            (
-                "Liebe Eltern, die Lehrerin von Klasse drei ist Frau Yilmaz. Ihre "
-                "Telefonnummer ist null – drei – null, vierundfünfzig, zweiundachtzig.",
-                ("Frau Yilmaz ist Lehrerin.", True),
-            ),
-        ],
-    ),
+    1: M1_LIVE,
     # Modul 2 (Lektionen 4-6): furniture and prices, things and colours, the office.
     2: _set(
+        (
+            [
+                ("Frau", "Entschuldigung, können Sie mir helfen? Ich suche einen Tisch."),
+                ("Mann", "Gern. Für die Küche oder für das Zimmer?"),
+                ("Frau", "Für mein Zimmer. Er soll nicht so groß sein."),
+                ("Mann", "Hier, dieser Tisch ist klein und rund. Er ist aus Holz."),
+                ("Frau", "Schön! Was kostet er?"),
+                ("Mann", "Neunundachtzig Euro. Heute ist er im Angebot."),
+                ("Frau", "Gut. Und ich brauche auch zwei Stühle."),
+                ("Mann", "Die Stühle hier sind modern. Ein Stuhl kostet fünfundzwanzig Euro."),
+                ("Frau", "Haben Sie die Stühle auch in Weiß?"),
+                ("Mann", "Nein, leider nur in Schwarz und Grau."),
+                ("Frau", "Dann zwei graue Stühle, bitte."),
+                ("Mann", "Gern. Das macht zusammen hundertneununddreißig Euro."),
+            ],
+            "laden",
+            [
+                ("Was sucht die Frau zuerst?", "Einen Tisch", "Einen Stuhl", "Ein Bett"),
+                ("Wie ist der Tisch?", "Klein und rund", "Groß und eckig", "Klein und eckig"),
+                ("Was kostet der Tisch?", "89 Euro", "98 Euro", "25 Euro"),
+                ("Welche Farbe haben die Stühle von der Frau?", "Grau", "Weiß", "Schwarz"),
+                ("Was kostet alles zusammen?", "139 Euro", "114 Euro", "89 Euro"),
+            ],
+        ),
         [
             (
-                [
-                    ("Frau", "Entschuldigung, was kostet der Tisch?"),
-                    ("Mann", "Der Tisch kostet zweihundertneunzig Euro."),
-                    ("Frau", "Oh, das ist zu teuer!"),
-                ],
-                ("Was kostet der Tisch?", "290 Euro", "219 Euro", "209 Euro"),
-            ),
-            (
-                [
-                    ("Mann", "Wie findest du die Lampe?"),
-                    (
-                        "Frau",
-                        "Die rote? Die finde ich schön. Aber die schwarze Lampe ist hässlich.",
-                    ),
-                ],
-                ("Welche Lampe findet die Frau schön?", "Die rote", "Die schwarze", "Die weiße"),
-            ),
-            (
-                [
-                    ("Frau", "Hast du einen Kugelschreiber für mich?"),
-                    ("Mann", "Nein, aber hier ist ein Bleistift."),
-                    ("Frau", "Danke!"),
-                ],
-                (
-                    "Was bekommt die Frau?",
-                    "Einen Bleistift",
-                    "Einen Kugelschreiber",
-                    "Ein Notizbuch",
-                ),
-            ),
-            (
-                [
-                    ("Mann", "Ist das deine Tasche?"),
-                    ("Frau", "Nein, meine Tasche ist braun. Die Tasche hier ist schwarz."),
-                ],
-                ("Welche Farbe hat die Tasche von der Frau?", "Braun", "Schwarz", "Grau"),
-            ),
-            (
-                [
-                    ("Frau", "Herr Lang, wo ist der Drucker?"),
-                    ("Mann", "Der Drucker ist im Büro von Frau Schmidt. Das ist Büro elf."),
-                ],
-                ("Wo ist der Drucker?", "In Büro 11", "In Büro 7", "Im Büro von Herrn Lang"),
-            ),
-            (
-                [
-                    ("Mann", "Brauchen Sie einen Schreibtisch?"),
-                    ("Frau", "Nein, einen Schreibtisch habe ich. Ich brauche einen Stuhl."),
-                ],
-                ("Was braucht die Frau?", "Einen Stuhl", "Einen Schreibtisch", "Einen Schrank"),
-            ),
-        ],
-        [
-            (
-                "Liebe Kunden, heute im Sonderangebot: Sofas für nur "
-                "dreihundertneunundneunzig Euro!",
+                "Liebe Kunden, heute im Sonderangebot: Sofas für nur dreihundertneunundneunzig Euro!",
+                SHOP,
                 ("Die Sofas kosten heute 399 Euro.", True),
             ),
             (
-                "Liebe Kunden, im Möbelhaus Krause kosten alle Stühle heute nur "
-                "neunundzwanzig Euro.",
-                ("Die Stühle kosten heute 39 Euro.", False),
+                "Liebe Kunden, alle Lampen kosten heute nur neunzehn Euro.",
+                SHOP,
+                ("Die Lampen kosten heute 90 Euro.", False),
             ),
             (
-                "Liebe Kolleginnen und Kollegen, wir haben neue Computer. Haben Sie "
-                "Fragen? Bitte fragen Sie Herrn Becker in Büro zwölf.",
+                "Liebe Kolleginnen und Kollegen, wir haben neue Computer. Haben Sie Fragen? Bitte fragen Sie Herrn Becker in Büro zwölf.",
+                OFFICE,
                 ("Herr Becker ist in Büro 12.", True),
             ),
             (
-                "Achtung, bitte: Hier ist eine Tasche. Sie ist blau und klein. "
-                "Bitte kommen Sie zur Information.",
+                "Achtung, bitte: Hier ist eine Tasche. Sie ist blau und klein. Bitte kommen Sie zur Information.",
+                SHOP,
                 ("Die Tasche ist schwarz.", False),
             ),
+            (
+                "Achtung: Im Drucker in Büro fünf ist kein Papier. Papier ist in Büro sieben.",
+                OFFICE,
+                ("Papier ist in Büro 7.", True),
+            ),
         ],
-        [
-            (
-                "Mann",
-                "Hallo Sabine, hier ist Tim. Ich habe einen Tisch, aber ich brauche "
-                "noch zwei Stühle. Hast du Stühle für mich? Bis bald!",
-                ("Was braucht Tim?", "Zwei Stühle", "Einen Tisch", "Ein Bett"),
-            ),
-            (
-                "Frau",
-                "Guten Tag, Herr Weber, hier ist Möbel Krause. Ihr Sofa ist da. Es kostet "
-                "vierhundertneunundneunzig Euro. Auf Wiederhören!",
-                ("Was kostet das Sofa?", "499 Euro", "449 Euro", "994 Euro"),
-            ),
-            (
-                "Mann",
-                "Hallo, hier ist Paul aus dem Büro. Frau Schmidt hat eine Frage zur "
-                "Rechnung. Bitte schreiben Sie ihr eine E-Mail. Danke!",
+        (
+            [
+                ("Mann", "Firma Hoffmann, guten Tag, hier ist Peter Novak."),
                 (
-                    "Was sollen Sie machen?",
-                    "Frau Schmidt eine E-Mail schreiben",
-                    "Frau Schmidt anrufen",
-                    "Ins Büro kommen",
+                    "Frau",
+                    "Guten Tag, Herr Novak, hier ist Lisa Klein. Ich brauche einen Laptop für die Arbeit.",
                 ),
-            ),
-            (
-                "Frau",
-                "Hallo Jan, hier ist Mia. Ich habe deinen Schlüssel! Er ist bei mir im Büro. Tschüs!",
-                ("Was hat Mia?", "Jans Schlüssel", "Jans Brille", "Jans Handy"),
-            ),
-            (
-                "Mann",
-                "Guten Tag, hier ist die Firma Meyer. Wir brauchen von Ihnen noch das "
-                "Formular. Bitte schreiben Sie uns eine E-Mail. Auf Wiederhören!",
-                ("Was braucht die Firma Meyer?", "Das Formular", "Eine Rechnung", "Einen Termin"),
-            ),
-        ],
+                (
+                    "Mann",
+                    "Einen Laptop? Kein Problem. Wir haben ein Sonderangebot: dreihundertneunundneunzig Euro.",
+                ),
+                ("Frau", "Gut. Und ich brauche auch einen Drucker."),
+                ("Mann", "Der Drucker kostet neunundneunzig Euro. Brauchen Sie auch Papier?"),
+                (
+                    "Frau",
+                    "Nein, Papier habe ich. Schreiben Sie mir bitte eine E-Mail mit der Rechnung?",
+                ),
+                ("Mann", "Ja, gern. Wie ist Ihre E-Mail?"),
+                ("Frau", "Lisa Punkt Klein at web Punkt de."),
+                ("Mann", "Danke, Frau Klein. Auf Wiederhören!"),
+            ],
+            [
+                ("Was braucht Frau Klein zuerst?", "Einen Laptop", "Einen Drucker", "Papier"),
+                ("Was kostet der Laptop?", "399 Euro", "99 Euro", "299 Euro"),
+                ("Was kostet der Drucker?", "99 Euro", "399 Euro", "19 Euro"),
+                (
+                    "Braucht Frau Klein Papier?",
+                    "Nein, sie hat Papier.",
+                    "Ja, viel Papier.",
+                    "Ja, ein bisschen.",
+                ),
+                (
+                    "Was soll Herr Novak schreiben?",
+                    "Eine E-Mail mit der Rechnung",
+                    "Eine SMS",
+                    "Einen Brief",
+                ),
+            ],
+        ),
     ),
     # Modul 3 (Lektionen 7-9): hobbies, times and appointments, food and drink.
     3: _set(
-        [
-            (
-                [
-                    ("Mann", "Was machst du gern in der Freizeit?"),
-                    ("Frau", "Ich fotografiere gern. Und am Wochenende spiele ich Fußball."),
-                ],
+        (
+            [
+                ("Mann", "Hallo Lea! Hast du am Wochenende Zeit?"),
+                ("Frau", "Am Samstag nicht, da arbeite ich. Aber am Sonntag habe ich Zeit. Warum?"),
+                ("Mann", "Ich gehe am Sonntag ins Kino. Hast du Lust?"),
+                ("Frau", "Ja, gern! Wann ist der Film?"),
+                ("Mann", "Um sieben Uhr. Wir treffen uns um halb sieben vor dem Kino."),
+                ("Frau", "Gut. Und danach? Gehen wir noch etwas essen?"),
+                ("Mann", "Klar! Ich kenne ein Restaurant. Dort gibt es super Fisch."),
+                ("Frau", "Ach, ich esse keinen Fisch. Aber Salat und Kartoffeln mag ich."),
+                ("Mann", "Kein Problem, es gibt auch Salat."),
+                ("Frau", "Und was machst du am Samstag?"),
+                ("Mann", "Am Samstag spiele ich Fußball. Und am Abend koche ich für meine Eltern."),
+            ],
+            "cafe",
+            [
+                ("Wann hat Lea Zeit?", "Am Sonntag", "Am Samstag", "Am Freitag"),
+                ("Wann ist der Film?", "Um 19 Uhr", "Um 18:30 Uhr", "Um 17 Uhr"),
+                ("Wo treffen sie sich?", "Vor dem Kino", "Im Restaurant", "Im Café"),
+                ("Was isst Lea nicht?", "Fisch", "Salat", "Kartoffeln"),
                 (
-                    "Was macht die Frau am Wochenende?",
-                    "Sie spielt Fußball.",
-                    "Sie fotografiert.",
-                    "Sie schwimmt.",
+                    "Was macht der Mann am Samstagabend?",
+                    "Er kocht für seine Eltern.",
+                    "Er spielt Fußball.",
+                    "Er geht ins Kino.",
                 ),
-            ),
-            (
-                [
-                    ("Frau", "Entschuldigung, wie spät ist es?"),
-                    ("Mann", "Es ist Viertel nach drei."),
-                ],
-                ("Wie spät ist es?", "3:15 Uhr", "3:45 Uhr", "2:45 Uhr"),
-            ),
-            (
-                [
-                    ("Mann", "Hast du am Freitag Zeit? Wir gehen ins Kino."),
-                    ("Frau", "Am Freitag kann ich leider nicht. Aber am Samstag geht es."),
-                ],
-                ("Wann hat die Frau Zeit?", "Am Samstag", "Am Freitag", "Am Sonntag"),
-            ),
-            (
-                [
-                    ("Frau", "Was möchten Sie trinken?"),
-                    ("Mann", "Einen Kaffee, bitte. Und ein Stück Kuchen."),
-                ],
-                ("Was möchte der Mann trinken?", "Kaffee", "Tee", "Saft"),
-            ),
-            (
-                [
-                    ("Mann", "Wann ist der Film?"),
-                    ("Frau", "Um acht Uhr. Wir treffen uns um halb acht vor dem Kino."),
-                ],
-                ("Wann treffen sie sich?", "Um 7:30 Uhr", "Um 8:00 Uhr", "Um 8:30 Uhr"),
-            ),
-            (
-                [
-                    ("Frau", "Kannst du gut schwimmen?"),
-                    ("Mann", "Nein, nicht so gut. Aber ich kann gut tanzen!"),
-                ],
-                ("Was kann der Mann gut?", "Tanzen", "Schwimmen", "Kochen"),
-            ),
-        ],
+            ],
+        ),
         [
             (
                 "Liebe Kunden, heute im Angebot: Äpfel, ein Kilo für nur ein Euro neunundneunzig.",
+                SHOP,
                 ("Ein Kilo Äpfel kostet heute 1,99 Euro.", True),
             ),
             (
                 "Achtung, bitte: Heute kann man im Schwimmbad nur bis achtzehn Uhr schwimmen.",
+                GONG,
                 ("Man kann heute bis 20 Uhr schwimmen.", False),
             ),
             (
-                "Das Konzert heute Abend ist nicht um acht Uhr. Es ist um neun Uhr.",
+                "Liebe Gäste, das Konzert heute Abend ist nicht um acht Uhr. Es ist um neun Uhr.",
+                GONG,
                 ("Das Konzert ist um 21 Uhr.", True),
             ),
             (
                 "Liebe Gäste, das Frühstück gibt es heute von sieben bis zehn Uhr im Restaurant.",
+                CAFE,
                 ("Das Frühstück ist im Café.", False),
             ),
+            (
+                "Liebe Besucher, Sie können das Museum heute bis siebzehn Uhr besuchen.",
+                GONG,
+                ("Man kann das Museum heute bis 17 Uhr besuchen.", True),
+            ),
         ],
-        [
-            (
-                "Frau",
-                "Hallo Max, hier ist Julia. Ich habe zwei Karten für das Konzert am Samstag. "
-                "Hast du Lust? Ruf mich bitte an!",
-                ("Wann ist das Konzert?", "Am Samstag", "Am Sonntag", "Am Freitag"),
-            ),
-            (
-                "Mann",
-                "Hallo Eva, hier ist Ben. Ich koche heute Abend Suppe. Aber ich habe kein Brot. "
-                "Hast du Brot für mich? Bis später!",
-                ("Was braucht Ben?", "Brot", "Käse", "Milch"),
-            ),
-            (
-                "Frau",
-                "Guten Tag, hier ist das Restaurant Roma. Ihr Tisch für heute Abend ist um "
-                "halb acht frei, nicht um sieben. Bis heute Abend!",
-                ("Wann ist der Tisch frei?", "Um 19:30 Uhr", "Um 19:00 Uhr", "Um 20:30 Uhr"),
-            ),
-            (
-                "Mann",
-                "Hallo Anna, hier ist Paul. Das Fußballspiel morgen ist nicht um zehn, es ist "
-                "um elf Uhr. Tschüs!",
-                ("Wann ist das Fußballspiel?", "Um 11 Uhr", "Um 10 Uhr", "Um 12 Uhr"),
-            ),
-            (
-                "Frau",
-                "Hallo Lukas, hier ist Mama. Wir essen heute um sechs Uhr zu Abend. Es gibt "
-                "Fisch mit Kartoffeln. Bis dann!",
+        (
+            [
                 (
-                    "Was gibt es zum Abendessen?",
-                    "Fisch mit Kartoffeln",
-                    "Fleisch mit Reis",
-                    "Suppe mit Brot",
+                    "Mann",
+                    "Hallo Eva, hier ist Ben. Ich mache am Freitag eine Party! Sie ist bei mir zu "
+                    "Hause, um acht Uhr. Ich koche Suppe und mache einen Salat. Kannst du einen "
+                    "Kuchen backen? Du kannst so gut backen! Wasser, Saft und Bier habe ich. Ich "
+                    "habe auch Musik, wir tanzen! Ruf mich bitte an. Bis bald!",
+                )
+            ],
+            [
+                ("Wann ist die Party?", "Am Freitag", "Am Samstag", "Am Sonntag"),
+                ("Um wie viel Uhr ist die Party?", "Um 8 Uhr", "Um 7 Uhr", "Um 9 Uhr"),
+                ("Was macht Ben?", "Suppe und Salat", "Fisch und Salat", "Einen Kuchen"),
+                ("Was soll Eva machen?", "Einen Kuchen backen", "Suppe kochen", "Musik mitbringen"),
+                (
+                    "Was gibt es zu trinken?",
+                    "Wasser, Saft und Bier",
+                    "Kaffee und Tee",
+                    "Nur Wasser",
                 ),
-            ),
-        ],
+            ],
+        ),
     ),
     # Modul 4 (Lektionen 10-12): transport, the Perfekt, months and celebrations.
     4: _set(
-        [
-            (
-                [
-                    ("Frau", "Entschuldigung, wann fährt der Zug nach Berlin ab?"),
-                    ("Mann", "Um zehn Uhr zwanzig, von Gleis vier."),
-                ],
-                ("Von welchem Gleis fährt der Zug?", "Gleis 4", "Gleis 10", "Gleis 20"),
-            ),
-            (
-                [
-                    ("Mann", "Wie kommst du zur Arbeit?"),
-                    ("Frau", "Mit dem Fahrrad. Aber im Winter nehme ich den Bus."),
-                ],
-                ("Wie fährt die Frau im Winter?", "Mit dem Bus", "Mit dem Fahrrad", "Mit dem Auto"),
-            ),
-            (
-                [
-                    ("Frau", "Was hast du am Wochenende gemacht?"),
-                    (
-                        "Mann",
-                        "Ich habe meine Eltern besucht. Und am Sonntag habe ich lange geschlafen.",
-                    ),
-                ],
+        (
+            [
+                ("Frau", "Entschuldigung, wann fährt der nächste Zug nach München?"),
+                ("Mann", "Um zehn Uhr zwanzig, von Gleis vier."),
+                ("Frau", "Muss ich umsteigen?"),
+                ("Mann", "Ja, in Nürnberg. Da steigen Sie in den ICE um."),
+                ("Frau", "Und wann komme ich in München an?"),
+                ("Mann", "Um vierzehn Uhr fünfzehn."),
+                ("Frau", "Gut. Wo kann ich eine Fahrkarte kaufen?"),
+                ("Mann", "Dort hinten, links."),
                 (
-                    "Was hat der Mann am Sonntag gemacht?",
-                    "Er hat lange geschlafen.",
-                    "Er hat seine Eltern besucht.",
-                    "Er hat gearbeitet.",
+                    "Frau",
+                    "Danke. Ich war schon am Wochenende in München. Meine Schwester hat Geburtstag gefeiert.",
                 ),
-            ),
-            (
-                [("Mann", "Wann hast du Geburtstag?"), ("Frau", "Im Mai. Am zwölften Mai.")],
-                ("Wann hat die Frau Geburtstag?", "Am 12. Mai", "Am 2. Mai", "Am 12. März"),
-            ),
-            (
-                [
-                    ("Frau", "Wo muss ich umsteigen?"),
-                    ("Mann", "Sie steigen am Bahnhof in die U-Bahn um."),
-                ],
-                ("Wo steigt die Frau um?", "Am Bahnhof", "Am Flughafen", "An der Haltestelle"),
-            ),
-            (
-                [
-                    ("Mann", "Bist du mit dem Auto gekommen?"),
-                    ("Frau", "Nein, ich bin zu Fuß gegangen. Das ist ganz nah."),
-                ],
-                ("Wie ist die Frau gekommen?", "Zu Fuß", "Mit dem Auto", "Mit dem Taxi"),
-            ),
-        ],
+                ("Mann", "Oh, schön! Gute Reise!"),
+            ],
+            "bahnhof",
+            [
+                ("Wann fährt der Zug?", "Um 10:20 Uhr", "Um 14:15 Uhr", "Um 10:40 Uhr"),
+                ("Von welchem Gleis fährt der Zug?", "Gleis 4", "Gleis 10", "Gleis 14"),
+                (
+                    "Wo muss die Frau umsteigen?",
+                    "In Nürnberg",
+                    "In München",
+                    "Sie muss nicht umsteigen.",
+                ),
+                ("Wann kommt sie in München an?", "Um 14:15 Uhr", "Um 10:20 Uhr", "Um 15:14 Uhr"),
+                ("Was hat ihre Schwester gefeiert?", "Geburtstag", "Hochzeit", "Silvester"),
+            ],
+        ),
         [
             (
-                "Achtung am Gleis drei: Der Zug nach München kommt heute zehn Minuten später.",
-                ("Der Zug nach München kommt zehn Minuten später.", True),
+                "Achtung am Gleis drei: Der Zug nach Köln kommt heute zehn Minuten später.",
+                STATION,
+                ("Der Zug nach Köln kommt 10 Minuten später.", True),
             ),
             (
                 "Liebe Fahrgäste, heute fahren keine Straßenbahnen. Bitte nehmen Sie den Bus.",
+                {"gong": True, "scene": "strasse"},
                 ("Heute fährt die Straßenbahn.", False),
             ),
             (
-                "Das Sommerfest im Kindergarten ist am fünften Juli um fünfzehn Uhr.",
-                ("Das Fest ist im Juni.", False),
+                "Achtung, bitte: Der Zug nach Hamburg fährt heute von Gleis sieben, nicht von Gleis zwei.",
+                STATION,
+                ("Der Zug nach Hamburg fährt von Gleis 2.", False),
             ),
             (
-                "Unser Kollege Herr Roth hat heute Geburtstag! Wir feiern um zwölf Uhr im Büro.",
+                "Liebe Kollegen, Herr Roth hat heute Geburtstag! Wir feiern um zwölf Uhr im Büro.",
+                OFFICE,
                 ("Die Feier ist am Mittag.", True),
             ),
+            (
+                "Liebe Kunden, wir haben vom ersten bis vierzehnten August Urlaub.",
+                SHOP,
+                ("Der Laden hat im Juli Urlaub.", False),
+            ),
         ],
-        [
-            (
-                "Mann",
-                "Hallo Lisa, hier ist Tom. Ich bin gerade in Hamburg angekommen. Ich rufe dich "
-                "heute Abend an. Tschüs!",
-                ("Wo ist Tom?", "In Hamburg", "In Berlin", "Am Flughafen"),
-            ),
-            (
-                "Frau",
-                "Hallo, hier ist Sara. Holst du mich bitte am Bahnhof ab? Mein Zug kommt um "
-                "sechzehn Uhr dreißig an. Danke!",
-                ("Wann kommt Saras Zug an?", "Um 16:30 Uhr", "Um 16:13 Uhr", "Um 18:30 Uhr"),
-            ),
-            (
-                "Mann",
-                "Hallo Anna, hier ist Jan. Am Samstag feiere ich Geburtstag. Die Party fängt "
-                "um acht Uhr an. Bring bitte Musik mit! Bis Samstag!",
-                ("Was soll Anna mitbringen?", "Musik", "Getränke", "Einen Kuchen"),
-            ),
-            (
-                "Frau",
-                "Guten Tag, Herr Weber, hier ist Frau Klein. Ich habe Ihre Fahrkarte gekauft. "
-                "Sie fahren am Montag um neun Uhr. Auf Wiederhören!",
+        (
+            [
+                ("Frau", "Hallo Papa, ich bin's, Lena!"),
+                ("Mann", "Hallo Lena! Bist du gut angekommen?"),
                 (
-                    "Wann fährt Herr Weber?",
-                    "Am Montag um 9 Uhr",
-                    "Am Montag um 19 Uhr",
-                    "Am Dienstag um 9 Uhr",
+                    "Frau",
+                    "Ja, ich bin in Hamburg! Ich bin um sechs Uhr aufgestanden und um sieben abgefahren.",
                 ),
-            ),
-            (
-                "Mann",
-                "Hallo Mia, hier ist Papa. Hast du deine Hausaufgaben gemacht? Ich komme um "
-                "sieben Uhr nach Hause. Tschüs!",
-                ("Wann kommt Papa nach Hause?", "Um 7 Uhr", "Um 6 Uhr", "Um 8 Uhr"),
-            ),
-        ],
+                ("Mann", "Bist du in Hannover umgestiegen?"),
+                ("Frau", "Ja, in Hannover. Und Ben hat mich am Bahnhof abgeholt."),
+                ("Mann", "Super. Was macht ihr heute?"),
+                ("Frau", "Heute Abend gehen wir ins Kino. Und morgen besuchen wir Bens Eltern."),
+                ("Mann", "Wann kommst du zurück?"),
+                ("Frau", "Am Sonntag. Mein Zug kommt um sechzehn Uhr an. Holst du mich ab?"),
+                ("Mann", "Klar! Bis Sonntag!"),
+            ],
+            [
+                ("Wann ist Lena aufgestanden?", "Um 6 Uhr", "Um 7 Uhr", "Um 8 Uhr"),
+                ("Wo ist sie umgestiegen?", "In Hannover", "In Hamburg", "In Berlin"),
+                ("Wer hat Lena abgeholt?", "Ben", "Ihr Vater", "Bens Eltern"),
+                (
+                    "Was machen sie heute Abend?",
+                    "Sie gehen ins Kino.",
+                    "Sie besuchen Bens Eltern.",
+                    "Sie fahren zurück.",
+                ),
+                ("Wann kommt Lenas Zug am Sonntag an?", "Um 16 Uhr", "Um 6 Uhr", "Um 14 Uhr"),
+            ],
+        ),
     ),
     # Modul 5 (Lektionen 13-15): directions, flats and houses, the city.
     5: _set(
-        [
-            (
-                [
-                    ("Frau", "Entschuldigung, wo ist die Post?"),
-                    ("Mann", "Gehen Sie hier geradeaus und dann die zweite Straße links."),
-                ],
+        (
+            [
+                ("Frau", "Entschuldigung, ich bin nicht von hier. Wo ist das Hotel Maritim?"),
                 (
-                    "Wie kommt die Frau zur Post?",
-                    "Geradeaus und dann links",
-                    "Geradeaus und dann rechts",
-                    "Zurück und dann links",
+                    "Mann",
+                    "Das Hotel Maritim? Das ist nicht weit. Gehen Sie hier geradeaus bis zur Ampel.",
                 ),
-            ),
-            (
-                [
-                    ("Mann", "Wie ist deine neue Wohnung?"),
-                    ("Frau", "Sie hat drei Zimmer, eine Küche und einen Balkon."),
-                ],
-                ("Wie viele Zimmer hat die Wohnung?", "Drei", "Zwei", "Vier"),
-            ),
-            (
-                [
-                    ("Frau", "Wo ist das Bad?"),
-                    ("Mann", "Das Bad ist oben, neben dem Schlafzimmer."),
-                ],
+                ("Frau", "Bis zur Ampel, okay."),
+                ("Mann", "An der Ampel gehen Sie links. Dann sehen Sie den Dom."),
+                ("Frau", "Und das Hotel?"),
+                ("Mann", "Das Hotel ist neben dem Dom, zwischen dem Dom und der Post."),
+                ("Frau", "Gibt es hier in der Nähe auch eine Bank?"),
+                ("Mann", "Ja, die Bank ist hinter dem Rathaus. Das ist rechts."),
+                ("Frau", "Und wie weit ist es zum Hotel?"),
+                ("Mann", "Nur fünfhundert Meter. Zehn Minuten zu Fuß."),
+                ("Frau", "Vielen Dank!"),
+            ],
+            "strasse",
+            [
+                ("Was sucht die Frau?", "Ein Hotel", "Eine Bank", "Die Post"),
+                ("Wo geht sie links?", "An der Ampel", "Am Dom", "An der Post"),
                 (
-                    "Wo ist das Bad?",
-                    "Oben neben dem Schlafzimmer",
-                    "Unten neben der Küche",
-                    "Oben neben dem Kinderzimmer",
+                    "Wo ist das Hotel?",
+                    "Zwischen dem Dom und der Post",
+                    "Hinter dem Rathaus",
+                    "Neben der Bank",
                 ),
-            ),
-            (
-                [("Mann", "Ist hier eine Bank in der Nähe?"), ("Frau", "Ja, hinter dem Rathaus.")],
-                ("Wo ist die Bank?", "Hinter dem Rathaus", "Neben dem Rathaus", "Vor dem Rathaus"),
-            ),
-            (
-                [
-                    ("Frau", "Was kostet die Wohnung?"),
-                    (
-                        "Mann",
-                        "Die Miete ist sechshundert Euro. Mit Nebenkosten siebenhundertzwanzig.",
-                    ),
-                ],
-                ("Was kostet die Wohnung mit Nebenkosten?", "720 Euro", "600 Euro", "620 Euro"),
-            ),
-            (
-                [("Mann", "Wo treffen wir uns?"), ("Frau", "Am Markt, vor der Kirche.")],
-                ("Wo treffen sie sich?", "Vor der Kirche", "Vor dem Rathaus", "Im Park"),
-            ),
-        ],
+                ("Wo ist die Bank?", "Hinter dem Rathaus", "Neben dem Dom", "An der Ampel"),
+                ("Wie weit ist das Hotel?", "500 Meter", "5 Kilometer", "50 Meter"),
+            ],
+        ),
         [
             (
                 "Liebe Besucher, die Bibliothek ist heute im ersten Stock, nicht im Erdgeschoss.",
+                GONG,
                 ("Die Bibliothek ist heute im ersten Stock.", True),
             ),
             (
                 "Achtung: Heute fährt der Aufzug nicht. Bitte nehmen Sie die Treppe.",
+                GONG,
                 ("Man soll heute den Aufzug nehmen.", False),
             ),
             (
                 "Der Markt ist heute nicht vor dem Rathaus. Er ist im Park.",
+                STREET,
                 ("Der Markt ist heute im Park.", True),
             ),
             (
                 "Liebe Nachbarn, am Samstag machen wir ein Fest im Garten. Es fängt um fünfzehn Uhr an.",
+                NONE,
                 ("Das Fest ist im Keller.", False),
             ),
-        ],
-        [
             (
-                "Frau",
-                "Hallo Tim, hier ist Nina. Ich habe eine Wohnung gefunden! Sie ist in der "
-                "Altstadt, neben dem Park. Ruf mich an!",
-                ("Wo ist Ninas Wohnung?", "In der Altstadt", "Am Hafen", "Im Zentrum"),
+                "Liebe Kunden, unser Laden in der Bahnhofstraße ist ab Montag in der Marktstraße.",
+                SHOP,
+                ("Der Laden ist ab Montag in der Marktstraße.", True),
             ),
-            (
-                "Mann",
-                "Guten Tag, hier ist Herr Lang, Ihr Vermieter. Die Miete für Oktober fehlt "
-                "noch. Bitte bezahlen Sie bis Freitag. Auf Wiederhören!",
+        ],
+        (
+            [
                 (
-                    "Was soll man bis Freitag machen?",
-                    "Die Miete bezahlen",
-                    "Den Vermieter anrufen",
-                    "Die Wohnung sauber machen",
+                    "Frau",
+                    "Guten Tag, Herr Nowak, hier ist Frau Lang, die Vermieterin. Sie suchen eine "
+                    "Wohnung in der Gartenstraße. Die Wohnung ist im zweiten Stock. Sie hat zwei "
+                    "Zimmer, eine Küche, ein Bad und einen Balkon. Die Miete ist fünfhundertachtzig "
+                    "Euro, mit Nebenkosten sechshundertfünfzig. Die Wohnung ist ab ersten November "
+                    "frei. Sie können sie am Samstag um elf Uhr sehen. Bitte rufen Sie mich an. "
+                    "Auf Wiederhören!",
+                )
+            ],
+            [
+                (
+                    "In welchem Stock ist die Wohnung?",
+                    "Im zweiten Stock",
+                    "Im Erdgeschoss",
+                    "Im ersten Stock",
                 ),
-            ),
-            (
-                "Frau",
-                "Hallo, hier ist Lisa. Ich finde das Café nicht! Ich bin an der Brücke. Wo bist du?",
-                ("Wo ist Lisa?", "An der Brücke", "Im Café", "Am Bahnhof"),
-            ),
-            (
-                "Mann",
-                "Hallo Sara, hier ist Jonas. Das Hotel ist ganz in der Nähe vom Dom, in der "
-                "Domstraße zwei. Bis später!",
-                ("Wo ist das Hotel?", "In der Domstraße 2", "In der Domstraße 12", "Am Bahnhof"),
-            ),
-            (
-                "Frau",
-                "Hallo Paul, hier ist Oma. Danke für die Blumen! Sie sind sehr schön. Bis Sonntag!",
-                ("Wofür dankt Oma?", "Für die Blumen", "Für den Kuchen", "Für das Buch"),
-            ),
-        ],
+                ("Wie viele Zimmer hat die Wohnung?", "Zwei", "Drei", "Eins"),
+                ("Was kostet die Wohnung mit Nebenkosten?", "650 Euro", "580 Euro", "560 Euro"),
+                ("Ab wann ist die Wohnung frei?", "Ab 1. November", "Ab 1. Oktober", "Sofort"),
+                (
+                    "Wann kann Herr Nowak die Wohnung sehen?",
+                    "Am Samstag um 11 Uhr",
+                    "Am Sonntag um 11 Uhr",
+                    "Am Samstag um 10 Uhr",
+                ),
+            ],
+        ),
     ),
     # Modul 6 (Lektionen 16-18): hotel and appointments, plans, health.
     6: _set(
-        [
-            (
-                [
-                    ("Frau", "Guten Tag, die Heizung in Zimmer zwölf funktioniert nicht."),
-                    ("Mann", "Oh, das tut mir leid. Der Techniker kommt sofort."),
-                ],
-                ("Was funktioniert nicht?", "Die Heizung", "Die Dusche", "Der Fernseher"),
-            ),
-            (
-                [
-                    ("Frau", "Guten Tag, ich brauche einen Termin. Geht es am Dienstag?"),
-                    ("Mann", "Am Dienstag leider nicht. Aber am Mittwoch um neun Uhr."),
-                ],
+        (
+            [
+                ("Mann", "Guten Tag, Frau Berg. Was haben Sie denn?"),
+                ("Frau", "Guten Tag, Herr Doktor. Ich habe seit Montag Kopfschmerzen und Fieber."),
+                ("Mann", "Haben Sie auch Halsschmerzen?"),
+                ("Frau", "Ja, ein bisschen. Und ich bin sehr müde."),
+                ("Mann", "Das ist nicht schlimm. Sie müssen viel Tee trinken und im Bett bleiben."),
+                ("Frau", "Muss ich auch Tabletten nehmen?"),
+                ("Mann", "Ja. Nehmen Sie diese Tabletten dreimal am Tag, nach dem Essen."),
+                ("Frau", "Ich arbeite in einem Hotel. Kann ich morgen arbeiten?"),
                 (
-                    "Wann hat die Frau einen Termin?",
-                    "Am Mittwoch um 9 Uhr",
-                    "Am Dienstag um 9 Uhr",
-                    "Am Mittwoch um 10 Uhr",
+                    "Mann",
+                    "Nein, bleiben Sie drei Tage zu Hause. Kommen Sie am Freitag noch einmal.",
                 ),
-            ),
-            (
-                [("Frau", "Was haben Sie denn?"), ("Mann", "Ich habe Kopfschmerzen und Fieber.")],
+                ("Frau", "Gut. Danke, Herr Doktor."),
+            ],
+            "buero",
+            [
+                ("Seit wann ist die Frau krank?", "Seit Montag", "Seit Freitag", "Seit gestern"),
+                ("Was soll sie trinken?", "Viel Tee", "Viel Wasser", "Saft"),
                 (
-                    "Was hat der Mann?",
-                    "Kopfschmerzen und Fieber",
-                    "Halsschmerzen und Fieber",
-                    "Bauchschmerzen",
-                ),
-            ),
-            (
-                [
-                    ("Mann", "Was willst du später werden?"),
-                    ("Frau", "Ich will Ärztin werden. Mein Bruder will Politiker werden."),
-                ],
-                ("Was will die Frau werden?", "Ärztin", "Politikerin", "Lehrerin"),
-            ),
-            (
-                [
-                    ("Frau", "Wie oft soll ich die Tabletten nehmen?"),
-                    ("Mann", "Dreimal am Tag, nach dem Essen."),
-                ],
-                (
-                    "Wie oft soll die Frau die Tabletten nehmen?",
+                    "Wie oft soll sie die Tabletten nehmen?",
                     "Dreimal am Tag",
                     "Zweimal am Tag",
                     "Einmal am Tag",
                 ),
-            ),
-            (
-                [
-                    ("Mann", "Wir müssen die Sitzung verschieben. Geht Donnerstag?"),
-                    ("Frau", "Ja, Donnerstag passt gut."),
-                ],
-                ("Wann ist die Sitzung jetzt?", "Am Donnerstag", "Am Dienstag", "Am Freitag"),
-            ),
-        ],
+                ("Wo arbeitet die Frau?", "In einem Hotel", "In einer Praxis", "In einem Büro"),
+                ("Wann soll sie wieder kommen?", "Am Freitag", "Morgen", "Am Montag"),
+            ],
+        ),
         [
             (
                 "Liebe Gäste, das Frühstück gibt es heute im Garten.",
+                GONG,
                 ("Das Frühstück ist heute im Garten.", True),
             ),
             (
                 "Die Praxis Doktor Lehmann hat vom ersten bis vierzehnten August Urlaub.",
+                NONE,
                 ("Die Praxis hat im Juli Urlaub.", False),
             ),
             (
                 "Der Deutschkurs ist heute nicht um achtzehn Uhr. Er ist um neunzehn Uhr.",
+                GONG,
                 ("Der Kurs ist heute um 18 Uhr.", False),
             ),
             (
                 "In der Apotheke am Markt bekommen Sie heute bis zweiundzwanzig Uhr Medikamente.",
+                SHOP,
                 ("Sie bekommen heute bis 22 Uhr Medikamente.", True),
             ),
-        ],
-        [
             (
-                "Frau",
-                "Guten Tag, hier ist die Praxis Doktor Wagner. Ihr Termin am Freitag um zehn "
-                "Uhr geht leider nicht. Können Sie am Montag um elf Uhr kommen?",
-                (
-                    "Wann ist der neue Termin?",
-                    "Am Montag um 11 Uhr",
-                    "Am Freitag um 10 Uhr",
-                    "Am Montag um 10 Uhr",
-                ),
-            ),
-            (
-                "Mann",
-                "Hallo Anna, hier ist Ben. Ich bin krank und kann heute nicht zur Arbeit "
-                "kommen. Sag bitte dem Chef Bescheid. Danke!",
-                (
-                    "Was soll Anna machen?",
-                    "Dem Chef Bescheid sagen",
-                    "Zum Arzt gehen",
-                    "Ben Tabletten bringen",
-                ),
-            ),
-            (
-                "Frau",
-                "Guten Tag, Herr Kraus, hier ist das Hotel Sonne. Ihr Zimmer ist ab vierzehn "
-                "Uhr fertig. Auf Wiederhören!",
-                ("Ab wann ist das Zimmer fertig?", "Ab 14 Uhr", "Ab 12 Uhr", "Ab 16 Uhr"),
-            ),
-            (
-                "Mann",
-                "Hallo Lisa, hier ist Tim. Ich will den Führerschein machen! Die Prüfung ist im Mai. Bis bald!",
-                ("Wann ist Tims Prüfung?", "Im Mai", "Im März", "Im Juni"),
-            ),
-            (
-                "Frau",
-                "Hallo Papa, hier ist Mia. Ich habe Halsschmerzen. Bringst du mir bitte Tee "
-                "und Tabletten aus der Apotheke mit? Danke!",
-                (
-                    "Was soll Papa mitbringen?",
-                    "Tee und Tabletten",
-                    "Saft und Tabletten",
-                    "Tee und eine Salbe",
-                ),
+                "Liebe Gäste, die Heizung funktioniert heute nicht. Der Techniker kommt um vierzehn Uhr.",
+                GONG,
+                ("Der Techniker kommt am Nachmittag.", True),
             ),
         ],
+        (
+            [
+                ("Frau", "Hotel Sonne, guten Tag. Was kann ich für Sie tun?"),
+                (
+                    "Mann",
+                    "Guten Tag, mein Name ist Kraus. Ich habe ein Zimmer vom dritten bis fünften Mai. Ich komme leider einen Tag später.",
+                ),
+                ("Frau", "Kein Problem. Dann kommen Sie am vierten Mai?"),
+                ("Mann", "Ja, genau. Und ich bleibe bis zum sechsten Mai."),
+                ("Frau", "Gut. Eine Nacht kostet neunzig Euro."),
+                ("Mann", "Gibt es im Zimmer einen Fernseher?"),
+                (
+                    "Frau",
+                    "Ja, einen Fernseher und eine Dusche. Das Frühstück ist von sieben bis zehn Uhr.",
+                ),
+                ("Mann", "Super. Ich komme mit dem Auto. Haben Sie eine Garage?"),
+                ("Frau", "Ja, die Garage ist hinter dem Hotel."),
+                ("Mann", "Vielen Dank! Auf Wiederhören."),
+            ],
+            [
+                ("Wann kommt Herr Kraus jetzt?", "Am 4. Mai", "Am 3. Mai", "Am 5. Mai"),
+                ("Bis wann bleibt er?", "Bis zum 6. Mai", "Bis zum 5. Mai", "Bis zum 4. Mai"),
+                ("Was kostet eine Nacht?", "90 Euro", "19 Euro", "99 Euro"),
+                (
+                    "Wann gibt es Frühstück?",
+                    "Von 7 bis 10 Uhr",
+                    "Von 6 bis 9 Uhr",
+                    "Von 7 bis 11 Uhr",
+                ),
+                ("Wo ist die Garage?", "Hinter dem Hotel", "Neben dem Hotel", "Vor dem Hotel"),
+            ],
+        ),
     ),
     # Modul 7 (Lektionen 19-21): looks and character, housework, rules.
     7: _set(
-        [
-            (
-                [
-                    ("Frau", "Wie sieht dein Bruder aus?"),
-                    ("Mann", "Er ist groß und schlank und hat blonde Haare."),
-                ],
-                ("Welche Haare hat der Bruder?", "Blonde Haare", "Schwarze Haare", "Keine Haare"),
-            ),
-            (
-                [
-                    ("Mann", "Wer bringt heute den Müll raus?"),
-                    ("Frau", "Du! Ich habe gestern gespült und den Boden gewischt."),
-                ],
+        (
+            [
+                ("Frau", "Jan, wir müssen reden. Die Küche ist schon wieder nicht sauber!"),
+                ("Mann", "Oh, tut mir leid. Ich hatte gestern keine Zeit."),
+                ("Frau", "Das sagst du immer. Wir brauchen einen Plan für den Haushalt."),
+                ("Mann", "Okay. Was soll ich machen?"),
                 (
-                    "Was hat die Frau gestern gemacht?",
-                    "Gespült und den Boden gewischt",
-                    "Den Müll rausgebracht",
-                    "Die Wäsche gebügelt",
+                    "Frau",
+                    "Du bringst jeden Montag und Donnerstag den Müll raus. Und am Samstag putzt du das Bad.",
                 ),
-            ),
-            (
-                [
-                    ("Frau", "Darf man hier parken?"),
-                    ("Mann", "Nein, hier ist Parken verboten. Aber dort hinten dürfen Sie parken."),
-                ],
-                ("Wo darf die Frau parken?", "Dort hinten", "Hier", "Vor dem Haus"),
-            ),
-            (
-                [
-                    ("Mann", "Wie war dein Lehrer früher?"),
-                    ("Frau", "Er war sehr ruhig und freundlich."),
-                ],
-                ("Wie war der Lehrer?", "Ruhig und freundlich", "Laut und lustig", "Unfreundlich"),
-            ),
-            (
-                [
-                    ("Frau", "Räum bitte dein Zimmer auf!"),
-                    ("Mann", "Jetzt? Ich mache gerade Hausaufgaben."),
-                    ("Frau", "Okay, dann nach dem Essen."),
-                ],
-                ("Wann soll er sein Zimmer aufräumen?", "Nach dem Essen", "Jetzt", "Morgen"),
-            ),
-            (
-                [
-                    ("Mann", "Muss der Hund im Park an die Leine?"),
-                    (
-                        "Frau",
-                        "Ja, im Park schon. Aber auf der Wiese dort hinten darf er frei laufen.",
-                    ),
-                ],
-                ("Wo darf der Hund frei laufen?", "Auf der Wiese", "Im Park", "Auf der Straße"),
-            ),
-        ],
+                ("Mann", "Und was machst du?"),
+                (
+                    "Frau",
+                    "Ich spüle das Geschirr und wische den Boden. Und Paul räumt die Küche auf.",
+                ),
+                ("Mann", "Paul? Der ist doch so faul!"),
+                ("Frau", "Ja, aber jetzt muss er auch helfen. Ich spreche heute Abend mit ihm."),
+                ("Mann", "Gut. Ach, und wer bügelt?"),
+                ("Frau", "Bügeln? Das macht jeder selbst!"),
+            ],
+            "",
+            [
+                (
+                    "Was ist das Problem?",
+                    "Die Küche ist nicht sauber.",
+                    "Das Bad ist kaputt.",
+                    "Paul ist krank.",
+                ),
+                (
+                    "Wann bringt Jan den Müll raus?",
+                    "Montag und Donnerstag",
+                    "Dienstag und Freitag",
+                    "Jeden Tag",
+                ),
+                ("Was macht Jan am Samstag?", "Er putzt das Bad.", "Er spült.", "Er bügelt."),
+                ("Wer räumt die Küche auf?", "Paul", "Jan", "Die Frau"),
+                ("Wer bügelt?", "Jeder selbst", "Jan", "Paul"),
+            ],
+        ),
         [
             (
                 "Achtung, bitte: Kinder unter zehn Jahren müssen mit den Eltern ins Schwimmbad kommen.",
+                GONG,
                 ("Kinder unter 10 Jahren dürfen allein ins Schwimmbad.", False),
             ),
             (
                 "Liebe Mieter, bitte bringen Sie den Müll nur am Montag und am Donnerstag raus.",
+                NONE,
                 ("Man bringt den Müll am Montag raus.", True),
             ),
             (
                 "Achtung: In diesem Zug darf man nicht rauchen. Und bitte sprechen Sie leise.",
+                STATION,
                 ("Im Zug darf man rauchen.", False),
             ),
             (
                 "Liebe Fahrradfahrer, bitte schieben Sie im Park Ihr Fahrrad.",
+                PARK,
                 ("Im Park muss man das Fahrrad schieben.", True),
             ),
-        ],
-        [
             (
-                "Mann",
-                "Hallo Lena, hier ist Jan. Wir machen am Samstag die Wohnung sauber. Kannst du "
-                "die Küche putzen? Ich mache das Bad. Bis dann!",
-                ("Was soll Lena putzen?", "Die Küche", "Das Bad", "Den Flur"),
+                "Liebe Besucher, im Park müssen Hunde an der Leine bleiben.",
+                PARK,
+                ("Im Park dürfen Hunde frei laufen.", False),
             ),
-            (
-                "Frau",
-                "Hallo Herr Fischer, hier ist Ihre Nachbarin, Frau Roth. Ihr Hund ist bei mir "
-                "im Garten! Er ist ganz ruhig. Bitte kommen Sie.",
+        ],
+        (
+            [
                 (
-                    "Wo ist der Hund?",
-                    "Im Garten von Frau Roth",
-                    "Im Park",
-                    "Bei Herrn Fischer zu Hause",
-                ),
-            ),
-            (
-                "Mann",
-                "Hallo Mama, hier ist Paul. Ich habe meinen Schlüssel vergessen! Bist du um fünf Uhr zu Hause?",
-                ("Was hat Paul vergessen?", "Seinen Schlüssel", "Sein Handy", "Seine Tasche"),
-            ),
-            (
-                "Frau",
-                "Hallo Anna, hier ist Sophie. Ich habe gestern deinen Bruder gesehen. Er hat "
-                "jetzt einen Bart! Er sieht so komisch aus! Tschüs!",
-                ("Was hat Annas Bruder jetzt?", "Einen Bart", "Lange Haare", "Eine Brille"),
-            ),
-            (
-                "Mann",
-                "Guten Tag, hier ist die Fahrschule Tempo. Bitte bringen Sie morgen Ihren Helm "
-                "mit. Die Fahrstunde ist um acht Uhr.",
-                ("Was muss man mitbringen?", "Den Helm", "Den Führerschein", "Das Fahrrad"),
-            ),
-        ],
+                    "Frau",
+                    "Hallo Mia, hier ist Sophie. Kannst du bitte meinen Bruder am Bahnhof "
+                    "abholen? Er heißt Leon und kommt um fünf Uhr an. Du kennst ihn nicht, also: "
+                    "Er ist groß und schlank und hat kurze, blonde Haare. Er trägt eine Brille. "
+                    "Er hat einen roten Koffer und eine schwarze Jacke. Er ist sehr nett, aber ein "
+                    "bisschen ruhig. Danke! Tschüs!",
+                )
+            ],
+            [
+                ("Wen soll Mia abholen?", "Sophies Bruder", "Sophies Vater", "Sophies Freund"),
+                ("Wann kommt Leon an?", "Um 5 Uhr", "Um 6 Uhr", "Um 4 Uhr"),
+                ("Wie sind seine Haare?", "Kurz und blond", "Lang und blond", "Kurz und schwarz"),
+                ("Welche Farbe hat sein Koffer?", "Rot", "Schwarz", "Blau"),
+                ("Wie ist Leon?", "Nett und ruhig", "Laut und lustig", "Unfreundlich"),
+            ],
+        ),
     ),
     # Modul 8 (Lektionen 22-24): clothes, weather and holidays, celebrations.
     8: _set(
-        [
-            (
-                [
-                    ("Frau", "Wie findest du die Jacke?"),
-                    ("Mann", "Die rote? Schön. Aber die blaue ist billiger."),
-                ],
-                ("Welche Jacke ist billiger?", "Die blaue", "Die rote", "Die schwarze"),
-            ),
-            (
-                [
-                    ("Mann", "Wie ist das Wetter in Hamburg?"),
-                    ("Frau", "Es regnet und es ist kalt. Nur zehn Grad."),
-                ],
+        (
+            [
+                ("Frau", "Entschuldigung, ich suche ein Kleid für eine Hochzeit."),
+                ("Mann", "Gern. Welche Farbe möchten Sie?"),
+                ("Frau", "Vielleicht Blau? Rot finde ich nicht so schön."),
+                ("Mann", "Hier ist ein blaues Kleid. Es ist sehr elegant."),
+                ("Frau", "Schön! Was kostet es?"),
                 (
-                    "Wie ist das Wetter in Hamburg?",
-                    "Es regnet.",
-                    "Die Sonne scheint.",
-                    "Es schneit.",
+                    "Mann",
+                    "Hundertzwanzig Euro. Das rosa Kleid hier ist billiger, nur neunundachtzig Euro.",
                 ),
-            ),
-            (
-                [
-                    ("Frau", "Was ziehst du zur Hochzeit an?"),
-                    ("Mann", "Ein weißes Hemd und eine schwarze Hose."),
-                ],
+                ("Frau", "Das blaue Kleid gefällt mir besser. Kann ich es anziehen?"),
+                ("Mann", "Natürlich, dort hinten rechts."),
+                ("Frau", "Hm, es ist ein bisschen zu klein. Haben Sie es auch größer?"),
+                ("Mann", "Ja, hier, eine Nummer größer. Wir haben auch schöne Schuhe dazu."),
+                ("Frau", "Nein danke, Schuhe habe ich."),
+            ],
+            "laden",
+            [
                 (
-                    "Was zieht der Mann an?",
-                    "Ein Hemd und eine schwarze Hose",
-                    "Einen Pullover und eine Hose",
-                    "Ein T-Shirt",
+                    "Wofür sucht die Frau ein Kleid?",
+                    "Für eine Hochzeit",
+                    "Für eine Party",
+                    "Für die Arbeit",
                 ),
-            ),
-            (
-                [
-                    ("Mann", "Wohin fährst du im Urlaub?"),
-                    ("Frau", "Ich fahre an die Ostsee. Ich liebe den Strand!"),
-                ],
-                ("Wohin fährt die Frau?", "An die Ostsee", "In die Berge", "Nach Italien"),
-            ),
-            (
-                [("Frau", "Wann ist die Party?"), ("Mann", "Am dritten Oktober, am Samstag.")],
-                ("Wann ist die Party?", "Am 3. Oktober", "Am 13. Oktober", "Am 3. November"),
-            ),
-            (
-                [
-                    ("Mann", "Was würdest du im Urlaub am liebsten machen?"),
-                    ("Frau", "Am liebsten würde ich jeden Tag schwimmen."),
-                ],
                 (
-                    "Was würde die Frau am liebsten machen?",
-                    "Jeden Tag schwimmen",
-                    "Jeden Tag wandern",
-                    "Lange schlafen",
+                    "Welches Kleid ist billiger?",
+                    "Das rosa Kleid",
+                    "Das blaue Kleid",
+                    "Das rote Kleid",
                 ),
-            ),
-        ],
+                ("Was kostet das blaue Kleid?", "120 Euro", "89 Euro", "112 Euro"),
+                (
+                    "Was ist das Problem?",
+                    "Das Kleid ist zu klein.",
+                    "Das Kleid ist zu teuer.",
+                    "Die Farbe ist hässlich.",
+                ),
+                (
+                    "Kauft die Frau auch Schuhe?",
+                    "Nein, sie hat Schuhe.",
+                    "Ja, schwarze Schuhe.",
+                    "Ja, blaue Schuhe.",
+                ),
+            ],
+        ),
         [
             (
                 "Und jetzt das Wetter: Morgen scheint im Süden die Sonne, im Norden regnet es.",
+                NONE,
                 ("Im Norden regnet es morgen.", True),
             ),
             (
                 "Liebe Kunden, heute sind alle Mäntel und Jacken zwanzig Prozent billiger!",
+                SHOP,
                 ("Heute sind die Hosen billiger.", False),
             ),
             (
                 "Achtung: Heute ist Sturm. Bitte gehen Sie nicht an den Strand.",
+                GONG,
                 ("Man soll heute nicht an den Strand gehen.", True),
             ),
             (
                 "Frohe Weihnachten! Am vierundzwanzigsten Dezember können Sie bei uns nur bis vierzehn Uhr einkaufen.",
+                SHOP,
                 ("Am 24. Dezember kann man bis 18 Uhr einkaufen.", False),
             ),
-        ],
-        [
             (
-                "Frau",
-                "Hallo Tina, hier ist Sophie. Viele Grüße aus Spanien! Hier sind es dreißig "
-                "Grad und die Sonne scheint. Bis bald!",
-                ("Wie warm ist es in Spanien?", "30 Grad", "13 Grad", "20 Grad"),
-            ),
-            (
-                "Mann",
-                "Hallo Laura, hier ist Ben. Danke für die Einladung! Ich komme gern zu deiner "
-                "Party. Ich bringe einen Kuchen mit.",
-                ("Was bringt Ben mit?", "Einen Kuchen", "Einen Salat", "Getränke"),
-            ),
-            (
-                "Frau",
-                "Guten Tag, hier ist Mode Chic. Ihr Kleid ist fertig. Sie können es ab Dienstag abholen.",
-                (
-                    "Ab wann kann man das Kleid abholen?",
-                    "Ab Dienstag",
-                    "Ab Montag",
-                    "Ab Donnerstag",
-                ),
-            ),
-            (
-                "Mann",
-                "Hallo Opa, hier ist Max. Herzlichen Glückwunsch zum Geburtstag! Wir besuchen dich am Sonntag.",
-                ("Wann besucht Max seinen Opa?", "Am Sonntag", "Am Samstag", "Heute"),
-            ),
-            (
-                "Frau",
-                "Hallo, hier ist Eva. Es schneit so schön! Fahren wir morgen in die Berge? Ruf mich an!",
-                (
-                    "Wohin möchte Eva morgen fahren?",
-                    "In die Berge",
-                    "An den Strand",
-                    "In die Stadt",
-                ),
+                "Liebe Gäste, unsere Silvesterparty ist im Restaurant im ersten Stock. Sie fängt um einundzwanzig Uhr an.",
+                GONG,
+                ("Die Party ist im Erdgeschoss.", False),
             ),
         ],
+        (
+            [
+                (
+                    "Mann",
+                    "Hallo Tina, hier ist Max. Viele Grüße aus Italien! Wir sind seit Montag am "
+                    "Meer. Das Wetter ist super: Jeden Tag scheint die Sonne und es ist dreißig "
+                    "Grad warm. Nur gestern hat es ein bisschen geregnet. Unsere Ferienwohnung ist "
+                    "klein, aber wir sehen das Meer! Jeden Morgen gehe ich schwimmen. Am Samstag "
+                    "fahren wir nach Rom. Am Sonntag in einer Woche sind wir wieder zu Hause. Tschüs!",
+                )
+            ],
+            [
+                ("Wo ist Max?", "Am Meer in Italien", "In den Bergen", "In Rom"),
+                ("Wie warm ist es?", "30 Grad", "13 Grad", "20 Grad"),
+                ("Wann hat es geregnet?", "Gestern", "Am Montag", "Jeden Tag"),
+                (
+                    "Was macht Max jeden Morgen?",
+                    "Er geht schwimmen.",
+                    "Er fährt nach Rom.",
+                    "Er schläft lange.",
+                ),
+                ("Wohin fahren sie am Samstag?", "Nach Rom", "Nach Hause", "An den Strand"),
+            ],
+        ),
     ),
 }
+
+# Recorded by make_hoeren_audio but not seeded yet: Moduls waiting to replace HOEREN's.
+NEXT = {1: M1_NEW}

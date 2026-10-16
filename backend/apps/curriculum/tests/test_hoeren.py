@@ -20,8 +20,10 @@ from apps.curriculum.models import PathLessonProgress, Unit
 from apps.exercises.models import Exercise
 
 BASE = "/api/curriculum/hoeren"
-# (questions, plays) per Teil, as in Start Deutsch 1.
-A1_SHAPE = [(6, 2), (4, 1), (5, 2)]
+# (questions, plays) per Teil: a long conversation, five announcements, a long phone message.
+A1_SHAPE = [(5, 2), (5, 1), (5, 2)]
+# The first Modul 1 (short clips), live until the new one is recorded.
+A1_LIVE_M1 = [(6, 2), (4, 1)]
 
 
 # A2 like Goethe A2: Teil 2 and 4 are one recording for the whole Teil.
@@ -44,18 +46,19 @@ class ContentTests(TestCase):
             self.assertTrue(teile[1]["context"] and teile[1]["clip"], where)  # choices + one talk
 
     def test_a1_sets_have_the_exam_shape(self):
-        for modul, teile in LEVELS["A1"]["hoeren"].items():
-            where = f"A1 Modul {modul}"
-            got = [(len(t["parts"]), t["parts"][0]["clip"]["plays"]) for t in teile]
-            # A set may stop early while a Teil waits for its audio (Modul 1 for now).
-            self.assertEqual(got, A1_SHAPE[: len(teile)], where)
-            self.assertGreaterEqual(len(teile), 2, where)
+        spec = LEVELS["A1"]
+        sets = [(f"A1 Modul {m}", t) for m, t in spec["hoeren"].items() if m != 1]
+        sets += [(f"A1 Modul {m} (next)", t) for m, t in spec["hoeren_next"].items()]
+        for where, teile in sets:
+            self.assertEqual([(len(t["parts"]), _plays(t)) for t in teile], A1_SHAPE, where)
+            self.assertTrue(teile[0]["clip"] and teile[2]["clip"]["phone"], where)  # long ones
             for teil in teile:
                 answers = {p["answer"] for p in teil["parts"]}
                 self.assertGreater(len(answers), 1, f"{where}: {teil['prompt']}")
                 for part in teil["parts"]:
                     self.assertIn(part["answer"], part["options"], where)
-                    self.assertTrue(part["clip"]["script"], where)
+        live = spec["hoeren"][1]
+        self.assertEqual([(len(t["parts"]), _plays(t)) for t in live], A1_LIVE_M1)
 
     def test_clip_names_are_unique(self):
         names = [n for n, _, _ in make_hoeren_audio.all_clips(list(LEVELS))]
@@ -100,7 +103,8 @@ class HoerenFlowTests(TestCase):
         self.assertNotIn('"script"', dumped)
         self.assertNotIn('"answer"', dumped)
         part = data["teile"][0]["payload"]["parts"][0]["payload"]
-        self.assertEqual(part["audio"], {"url": "/hoeren/seed-a1-hoeren-m1-t1-0.mp3", "plays": 2})
+        first = hoeren.clips_of(self.teile[0])[0][0]
+        self.assertEqual(part["audio"], {"url": f"/hoeren/{first}.mp3", "plays": 2})
         self.assertEqual(data["teile"][1]["payload"]["parts"][0]["payload"]["audio"]["plays"], 1)
 
     def test_answer_reveals_transcripts(self):
@@ -121,8 +125,11 @@ class GeneratorTests(TestCase):
         self.manifest = self.dir / "manifest.json"
         self.enterContext(mock.patch.object(make_hoeren_audio, "AUDIO_DIR", self.dir))
         self.enterContext(mock.patch.object(make_hoeren_audio, "MANIFEST", self.manifest))
+        self.enterContext(mock.patch.object(make_hoeren_audio, "SCENE_DIR", self.dir))
         self.enterContext(
-            mock.patch.object(make_hoeren_audio, "to_mp3", lambda pcm, path: path.write_bytes(pcm))
+            mock.patch.object(
+                make_hoeren_audio, "to_mp3", lambda pcm, path, rec: path.write_bytes(pcm)
+            )
         )
         self.enterContext(mock.patch.object(make_hoeren_audio.time, "sleep"))
 
@@ -139,8 +146,28 @@ class GeneratorTests(TestCase):
             self.run_cmd("--limit", "2")  # the two made are skipped
             self.assertEqual(tts.call_count, 4)
             self.assertEqual(len(json.loads(self.manifest.read_text())), 4)
-            self.run_cmd("--redo", "seed-a1-hoeren-m1-t1-0", "--limit", "1")
+            first = make_hoeren_audio.all_clips(list(LEVELS))[0][0]
+            self.run_cmd("--redo", first, "--limit", "1")
             self.assertEqual(tts.call_count, 5)
+
+    def test_a_scene_needs_its_background_file(self):
+        """A clip is never recorded without the background it asks for."""
+        scene = [c for c in make_hoeren_audio.all_clips(["A1"]) if c[1].get("scene") == "cafe"][0]
+        with mock.patch.object(make_hoeren_audio, "all_clips", return_value=[scene]):
+            with mock.patch.object(make_hoeren_audio.llm, "synthesize_speech", return_value=b"x"):
+                out = self.run_cmd()
+                self.assertIn("needs cafe.mp3", out)
+                (self.dir / "cafe.mp3").write_bytes(b"")
+                self.run_cmd()
+        self.assertTrue((self.dir / f"{scene[0]}.mp3").exists())
+
+    def test_mix_filter(self):
+        plain = make_hoeren_audio.mix_filter({})
+        self.assertNotIn("amix", plain)
+        both = make_hoeren_audio.mix_filter({"scene": "cafe", "gong": True, "phone": True})
+        self.assertIn("lowpass=f=3400", both)
+        self.assertIn("concat=n=2", both)
+        self.assertIn("amix=inputs=2", both)
 
     def test_stops_at_the_quota(self):
         quota = errors.ClientError(

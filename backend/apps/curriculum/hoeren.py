@@ -10,6 +10,7 @@ once all its audio is there. Grading, unlocking and best scores are Lesen's;
 the scripts are sent only after answering, as transcripts.
 """
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -24,15 +25,26 @@ MANIFEST = Path(__file__).parent / "content" / "hoeren_audio.json"
 AUDIO_URL = "/hoeren/{}.mp3"
 
 
+def clip_name(base: str, recording: dict) -> str:
+    """The audio file's name: where it sits plus a short hash of the recording, so
+    an edited script (or new background) is a new file and never an old one."""
+    digest = hashlib.sha1(json.dumps(recording, sort_keys=True).encode()).hexdigest()[:8]
+    return f"{base}-{digest}"
+
+
 def _clips(source: str, whole, parts) -> list[tuple[str, dict]]:
     if whole:
-        return [(f"{source}-all", whole)]
-    return [(f"{source}-{i}", p["clip"]) for i, p in enumerate(parts) if p.get("clip")]
+        return [(clip_name(f"{source}-all", whole), whole)]
+    return [
+        (clip_name(f"{source}-{i}", p["clip"]), p["clip"])
+        for i, p in enumerate(parts)
+        if p.get("clip")
+    ]
 
 
 def clips_of(exercise) -> list[tuple[str, dict]]:
-    """(file name, clip) of every recording in a Teil: "<source>-all" for one
-    recording for the whole Teil, "<source>-<n>" for question n's."""
+    """(file name, clip) of every recording in a Teil: "<source>-all-<hash>" for
+    one recording for the whole Teil, "<source>-<n>-<hash>" for question n's."""
     return _clips(exercise.source, (exercise.payload or {}).get("clip"), grading.parts_of(exercise))
 
 
@@ -72,11 +84,12 @@ def public_teil(exercise) -> dict:
     if (exercise.payload or {}).get("clip"):
         out["payload"]["audio"] = _audio(*clips[0])
     else:
-        by_part = dict(clips)
-        for i, part in enumerate(out["payload"]["parts"]):
-            name = f"{exercise.source}-{i}"
-            if name in by_part:
-                part["payload"]["audio"] = _audio(name, by_part[name])
+        for i, (part, full) in enumerate(
+            zip(out["payload"]["parts"], grading.parts_of(exercise), strict=True)
+        ):
+            if full.get("clip"):
+                name = clip_name(f"{exercise.source}-{i}", full["clip"])
+                part["payload"]["audio"] = _audio(name, full["clip"])
     return out
 
 
