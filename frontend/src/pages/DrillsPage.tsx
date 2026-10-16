@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { ArrowLeftRight, Eye, Hammer, Link2, Lock, Shuffle, Tags, type LucideIcon } from "lucide-react"
+import { ArrowLeftRight, Eye, Hammer, Link2, Lock, SearchX, Tags, type LucideIcon } from "lucide-react"
 
 import { GenderTriage } from "@/components/drills/GenderTriage"
 import { BlindForge } from "@/components/drills/BlindForge"
-import { Unscramble } from "@/components/drills/Unscramble"
+import { OddOneOut } from "@/components/drills/OddOneOut"
 import { FlashRecall } from "@/components/drills/FlashRecall"
 import { SentenceShuffle } from "@/components/drills/SentenceShuffle"
 import { MatchPairs } from "@/components/drills/MatchPairs"
@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext"
 type DrillId =
   | "gender"
   | "forge"
-  | "unscramble"
+  | "odd"
   | "flash"
   | "shuffle"
   | "match"
@@ -46,11 +46,11 @@ const DRILLS: DrillDef[] = [
     icon: Hammer,
   },
   {
-    id: "unscramble",
-    name: "Unscramble",
-    tag: "rebuild",
-    tagline: "The letters are jumbled. Put the word back together.",
-    icon: Shuffle,
+    id: "odd",
+    name: "Odd One Out",
+    tag: "spot it",
+    tagline: "Four words, three share a theme. Tap the one that doesn't.",
+    icon: SearchX,
   },
   {
     id: "flash",
@@ -92,7 +92,7 @@ export default function DrillsPage() {
 
   if (active === "gender") return <GenderTriage onExit={() => setActive(null)} />
   if (active === "forge") return <BlindForge onExit={() => setActive(null)} />
-  if (active === "unscramble") return <Unscramble onExit={() => setActive(null)} />
+  if (active === "odd") return <OddOneOut onExit={() => setActive(null)} />
   if (active === "flash") return <FlashRecall onExit={() => setActive(null)} />
   if (active === "shuffle") return <SentenceShuffle onExit={() => setActive(null)} />
   if (active === "match") return <MatchPairs onExit={() => setActive(null)} />
