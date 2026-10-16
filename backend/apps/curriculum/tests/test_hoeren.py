@@ -29,7 +29,9 @@ class ContentTests(TestCase):
         for modul, teile in LEVELS["A1"]["hoeren"].items():
             where = f"A1 Modul {modul}"
             got = [(len(t["parts"]), t["parts"][0]["clip"]["plays"]) for t in teile]
-            self.assertEqual(got, A1_SHAPE, where)
+            # A set may stop early while a Teil waits for its audio (Modul 1 for now).
+            self.assertEqual(got, A1_SHAPE[: len(teile)], where)
+            self.assertGreaterEqual(len(teile), 2, where)
             for teil in teile:
                 answers = {p["answer"] for p in teil["parts"]}
                 self.assertGreater(len(answers), 1, f"{where}: {teil['prompt']}")
@@ -91,6 +93,7 @@ class HoerenFlowTests(TestCase):
         data = res.json()
         self.assertEqual(data["parts"], [True] * 6)
         self.assertEqual(len(data["transcripts"]), 6)
+        self.assertEqual(len(self.teile), 2)  # Modul 1 is Teil 1 and 2 for now
         self.assertIn("Frau: Guten Tag!", data["transcripts"][0])
 
 
