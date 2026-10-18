@@ -287,6 +287,9 @@ if not DEBUG:
 # LLM API key (AI features). Gemini is the active provider for the AI
 # chat/assistant; empty until configured in .env (then endpoints return 503).
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+# Azure Speech (free F0 tier) speaks the Hören recordings when set; else Gemini does.
+AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "")
+AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "")
 
 
 # ---- Lesson schedule and streaks ----
