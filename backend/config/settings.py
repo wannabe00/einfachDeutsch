@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "apps.grammar",
     "apps.exercises",
     "apps.ai_assistant",
-    "apps.recitation",
+    "apps.talk",
     "apps.videos",
     "apps.history",
     "apps.curriculum",
@@ -298,10 +298,9 @@ STREAK_INITIAL_FREEZE_TOKENS = int(os.getenv("STREAK_INITIAL_FREEZE_TOKENS", "2"
 STREAK_FREEZE_EARN_DAYS = int(os.getenv("STREAK_FREEZE_EARN_DAYS", "14"))
 STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))
 
-# ---- Recite cost control ----
-RECITATION_DAILY_CAP = int(os.getenv("RECITATION_DAILY_CAP", "5"))
-RECITATION_MAX_AUDIO_SECONDS = int(os.getenv("RECITATION_MAX_AUDIO_SECONDS", "120"))
-RECITATION_MAX_AUDIO_MB = int(os.getenv("RECITATION_MAX_AUDIO_MB", "10"))
+# ---- Talk to AI cost control ----
+# Talk to AI: live voice conversations per premium user per day.
+TALK_DAILY_CAP = int(os.getenv("TALK_DAILY_CAP", "5"))
 
 # ---- AI-written history lessons (premium) ----
 # Most lessons one user may have the AI write per day.

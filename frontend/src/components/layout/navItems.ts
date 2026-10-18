@@ -55,7 +55,7 @@ export const navGroups: NavGroup[] = [
       { to: "/lesen", label: "Lesen", icon: FileText },
       { to: "/schreiben", label: "Schreiben", icon: PenLine },
       { to: "/hoeren", label: "Hören", icon: Headphones },
-      { to: "/speak", label: "Recite", icon: Mic },
+      { to: "/talk", label: "Sprechen", icon: Mic },
     ],
   },
   {

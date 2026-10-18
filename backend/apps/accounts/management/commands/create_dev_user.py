@@ -43,7 +43,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--premium",
             action="store_true",
-            help="Grant premium with no end date (unlimited energy, AI, Recite).",
+            help="Grant premium with no end date (unlimited energy, AI, Talk to AI).",
         )
 
     def handle(self, *args, **options):
