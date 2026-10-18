@@ -19,7 +19,6 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from google.genai import errors
 
 from apps.ai_assistant import llm
 from apps.curriculum.content.levels import LEVELS
@@ -117,15 +116,13 @@ class Command(BaseCommand):
                 time.sleep(pause)
             try:
                 pcm = llm.synthesize_speech(recording["script"], slow=lvl in SLOW_LEVELS)
-            except errors.APIError as err:
-                if getattr(err, "code", None) == 429:
-                    # The free tier allows about 10 recordings a day; Google says when to retry.
-                    wait = re.search(
-                        r"retry in ([\dhm]*\d+)", str(err)
-                    )  # "13h3m42.3s" -> "13h3m42"
-                    when = f" Try again in {wait[1]}s." if wait else " Run again later."
-                    self.stdout.write(self.style.WARNING(f"Quota reached.{when}"))
-                    break
+            except llm.AIQuotaError as err:
+                # The free tier allows a few recordings a day; Google says when to retry.
+                wait = re.search(r"retry in ([\dhm]*\d+)", str(err))  # "13h3m42.3s" -> "13h3m42"
+                when = f" Try again in {wait[1]}s." if wait else " Run again later."
+                self.stdout.write(self.style.WARNING(f"Quota reached.{when}"))
+                break
+            except llm.AIResponseError as err:
                 self.stdout.write(self.style.ERROR(f"{name}: {err}"))
                 continue
             to_mp3(pcm, AUDIO_DIR / f"{name}.mp3", recording)

@@ -10,7 +10,6 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
-from google.genai import errors
 from rest_framework.test import APIClient
 
 from apps.curriculum import hoeren
@@ -170,13 +169,11 @@ class GeneratorTests(TestCase):
         self.assertIn("amix=inputs=2", both)
 
     def test_stops_at_the_quota(self):
-        quota = errors.ClientError(
-            429, {"error": {"message": "quota", "status": "RESOURCE_EXHAUSTED"}}
-        )
+        quota = make_hoeren_audio.llm.AIQuotaError("quota, retry in 13h3m42.3s")
         with mock.patch.object(
             make_hoeren_audio.llm, "synthesize_speech", side_effect=[b"pcm", quota, b"pcm"]
         ) as tts:
             out = self.run_cmd()
-        self.assertIn("Quota reached", out)
+        self.assertIn("Quota reached. Try again in 13h3m42s.", out)
         self.assertEqual(tts.call_count, 2)
         self.assertEqual(len(list(self.dir.glob("*.mp3"))), 1)

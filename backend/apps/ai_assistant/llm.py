@@ -4,14 +4,18 @@ The key comes from `GEMINI_API_KEY` in backend/.env. Without it, calls raise
 AIConfigError and the views answer 503.
 """
 
+import base64
 import datetime
+import io
 import json
+import wave
 
 from django.conf import settings
 from google import genai
+from google.genai import _interactions as interactions
 from google.genai import errors, types
 
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.8-flash"
 MAX_TOKENS = 1024
 
 
@@ -21,6 +25,10 @@ class AIConfigError(RuntimeError):
 
 class AIResponseError(RuntimeError):
     """Raised when Gemini's answer can't be used (views answer 502, try again)."""
+
+
+class AIQuotaError(AIResponseError):
+    """Raised when the key's quota for a model is used up (try again later)."""
 
 
 def _client() -> genai.Client:
@@ -286,50 +294,51 @@ def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
 
 # ---- speech (Hören recordings) ---------------------------------------------
 
-TTS_MODEL = "gemini-2.5-flash-preview-tts"
+TTS_MODEL = "gemini-3.8-flash-tts"
 VOICES = {"Frau": "Kore", "Mann": "Charon", "Ansage": "Aoede"}  # prebuilt Gemini voices
-TTS_STYLE = (
-    "Read this aloud in German as a clear, natural recording for a language exam. "
-    "Speak at a calm pace{slow}. Read only the text, nothing else."
-)
-
-
-def _voice(speaker: str) -> types.VoiceConfig:
-    return types.VoiceConfig(
-        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICES[speaker])
-    )
+# The 3.x TTS models read the text verbatim, so the style goes in per-line metadata.
+TTS_STYLE = "speaking clearly at a calm, natural pace, like a recording for a language exam"
+TTS_STYLE_SLOW = "speaking slowly and clearly, like a calm exam recording for beginners"
 
 
 def synthesize_speech(script: list, slow: bool = False) -> bytes:
     """Speak a script of (speaker, line) pairs, one or two speakers, each with
-    their own voice. Returns 16-bit mono PCM at 24 kHz. Raises the SDK's
-    APIError on quota or server errors (the caller decides to retry later)."""
+    their own voice. Returns 16-bit mono PCM at 24 kHz. Raises AIQuotaError when
+    the quota is used up and AIResponseError on other failures."""
+    style = TTS_STYLE_SLOW if slow else TTS_STYLE
     speakers = list(dict.fromkeys(s for s, _ in script))
-    style = TTS_STYLE.format(slow=", a little slower than normal, for beginners" if slow else "")
-    if len(speakers) == 1:
-        text = " ".join(line for _, line in script)
-        speech = types.SpeechConfig(voice_config=_voice(speakers[0]))
-    else:
-        text = "\n".join(f"{s}: {line}" for s, line in script)
-        speech = types.SpeechConfig(
-            multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
-                speaker_voice_configs=[
-                    types.SpeakerVoiceConfig(speaker=s, voice_config=_voice(s)) for s in speakers
-                ]
-            )
-        )
     client = _client()
-    resp = client.models.generate_content(
-        model=TTS_MODEL,
-        contents=f"{style}\n\n{text}",
-        config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech),
-    )
-    return resp.candidates[0].content.parts[0].inline_data.data
+    try:
+        result = client.interactions.create(
+            model=TTS_MODEL,
+            input=[
+                {
+                    "type": "text",
+                    "text": line,
+                    "annotations": [{"type": "speech_metadata", "speaker": who, "style": style}],
+                }
+                for who, line in script
+            ],
+            response_modalities=["audio"],
+            generation_config={
+                "speech_config": {
+                    "speakers": [{"speaker": s, "voice": VOICES[s]} for s in speakers]
+                }
+            },
+        )
+    except interactions.RateLimitError as err:
+        raise AIQuotaError(str(err)) from err
+    except interactions.APIError as err:
+        raise AIResponseError(str(err)) from err
+    step = next(s for s in result.steps if s.type == "model_output")
+    wav = wave.open(io.BytesIO(base64.b64decode(step.content[0].data)))
+    assert (wav.getframerate(), wav.getnchannels(), wav.getsampwidth()) == (24000, 1, 2)
+    return wav.readframes(wav.getnframes())
 
 
 # ---- Talk to AI (live voice conversation) ------------------------------------
 
-LIVE_MODEL = "gemini-2.5-flash-native-audio-latest"
+LIVE_MODEL = "gemini-3.8-live"
 LIVE_MINUTES = 10  # the talk ends after this; the token lives a little longer
 # How the AI speaks at each level (the learner's own level, from their profile):
 # the language and the pace.
