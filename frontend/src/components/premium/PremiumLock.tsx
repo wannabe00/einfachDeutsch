@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
 /**
- * Shown in place of a premium-only page (AI Assistant, Recite) for free users.
+ * Shown in place of a premium-only page (AI Assistant, Talk to AI) for free users.
  * The API returns 403 for these anyway; this just explains why and offers the
  * trial.
  */
@@ -51,7 +51,7 @@ export function PremiumLock() {
             "Unlimited energy on the path",
             "The AI Assistant and AI explanations",
             "AI feedback on your Schreiben texts",
-            "Recite: read a text, retell it aloud, get feedback",
+            "Talk to AI: speak German with an AI partner, then get a report",
           ].map((perk) => (
             <li key={perk} className="flex items-start gap-2.5">
               <Check className="mt-0.5 size-[18px] shrink-0 text-success" aria-hidden="true" />

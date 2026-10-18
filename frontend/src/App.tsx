@@ -15,7 +15,7 @@ import WordBankPage from "@/pages/WordBankPage"
 import GrammarPage from "@/pages/GrammarPage"
 import ExercisesPage from "@/pages/ExercisesPage"
 import DrillsPage from "@/pages/DrillsPage"
-import RecitePage from "@/pages/RecitePage"
+import TalkPage from "@/pages/TalkPage"
 import BooksPage from "@/pages/BooksPage"
 import ChapterDetailPage from "@/pages/ChapterDetailPage"
 import AIAssistantPage from "@/pages/AIAssistantPage"
@@ -171,8 +171,9 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
 
+          <Route path="/speak" element={<Navigate to="/talk" replace />} />
           <Route element={<RequirePremium />}>
-            <Route path="/speak" element={<RecitePage />} />
+            <Route path="/talk" element={<TalkPage />} />
             <Route path="/ai" element={<AIAssistantPage />} />
           </Route>
         </Route>

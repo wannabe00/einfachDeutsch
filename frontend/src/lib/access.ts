@@ -3,7 +3,7 @@
  *
  * Guests may use the "free to the owner" features (read-only or cheap, and
  * rate-limited on the backend). Account-only features either cost the owner
- * money/quota (AI, Recite) or are reserved by product decision (Drills), plus
+ * money/quota (AI, Talk to AI) or are reserved by product decision (Drills), plus
  * anything that writes per-user progress or edits content.
  *
  * The backend is the real enforcement boundary (DRF throttling + per-view

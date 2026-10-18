@@ -1,6 +1,6 @@
 """Premium gating.
 
-Premium means unlimited energy, the AI Assistant, AI explanations and Recite.
+Premium means unlimited energy, the AI Assistant, AI explanations and Talk to AI.
 Free users get the whole path (limited by energy) and every content page, so
 this only guards features that cost money to run (Gemini).
 

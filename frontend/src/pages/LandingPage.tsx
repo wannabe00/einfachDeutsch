@@ -237,8 +237,8 @@ const FEATURES: { title: string; body: string; icon: LucideIcon }[] = [
   },
   {
     icon: Sparkles,
-    title: "AI tutor and Recite",
-    body: "Premium: ask a tutor anything, or retell a text aloud and get feedback on it.",
+    title: "AI tutor and Talk to AI",
+    body: "Premium: ask a tutor anything, or have a spoken conversation in German and get a report on it.",
   },
 ]
 
@@ -378,7 +378,7 @@ function CultureMoment() {
 const FAQS = [
   {
     q: "Is it free?",
-    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, the AI tutor and Recite.",
+    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, the AI tutor and Talk to AI.",
   },
   {
     q: "Do I need an account?",

@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 
-class RecitationConfig(AppConfig):
+class TalkConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.recitation"
-    label = "recitation"
+    name = "apps.talk"

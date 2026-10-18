@@ -27,11 +27,12 @@ export default function PrivacyPage() {
             That's it.
           </Item>
           <Item icon={Mic} color="hsl(var(--section-6))" title="Speaking practice">
-            Recordings you make in Recite are transcribed and then <strong>discarded</strong>. The
-            audio is never stored; only the transcript and your score are kept.
+            In Talk to AI your voice is streamed live to Google Gemini to hold the conversation.
+            We <strong>never store the audio</strong>; only the text transcript and your report are
+            kept, so you can read them again.
           </Item>
           <Item icon={Sparkles} color="hsl(var(--section-3))" title="AI features">
-            Text you send to the AI tutor and recitation grading is processed by a third-party AI
+            Text you send to the AI tutor, Talk to AI and AI grading is processed by a third-party AI
             provider to generate responses. Don't share sensitive personal information in those
             fields.
           </Item>

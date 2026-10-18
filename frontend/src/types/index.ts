@@ -43,23 +43,6 @@ export interface StreakStatus {
   unlock_weekdays: number[]
 }
 
-export interface RecitationGrammarError {
-  error: string
-  correction: string
-  type: string
-}
-
-export interface RecitationResult {
-  id: number
-  transcript: string
-  coverage_score: number | null
-  covered: string[]
-  missed: string[]
-  grammar_errors: RecitationGrammarError[]
-  pronunciation_notes: string[]
-  summary: string
-}
-
 export interface ShowSuggestion {
   id: number
   title: string
@@ -754,4 +737,40 @@ export interface WriteResult {
 
 export interface FormResult extends AnswerResult {
   attempt: WritingAttempt
+}
+
+/* ---- Talk to AI: live voice conversations (premium) ---- */
+
+export interface TalkStart {
+  id: number
+  /** Short-lived Gemini Live token; the model, voice and role are locked into it. */
+  token: string
+  model: string
+  minutes: number
+}
+
+export interface TalkTurn {
+  role: "user" | "ai"
+  text: string
+}
+
+export interface TalkReport {
+  summary: string
+  corrections: { you_said: string; better: string; why: string }[]
+  phrases: string[]
+  new_words: { german: string; english: string }[]
+  practise: string[]
+}
+
+export interface TalkSummary {
+  id: number
+  started_at: string
+  ended_at: string | null
+  summary: string
+}
+
+export interface TalkDetail extends TalkSummary {
+  transcript: TalkTurn[]
+  /** Empty when the learner said nothing. */
+  report: TalkReport | Record<string, never>
 }

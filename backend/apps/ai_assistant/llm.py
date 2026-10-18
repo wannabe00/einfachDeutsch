@@ -4,6 +4,7 @@ The key comes from `GEMINI_API_KEY` in backend/.env. Without it, calls raise
 AIConfigError and the views answer 503.
 """
 
+import datetime
 import json
 
 from django.conf import settings
@@ -324,3 +325,164 @@ def synthesize_speech(script: list, slow: bool = False) -> bytes:
         config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech),
     )
     return resp.candidates[0].content.parts[0].inline_data.data
+
+
+# ---- Talk to AI (live voice conversation) ------------------------------------
+
+LIVE_MODEL = "gemini-2.5-flash-native-audio-latest"
+LIVE_MINUTES = 10  # the talk ends after this; the token lives a little longer
+# How the AI speaks at each level (the learner's own level, from their profile):
+# the language and the pace.
+TALK_LEVEL = {
+    "A1": "A1: sehr kurze, einfache Sätze im Präsens, nur ganz alltägliche Wörter. Sprich "
+    "sehr langsam und deutlich, mit einer kleinen Pause nach jedem Satz",
+    "A2": "A2: kurze Sätze, Präsens und Perfekt, alltägliche Themen und Wörter. Sprich "
+    "langsam und deutlich",
+    "B1": "B1: normale Alltagssprache, auch Nebensätze und Präteritum. Sprich klar und "
+    "etwas langsamer als normal",
+    "B2": "B2: natürliche Sprache mit abwechslungsreichem Wortschatz, in normalem Tempo",
+    "C1": "C1: anspruchsvolle, idiomatische Sprache, auch abstrakte Themen, normales Tempo",
+    "C2": "C2: wie mit einem Muttersprachler, ohne Vereinfachung, normales Tempo",
+}
+
+
+# Every talk starts with Tako's greeting, then one of these at random, so it
+# doesn't always continue the same way.
+TALK_GREETING = "Hallo! Ich bin Tako, deine KI-Assistentin."
+TALK_OPENERS = [
+    "Schön, dich zu hören. Worüber möchtest du heute sprechen?",
+    "Wie geht's dir heute? Hast du ein Thema, oder soll ich dir eins vorschlagen?",
+    "Was möchtest du heute üben? Du kannst ein Thema wählen, oder ich gebe dir eins.",
+    "Na, wie war dein Tag? Erzähl mal, oder sollen wir über etwas anderes sprechen?",
+    "Möchtest du frei sprechen, ein Thema von mir, oder eine kleine Vorstellung wie in der Prüfung?",
+    "Schön, dass du da bist. Was ist dein Thema heute?",
+]
+
+
+def talk_instruction(level: str, topics: list[str], opener: str) -> str:
+    """The Live session's system instruction. The learner decides what to talk
+    about; the AI keeps its German at the learner's level."""
+    themes = "; ".join(topics) or "Familie; Wohnen; Freizeit und Hobbys; Essen und Trinken; Urlaub"
+    return (
+        "Du bist Tako, eine freundliche KI-Assistentin und Gesprächspartnerin für jemanden, "
+        "der Deutsch lernt. Sein "
+        f"Niveau ist {TALK_LEVEL.get(level, TALK_LEVEL['B1'])}. Sprich nur Deutsch, genau "
+        "auf diesem Niveau: nicht schwerer, aber auch nicht einfacher als nötig. Stelle eine "
+        "Frage auf einmal.\n\n"
+        "Du beginnst das Gespräch immer selbst, sofort, ohne auf den Lerner zu warten. Sag "
+        f"zuerst genau: „{TALK_GREETING} {opener}“ Dann entscheidet der Lerner, worüber ihr "
+        "sprecht. Hat er ein eigenes Thema, sprecht darüber. Möchte er einen Vorschlag, "
+        f"gib ihm ein Thema, zum Beispiel aus: {themes}. Möchte er eine Vorstellung wie in "
+        "der Goethe-Prüfung, frag nach Name, Alter, Land, Wohnort, Sprachen, Beruf und "
+        "Hobbys. Er kann jederzeit das Thema wechseln.\n\n"
+        "Lass ihn möglichst viel sprechen: offene, einfache Fragen, und reagiere kurz auf "
+        "seine Antworten. Korrigiere keine Fehler während des Gesprächs (das macht später ein "
+        "Bericht). Versteht er etwas nicht, sag es noch einfacher. Der Lerner spricht nur "
+        "Deutsch oder Englisch. Wenn du nicht sicher bist, was er gesagt hat (leise, "
+        "undeutlich, Geräusche oder eine andere Sprache), rate nicht und erfinde keine "
+        "Wörter: frag freundlich nach, zum Beispiel „Entschuldigung, das habe ich nicht "
+        "verstanden. Kannst du das bitte wiederholen?“ Spricht er Englisch, "
+        f"antworte freundlich auf Deutsch. Nach etwa {LIVE_MINUTES} Minuten beende das "
+        "Gespräch freundlich."
+    )
+
+
+def live_token(instruction: str, voice: str = "Kore") -> str:
+    """A short-lived token the browser uses to open one Live session. Model, voice,
+    instruction and transcription are locked into it; the API key stays here."""
+    now = datetime.datetime.now(tz=datetime.UTC)
+    client = _client()
+    try:
+        token = client.auth_tokens.create(
+            config={
+                "uses": 1,
+                "expire_time": now + datetime.timedelta(minutes=LIVE_MINUTES + 5),
+                "new_session_expire_time": now + datetime.timedelta(minutes=1),
+                "live_connect_constraints": {
+                    "model": LIVE_MODEL,
+                    "config": {
+                        "response_modalities": ["AUDIO"],
+                        "system_instruction": instruction,
+                        "speech_config": {
+                            "voice_config": {"prebuilt_voice_config": {"voice_name": voice}},
+                            "language_code": "de-DE",
+                        },
+                        # shortcut: the transcription language can't be fixed on the
+                        # Developer API (language_codes is enterprise-only), so the
+                        # browser marks lines in other scripts as unclear (liveTalk.ts).
+                        "input_audio_transcription": {},
+                        "output_audio_transcription": {},
+                    },
+                },
+                "http_options": {"api_version": "v1alpha"},
+            }
+        )
+    except errors.APIError as err:
+        raise AIResponseError("The voice service is busy.") from err
+    return token.name
+
+
+TALK_REPORT_SYSTEM = (
+    "You are a kind German teacher. You read the transcript of a spoken practice "
+    "conversation between a learner and an AI partner and write a short report for "
+    "the learner, at their level. Write explanations in simple English, German "
+    "examples in German. Only correct the learner's lines, never the AI's. The "
+    "transcript comes from speech recognition, so ignore small spelling slips and "
+    "focus on grammar, word choice and word order. Lines marked (unklar) were not "
+    "understood: skip them. Only correct what the learner clearly said; never guess "
+    "or invent words they might have meant, and only use German and English in the "
+    "report. Give at most 6 corrections, the "
+    "most useful first; if the learner made none, say so kindly."
+)
+_ITEM = {"type": "STRING"}
+TALK_REPORT_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "summary": {"type": "STRING"},
+        "corrections": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"you_said": _ITEM, "better": _ITEM, "why": _ITEM},
+                "required": ["you_said", "better", "why"],
+            },
+        },
+        "phrases": {"type": "ARRAY", "items": _ITEM},
+        "new_words": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"german": _ITEM, "english": _ITEM},
+                "required": ["german", "english"],
+            },
+        },
+        "practise": {"type": "ARRAY", "items": _ITEM},
+    },
+    "required": ["summary", "corrections", "phrases", "new_words", "practise"],
+}
+
+
+def talk_report(level: str, transcript: list[dict]) -> dict:
+    """The report after a talk: summary, corrections, useful phrases, new words and
+    what to practise. Raises AIResponseError when Gemini fails, AIConfigError
+    without a key."""
+    lines = "\n".join(
+        f"{'Learner' if t['role'] == 'user' else 'AI'}: {t['text']}" for t in transcript
+    )
+    contents = (
+        f"Level: {level}\nA free conversation; the learner chose what to talk about."
+        f"\n\nTranscript:\n{lines}"
+    )
+    try:
+        raw = _complete(
+            TALK_REPORT_SYSTEM,
+            contents,
+            max_tokens=4096,
+            response_mime_type="application/json",
+            response_schema=TALK_REPORT_SCHEMA,
+        )
+        return _json(raw)
+    except errors.APIError as err:
+        raise AIResponseError("The AI teacher is busy.") from err
+    except (json.JSONDecodeError, ValueError) as err:
+        raise AIResponseError("The AI teacher sent an unreadable report.") from err
