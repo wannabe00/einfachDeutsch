@@ -12,7 +12,7 @@ words taught up to the Modul's last Lektion. The audio is generated once with
 from ..dsl import clip, hoeren_match, hoeren_mc, hoeren_teil, hoeren_yn
 
 # The Moduls testers see in production; the rest stay local (DEBUG shows all).
-LIVE: set[int] = set()
+LIVE = set(range(1, 9))
 
 RADIO = "Listen to the texts. Choose a, b or c. (You hear each text twice.)"
 CONVERSATION = (
@@ -23,7 +23,7 @@ INTERVIEW = "Listen to the interview. Ja oder nein? (You hear it twice.)"
 
 
 # Where each Modul's conversation (Teil 2) and dialogues (Teil 3) take place;
-# "" is a quiet room. The interviews (Teil 4) are in a quiet studio.
+# "" is a quiet room. The interviews (Teil 4) sound like the radio.
 SCENES = {
     1: ("", ["cafe", "cafe", "park", "laden", ""]),
     2: ("cafe", ["laden", "strasse", "cafe", "laden", "strasse"]),
@@ -38,7 +38,7 @@ SCENES = {
 
 def _sound(who: str, text: str) -> dict:
     """Teil 1: phone messages sound like a phone; announcements in a shop or a
-    station start with a gong over their background; radio texts stay clean."""
+    station start with a gong over their background; the rest is radio."""
     if who != "Ansage":
         return {"phone": True}
     if text.startswith("Liebe Kunden"):
@@ -49,7 +49,7 @@ def _sound(who: str, text: str) -> dict:
         return {"gong": True, "scene": "buero"}
     if text.startswith(("Liebe Besucher", "Liebe Gäste")):
         return {"gong": True}
-    return {}
+    return {"radio": True}
 
 
 def _set(modul, radio, conversation, dialogues, interview) -> list:
@@ -73,7 +73,7 @@ def _set(modul, radio, conversation, dialogues, interview) -> list:
             4,
             INTERVIEW,
             *[hoeren_yn(s, ok) for s, ok in statements],
-            recording=clip(*talk, plays=2),
+            recording=clip(*talk, plays=2, radio=True),  # Goethe A2: a radio interview
         ),
     ]
 

@@ -9,7 +9,9 @@ import datetime
 import io
 import json
 import wave
+from xml.sax.saxutils import escape
 
+import httpx
 from django.conf import settings
 from google import genai
 from google.genai import _interactions as interactions
@@ -304,7 +306,10 @@ TTS_STYLE_SLOW = "speaking slowly and clearly, like a calm exam recording for be
 def synthesize_speech(script: list, slow: bool = False) -> bytes:
     """Speak a script of (speaker, line) pairs, one or two speakers, each with
     their own voice. Returns 16-bit mono PCM at 24 kHz. Raises AIQuotaError when
-    the quota is used up and AIResponseError on other failures."""
+    the quota is used up and AIResponseError on other failures. Azure speaks it
+    when AZURE_SPEECH_KEY is set (free tier, no daily cap), else Gemini."""
+    if settings.AZURE_SPEECH_KEY:
+        return _azure_speech(script, slow)
     style = TTS_STYLE_SLOW if slow else TTS_STYLE
     speakers = list(dict.fromkeys(s for s, _ in script))
     client = _client()
@@ -334,6 +339,48 @@ def synthesize_speech(script: list, slow: bool = False) -> bytes:
     wav = wave.open(io.BytesIO(base64.b64decode(step.content[0].data)))
     assert (wav.getframerate(), wav.getnchannels(), wav.getsampwidth()) == (24000, 1, 2)
     return wav.readframes(wav.getnframes())
+
+
+AZURE_VOICES = {
+    "Frau": "de-DE-SeraphinaMultilingualNeural",
+    "Mann": "de-DE-FlorianMultilingualNeural",
+    "Ansage": "de-DE-KatjaNeural",
+}
+AZURE_TTS_URL = "https://{}.tts.speech.microsoft.com/cognitiveservices/v1"
+
+
+def _azure_speech(script: list, slow: bool) -> bytes:
+    """The same recording from Azure Speech: one SSML request, a voice per line
+    and a short pause between lines. 16-bit mono PCM at 24 kHz like Gemini's."""
+    rate = "-15%" if slow else "-5%"
+    lines = "".join(
+        f'<voice name="{AZURE_VOICES[who]}"><prosody rate="{rate}">{escape(line)}'
+        '<break time="500ms"/></prosody></voice>'
+        for who, line in script
+    )
+    ssml = (
+        '<speak version="1.0" xml:lang="de-DE" '
+        f'xmlns="http://www.w3.org/2001/10/synthesis">{lines}</speak>'
+    )
+    try:
+        resp = httpx.post(
+            AZURE_TTS_URL.format(settings.AZURE_SPEECH_REGION),
+            content=ssml.encode(),
+            headers={
+                "Ocp-Apim-Subscription-Key": settings.AZURE_SPEECH_KEY,
+                "Content-Type": "application/ssml+xml",
+                "X-Microsoft-OutputFormat": "raw-24khz-16bit-mono-pcm",
+                "User-Agent": "einfachDeutsch",
+            },
+            timeout=120,
+        )
+    except httpx.HTTPError as err:
+        raise AIResponseError(f"Azure Speech: {err}") from err
+    if resp.status_code == 429:
+        raise AIQuotaError("Azure Speech: quota or rate limit reached")
+    if resp.status_code != 200:
+        raise AIResponseError(f"Azure Speech {resp.status_code}: {resp.text[:200]}")
+    return resp.content
 
 
 # ---- Talk to AI (live voice conversation) ------------------------------------

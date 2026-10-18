@@ -8,10 +8,10 @@ All scripts are original and use the words taught up to the Modul's last
 Lektion (plus names, places and numbers).
 """
 
-from ..dsl import clip, hoeren_mc, hoeren_rf, hoeren_teil, mc
+from ..dsl import clip, hoeren_rf, hoeren_teil, mc
 
 # The Moduls testers see in production; the rest stay local (DEBUG shows all).
-LIVE = {1}
+LIVE = set(range(1, 9))
 
 CONVERSATION = "Listen to the conversation. Choose a, b or c. (You hear it twice.)"
 ANNOUNCEMENTS = "Listen to the announcements. Richtig oder falsch? (You hear each once.)"
@@ -36,22 +36,6 @@ def _set(conversation, announcements, phone) -> list:
     ]
 
 
-def _old_set(dialogues, announcements) -> list:
-    """The first Modul 1 (short clips, 10 questions), live until M1_NEW is recorded."""
-    return [
-        hoeren_teil(
-            1,
-            "Listen to the dialogue. Choose a, b or c. (You hear it twice.)",
-            *[hoeren_mc(clip(*s), *q) for s, q in dialogues],
-        ),
-        hoeren_teil(
-            2,
-            "Listen to the announcement. Richtig oder falsch? (You hear it once.)",
-            *[hoeren_rf(clip(("Ansage", s), plays=1), *q) for s, q in announcements],
-        ),
-    ]
-
-
 GONG = {"gong": True}
 STATION = {"gong": True, "scene": "bahnhof"}
 SHOP = {"gong": True, "scene": "laden"}
@@ -60,91 +44,9 @@ STREET = {"scene": "strasse"}
 PARK = {"scene": "park"}
 CAFE = {"scene": "cafe"}
 NONE: dict = {}
+RADIO = {"radio": True}
 
-M1_LIVE = _old_set(
-    [
-        (
-            [
-                ("Frau", "Guten Tag! Wie ist Ihr Name, bitte?"),
-                ("Mann", "Mein Name ist Schneider."),
-                ("Frau", "Wie schreibt man das?"),
-                ("Mann", "S – C – H – N – E – I – D – E – R."),
-            ],
-            ("Wie heißt der Mann?", "Schneider", "Schreiner", "Schröder"),
-        ),
-        (
-            [
-                ("Mann", "Woher kommst du, Lucia?"),
-                ("Frau", "Ich komme aus Spanien, aus Madrid. Und du?"),
-                ("Mann", "Ich komme aus Italien."),
-            ],
-            ("Woher kommt Lucia?", "Aus Spanien.", "Aus Italien.", "Aus Brasilien."),
-        ),
-        (
-            [
-                ("Frau", "Was sind Sie von Beruf?"),
-                ("Mann", "Ich bin Lehrer. Und meine Frau ist Ärztin."),
-            ],
-            ("Was ist der Mann von Beruf?", "Lehrer", "Arzt", "Kellner"),
-        ),
-        (
-            [
-                ("Mann", "Wie alt ist deine Tochter?"),
-                ("Frau", "Sie ist zwölf. Und mein Sohn ist acht."),
-            ],
-            ("Wie alt ist die Tochter?", "12 Jahre", "8 Jahre", "20 Jahre"),
-        ),
-        (
-            [
-                ("Frau", "Wie ist deine Telefonnummer?"),
-                (
-                    "Mann",
-                    "Null – eins – sieben – null, fünfundvierzig, dreiundsechzig, neunundzwanzig.",
-                ),
-            ],
-            ("Wie ist die Telefonnummer?", "0170 45 63 29", "0170 54 63 29", "0170 45 36 29"),
-        ),
-        (
-            [
-                ("Mann", "Sprechen Sie Englisch?"),
-                (
-                    "Frau",
-                    "Ja. Und ich spreche auch ein bisschen Französisch. Aber kein Russisch.",
-                ),
-            ],
-            (
-                "Welche Sprachen spricht die Frau?",
-                "Englisch und Französisch",
-                "Englisch und Russisch",
-                "Französisch und Russisch",
-            ),
-        ),
-    ],
-    [
-        (
-            "Liebe Studenten, der Deutschkurs ist heute nicht in Zimmer zwölf. "
-            "Er ist in Zimmer zwanzig.",
-            ("Der Kurs ist heute in Zimmer 20.", True),
-        ),
-        (
-            "Achtung, bitte! Frau Weber, bitte kommen Sie zur Information. "
-            "Frau Weber, bitte zur Information.",
-            ("Frau Weber soll zum Telefon kommen.", False),
-        ),
-        (
-            "Guten Tag im Hotel Europa! Wir sprechen Deutsch, Englisch und Italienisch.",
-            ("Im Hotel sprechen sie Spanisch.", False),
-        ),
-        (
-            "Liebe Eltern, die Lehrerin von Klasse drei ist Frau Yilmaz. Ihre "
-            "Telefonnummer ist null – drei – null, vierundfünfzig, zweiundachtzig.",
-            ("Frau Yilmaz ist Lehrerin.", True),
-        ),
-    ],
-)
-
-# The new Modul 1. It replaces M1_LIVE in HOEREN once its audio is recorded.
-M1_NEW = _set(
+M1 = _set(
     (
         [
             ("Mann", "Hallo! Ist hier noch frei?"),
@@ -189,7 +91,7 @@ M1_NEW = _set(
         ),
         (
             "Guten Tag im Hotel Europa! Wir sprechen Deutsch, Englisch und Italienisch.",
-            NONE,
+            RADIO,
             ("Im Hotel sprechen sie Spanisch.", False),
         ),
         (
@@ -225,7 +127,7 @@ M1_NEW = _set(
 )
 
 HOEREN = {
-    1: M1_LIVE,
+    1: M1,
     # Modul 2 (Lektionen 4-6): furniture and prices, things and colours, the office.
     2: _set(
         (
@@ -811,7 +713,7 @@ HOEREN = {
         [
             (
                 "Und jetzt das Wetter: Morgen scheint im Süden die Sonne, im Norden regnet es.",
-                NONE,
+                RADIO,
                 ("Im Norden regnet es morgen.", True),
             ),
             (
@@ -863,4 +765,4 @@ HOEREN = {
 }
 
 # Recorded by make_hoeren_audio but not seeded yet: Moduls waiting to replace HOEREN's.
-NEXT = {1: M1_NEW}
+NEXT: dict = {}

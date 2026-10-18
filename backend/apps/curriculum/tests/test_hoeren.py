@@ -8,7 +8,7 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -21,8 +21,6 @@ from apps.exercises.models import Exercise
 BASE = "/api/curriculum/hoeren"
 # (questions, plays) per Teil: a long conversation, five announcements, a long phone message.
 A1_SHAPE = [(5, 2), (5, 1), (5, 2)]
-# The first Modul 1 (short clips), live until the new one is recorded.
-A1_LIVE_M1 = [(6, 2), (4, 1)]
 
 
 # A2 like Goethe A2: Teil 2 and 4 are one recording for the whole Teil.
@@ -43,10 +41,14 @@ class ContentTests(TestCase):
                 for part in teil["parts"]:
                     self.assertIn(part["answer"], part["options"], where)
             self.assertTrue(teile[1]["context"] and teile[1]["clip"], where)  # choices + one talk
+            self.assertTrue(teile[3]["clip"]["radio"], where)  # a radio interview
+            for part in teile[0]["parts"]:  # phone, loudspeaker or radio, never plain
+                kinds = [k for k in ("phone", "gong", "radio") if part["clip"].get(k)]
+                self.assertEqual(len(kinds), 1, f"{where}: {part['prompt']}")
 
     def test_a1_sets_have_the_exam_shape(self):
         spec = LEVELS["A1"]
-        sets = [(f"A1 Modul {m}", t) for m, t in spec["hoeren"].items() if m != 1]
+        sets = [(f"A1 Modul {m}", t) for m, t in spec["hoeren"].items()]
         sets += [(f"A1 Modul {m} (next)", t) for m, t in spec["hoeren_next"].items()]
         for where, teile in sets:
             self.assertEqual([(len(t["parts"]), _plays(t)) for t in teile], A1_SHAPE, where)
@@ -56,8 +58,6 @@ class ContentTests(TestCase):
                 self.assertGreater(len(answers), 1, f"{where}: {teil['prompt']}")
                 for part in teil["parts"]:
                     self.assertIn(part["answer"], part["options"], where)
-        live = spec["hoeren"][1]
-        self.assertEqual([(len(t["parts"]), _plays(t)) for t in live], A1_LIVE_M1)
 
     def test_clip_names_are_unique(self):
         names = [n for n, _, _ in make_hoeren_audio.all_clips(list(LEVELS))]
@@ -98,12 +98,12 @@ class HoerenFlowTests(TestCase):
         with self.recorded:
             data = self.api.get(f"{BASE}/a1/1/").json()
         dumped = json.dumps(data, ensure_ascii=False)
-        self.assertNotIn("Schneider", dumped.split('"options"')[0])  # no script before options
+        self.assertNotIn("noch frei", dumped.split('"options"')[0])  # no script before options
         self.assertNotIn('"script"', dumped)
         self.assertNotIn('"answer"', dumped)
-        part = data["teile"][0]["payload"]["parts"][0]["payload"]
+        whole = data["teile"][0]["payload"]["audio"]  # Teil 1: one recording for all
         first = hoeren.clips_of(self.teile[0])[0][0]
-        self.assertEqual(part["audio"], {"url": f"/hoeren/{first}.mp3", "plays": 2})
+        self.assertEqual(whole, {"url": f"/hoeren/{first}.mp3", "plays": 2})
         self.assertEqual(data["teile"][1]["payload"]["parts"][0]["payload"]["audio"]["plays"], 1)
 
     def test_answer_reveals_transcripts(self):
@@ -112,10 +112,10 @@ class HoerenFlowTests(TestCase):
         with self.recorded:
             res = self.api.post(f"{BASE}/teil/{teil.id}/answer/", {"answer": right}, format="json")
         data = res.json()
-        self.assertEqual(data["parts"], [True] * 6)
-        self.assertEqual(len(data["transcripts"]), 6)
-        self.assertEqual(len(self.teile), 2)  # Modul 1 is Teil 1 and 2 for now
-        self.assertIn("Frau: Guten Tag!", data["transcripts"][0])
+        self.assertEqual(data["parts"], [True] * 5)
+        self.assertEqual(len(data["transcripts"]), 1)  # one conversation
+        self.assertEqual(len(self.teile), 3)
+        self.assertIn("Mann: Hallo! Ist hier noch frei?", data["transcripts"][0])
 
 
 class GeneratorTests(TestCase):
@@ -138,6 +138,9 @@ class GeneratorTests(TestCase):
         return out.getvalue()
 
     def test_makes_missing_clips_resumes_and_redoes(self):
+        for name, clip, _ in make_hoeren_audio.all_clips(list(LEVELS)):
+            for f in make_hoeren_audio.sound_files(clip, name):
+                f.touch()  # the background sounds, so no clip is skipped
         with mock.patch.object(
             make_hoeren_audio.llm, "synthesize_speech", return_value=b"pcm"
         ) as tts:
@@ -160,13 +163,29 @@ class GeneratorTests(TestCase):
                 self.run_cmd()
         self.assertTrue((self.dir / f"{scene[0]}.mp3").exists())
 
+    def test_several_versions_of_a_sound(self):
+        files = make_hoeren_audio.sound_files
+        rec = {"script": [["Frau", "x"]], "scene": "cafe"}
+        self.assertEqual(files(rec, "a")[0].name, "cafe.mp3")  # none yet: reported missing
+        for n in ("cafe.mp3", "cafe-2.mp3", "cafe-3.mp3"):
+            (self.dir / n).write_bytes(b"")
+        picked = {files(rec, f"clip-{i}")[0].name for i in range(30)}
+        self.assertEqual(picked, {"cafe.mp3", "cafe-2.mp3", "cafe-3.mp3"})  # they vary
+        self.assertEqual(files(rec, "clip-7"), files(rec, "clip-7"))  # but stay fixed per clip
+
     def test_mix_filter(self):
-        plain = make_hoeren_audio.mix_filter({})
-        self.assertNotIn("amix", plain)
-        both = make_hoeren_audio.mix_filter({"scene": "cafe", "gong": True, "phone": True})
-        self.assertIn("lowpass=f=3400", both)
-        self.assertIn("concat=n=2", both)
-        self.assertIn("amix=inputs=2", both)
+        mix = make_hoeren_audio.mix_filter
+        self.assertNotIn("amix", mix({"script": [["Frau", "x"]]}))
+        call = mix({"script": [["Frau", "x"], ["Mann", "y"]], "phone": True})
+        self.assertIn("425*t", call)  # the German ring tone
+        self.assertIn("lowpass=f=3400", call)  # thin like a phone
+        self.assertNotIn("1000*t", call)  # no beep: someone answers
+        self.assertIn("1000*t", mix({"script": [["Frau", "x"]], "phone": True}))  # voicemail
+        pa = mix({"script": [["Ansage", "x"]], "gong": True, "scene": "bahnhof"})
+        self.assertIn("aecho", pa)  # loudspeaker
+        self.assertIn("concat=n=2", pa)  # gong, then the voice
+        self.assertIn("amix=inputs=2", pa)  # over the station
+        self.assertIn("highpass=f=120", mix({"script": [["Ansage", "x"]], "radio": True}))
 
     def test_stops_at_the_quota(self):
         quota = make_hoeren_audio.llm.AIQuotaError("quota, retry in 13h3m42.3s")
@@ -177,3 +196,20 @@ class GeneratorTests(TestCase):
         self.assertIn("Quota reached. Try again in 13h3m42s.", out)
         self.assertEqual(tts.call_count, 2)
         self.assertEqual(len(list(self.dir.glob("*.mp3"))), 1)
+
+    @override_settings(AZURE_SPEECH_KEY="k", AZURE_SPEECH_REGION="westeurope")
+    def test_azure_speaks_when_configured(self):
+        llm = make_hoeren_audio.llm
+        ok = mock.Mock(status_code=200, content=b"pcm")
+        with mock.patch.object(llm.httpx, "post", return_value=ok) as post:
+            pcm = llm.synthesize_speech([("Frau", "Hallo & tschüss"), ("Mann", "Ja.")], slow=True)
+        self.assertEqual(pcm, b"pcm")
+        ssml = post.call_args.kwargs["content"].decode()
+        self.assertIn("de-DE-SeraphinaMultilingualNeural", ssml)
+        self.assertIn("de-DE-FlorianMultilingualNeural", ssml)
+        self.assertIn("Hallo &amp; tschüss", ssml)
+        self.assertIn('rate="-15%"', ssml)
+        self.assertIn("westeurope", post.call_args.args[0])
+        with mock.patch.object(llm.httpx, "post", return_value=mock.Mock(status_code=429)):
+            with self.assertRaises(llm.AIQuotaError):
+                llm.synthesize_speech([("Ansage", "Achtung")])
