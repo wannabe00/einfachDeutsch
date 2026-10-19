@@ -1,6 +1,8 @@
 """Destructive account endpoints. Every one of them requires the account
 password, so a stolen token alone can't wipe or delete an account."""
 
+import logging
+
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
@@ -60,6 +62,7 @@ def delete_account(request):
     if error:
         return error
     audit("account_deleted", request)
+    _delete_avatar(request.user)
     request.user.delete()
     return Response({"detail": "Account deleted."}, status=200)
 
@@ -90,3 +93,18 @@ def reset_progress(request):
     LevelExamAttempt.objects.filter(user=user).delete()
     StreakRecord.objects.filter(user=user).delete()
     return Response({"detail": "Progress reset."})
+
+
+def _delete_avatar(user) -> None:
+    """The profile picture lives on Cloudinary, outside the database, so it
+    goes separately. Best effort: a provider hiccup must not block deletion."""
+    from django.conf import settings
+
+    if not (settings.CLOUDINARY_CLOUD_NAME and user.profile.avatar_url):
+        return
+    try:
+        import cloudinary.uploader
+
+        cloudinary.uploader.destroy(f"einfachdeutsch/avatars/user_{user.id}", invalidate=True)
+    except Exception:  # noqa: BLE001
+        logging.getLogger("security").warning("avatar_delete_failed user=%s", user.id)
