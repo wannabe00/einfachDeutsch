@@ -62,29 +62,34 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
 
   return (
     <DrillShell title="Sentence Shuffle" onExit={onExit} progress={(i / rounds.length) * 100} counter={`${i + 1} / ${rounds.length}`}>
-      <div className="mx-auto flex max-w-lg flex-col gap-4 py-6">
-        <p className="text-center text-sm text-muted-foreground">Tap the words to rebuild the sentence.</p>
-        <div className="flex min-h-[64px] flex-wrap gap-2 rounded-2xl border-2 border-dashed border-border p-3">
-          {built.length === 0 && <span className="self-center text-sm text-muted-foreground">…</span>}
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-[28px] bg-surface p-6 shadow-card sm:p-10">
+        <p className="text-center text-lg font-semibold text-muted-foreground">Tap the words to rebuild the sentence.</p>
+        <div
+          className={cn(
+            "flex min-h-[112px] flex-wrap content-start gap-2.5 rounded-3xl border-2 bg-surface-2 p-4 transition-colors",
+            verdict === "right" ? "border-[hsl(var(--success))]" : verdict === "wrong" ? "border-[hsl(var(--danger))]" : "border-transparent",
+          )}
+        >
+          {built.length === 0 && <span className="m-auto text-muted-foreground">Your sentence appears here</span>}
           {built.map((slot, pos) => (
             <button
               key={pos}
               disabled={!!verdict}
               onClick={() => setBuilt(built.filter((_, j) => j !== pos))}
-              className="min-h-[44px] rounded-xl bg-primary px-3.5 py-2 text-[15px] font-medium text-primary-foreground"
+              className="min-h-[52px] rounded-2xl border-2 border-[hsl(var(--choice))] bg-[hsl(var(--choice-bg))] px-4 py-2 text-lg font-semibold text-foreground"
             >
               {round.scrambled[slot].w}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex min-h-[52px] flex-wrap justify-center gap-2.5">
           {round.scrambled.map((t, slot) =>
             usedSlots.has(slot) ? null : (
               <button
                 key={slot}
                 disabled={!!verdict}
                 onClick={() => setBuilt([...built, slot])}
-                className="min-h-[44px] rounded-xl bg-surface px-3.5 py-2 text-[15px] font-medium text-foreground shadow-card transition-colors hover:bg-surface-2"
+                className="min-h-[52px] rounded-2xl border-2 border-border bg-surface px-4 py-2 text-lg font-semibold text-foreground transition-colors hover:bg-surface-2"
               >
                 {t.w}
               </button>
@@ -92,7 +97,7 @@ export function SentenceShuffle({ onExit }: { onExit: () => void }) {
           )}
         </div>
         {verdict && (
-          <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+          <p className={cn("text-center text-lg font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
             {verdict === "right" ? "Correct" : `Answer: ${round.words.join(" ")}`}
           </p>
         )}

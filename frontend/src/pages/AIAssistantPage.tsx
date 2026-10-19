@@ -25,11 +25,12 @@ import {
   sendMessage,
   setPinned,
 } from "@/api/conversations"
-import { fetchAISettings, fetchStarters } from "@/api/ai"
+import { fetchStarters } from "@/api/ai"
 import type { ChatMode, ChatStarter } from "@/types"
 import { Button } from "@/components/ui/button"
 import { AISettingsDialog } from "@/components/ai/AISettingsDialog"
 import { ChatMessage } from "@/components/ai/ChatMessage"
+import { MicButton } from "@/components/ai/MicButton"
 import { ConversationSidebar } from "@/components/ai/ConversationSidebar"
 import { cn } from "@/lib/utils"
 
@@ -82,10 +83,8 @@ export default function AIAssistantPage() {
     enabled: activeId !== null,
   })
   const { data: starters } = useQuery({ queryKey: ["ai-starters"], queryFn: fetchStarters })
-  const { data: settings } = useQuery({ queryKey: ["ai-settings"], queryFn: fetchAISettings })
 
   const messages = thread?.messages ?? []
-  const replyLanguage = settings?.reply_language === "auto" ? settings.auto_language : settings?.reply_language
 
   function toggleList() {
     if (window.matchMedia("(min-width: 1024px)").matches) {
@@ -266,7 +265,6 @@ export default function AIAssistantPage() {
                     canRetry={m.id === lastAnswerId && lastIsAnswer && !send.isPending}
                     retrying={retry.isPending}
                     onRetry={() => retry.mutate()}
-                    englishReplies={replyLanguage === "en"}
                   />
                 ))}
                 {send.isPending && (
@@ -326,6 +324,7 @@ export default function AIAssistantPage() {
               aria-label="Message the AI tutor"
               className="max-h-40 min-w-0 flex-1 resize-none bg-transparent py-2.5 text-base placeholder:text-muted-foreground focus-visible:outline-none"
             />
+            <MicButton onText={(text) => setInput((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text))} />
             <Button type="submit" size="icon" aria-label="Send" className="shrink-0" disabled={send.isPending || !input.trim()}>
               <Send />
             </Button>

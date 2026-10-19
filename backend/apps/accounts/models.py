@@ -42,8 +42,8 @@ class UserProfile(models.Model):
     avatar_url = models.URLField(blank=True)
     # Throttles username changes (allowed once every 30 days).
     username_changed_at = models.DateTimeField(null=True, blank=True)
-    # Free-form prefs: notifications, daily_goal, reminder_time, language,
-    # timezone, etc. Stored as JSON so new toggles don't need migrations.
+    # Prefs as JSON (only daily_goal is used now; older keys may linger), so new
+    # settings don't need migrations.
     preferences = models.JSONField(default=dict, blank=True)
     # Premium. Until payments exist, `is_premium` is set by hand in the admin.
     # `premium_until` covers the 7-day trial and, later, the end of a paid
@@ -51,6 +51,13 @@ class UserProfile(models.Model):
     is_premium = models.BooleanField(default=False)
     premium_until = models.DateTimeField(null=True, blank=True)
     trial_started_at = models.DateTimeField(null=True, blank=True)
+    # Two-factor login with an authenticator app (accounts/totp.py). The secret
+    # is set during setup and only counts once `totp_enabled`; backup codes are
+    # stored hashed; `totp_last_step` stops a code being used twice.
+    totp_secret = models.CharField(max_length=64, blank=True)
+    totp_enabled = models.BooleanField(default=False)
+    totp_backup_codes = models.JSONField(default=list, blank=True)
+    totp_last_step = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property

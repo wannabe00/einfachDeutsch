@@ -294,6 +294,25 @@ def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
     }
 
 
+# ---- speech to text (the AI Assistant's mic) --------------------------------
+
+TRANSCRIBE_PROMPT = (
+    "Transcribe this recording exactly as spoken. The speaker is learning German "
+    "and speaks German, English or a mix; keep each word in the language it was "
+    "said, mistakes included (don't correct them). Output only the transcription. "
+    "If nothing can be understood, output nothing."
+)
+
+
+def transcribe(audio: bytes, mime_type: str) -> str:
+    """The text of a short voice message. Raises AIResponseError if Gemini fails."""
+    part = types.Part.from_bytes(data=audio, mime_type=mime_type)
+    try:
+        return _complete(TRANSCRIBE_PROMPT, [part])
+    except errors.APIError as err:
+        raise AIResponseError(str(err)) from err
+
+
 # ---- speech (Hören recordings) ---------------------------------------------
 
 TTS_MODEL = "gemini-3.8-flash-tts"
@@ -358,9 +377,24 @@ def _azure_speech(script: list, slow: bool) -> bytes:
         '<break time="500ms"/></prosody></voice>'
         for who, line in script
     )
+    return _azure(lines, "raw-24khz-16bit-mono-pcm")
+
+
+def read_aloud(text: str) -> bytes:
+    """An MP3 of a chat message. The multilingual voice reads English
+    explanations and German examples each in their own language."""
+    return _azure(
+        f'<voice name="{AZURE_VOICES["Frau"]}">{escape(text)}</voice>',
+        "audio-24khz-48kbitrate-mono-mp3",
+    )
+
+
+def _azure(voices: str, output_format: str) -> bytes:
+    if not (settings.AZURE_SPEECH_KEY and settings.AZURE_SPEECH_REGION):
+        raise AIConfigError("AZURE_SPEECH_KEY / AZURE_SPEECH_REGION are not set.")
     ssml = (
         '<speak version="1.0" xml:lang="de-DE" '
-        f'xmlns="http://www.w3.org/2001/10/synthesis">{lines}</speak>'
+        f'xmlns="http://www.w3.org/2001/10/synthesis">{voices}</speak>'
     )
     try:
         resp = httpx.post(
@@ -369,7 +403,7 @@ def _azure_speech(script: list, slow: bool) -> bytes:
             headers={
                 "Ocp-Apim-Subscription-Key": settings.AZURE_SPEECH_KEY,
                 "Content-Type": "application/ssml+xml",
-                "X-Microsoft-OutputFormat": "raw-24khz-16bit-mono-pcm",
+                "X-Microsoft-OutputFormat": output_format,
                 "User-Agent": "einfachDeutsch",
             },
             timeout=120,

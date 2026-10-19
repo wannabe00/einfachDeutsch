@@ -108,36 +108,39 @@ export function OddOneOut({ onExit }: { onExit: () => void }) {
 
   return (
     <DrillShell title="Odd One Out" onExit={onExit} progress={(i / rounds.length) * 100} counter={`${i + 1} / ${rounds.length}`}>
-      <div className="mx-auto flex max-w-md flex-col gap-5 py-6">
-        <p className="text-center text-sm text-muted-foreground">Which word doesn't belong?</p>
-        <div className="grid grid-cols-2 gap-3">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-[28px] bg-surface p-6 shadow-card sm:p-10">
+        <p className="text-center text-lg font-semibold text-muted-foreground">Which word doesn't belong?</p>
+        <div className="grid grid-cols-2 gap-4">
           {current.words.map((w) => (
             <button
               key={w.id}
               disabled={picked !== null}
               onClick={() => pick(w.id)}
               className={cn(
-                "min-h-[72px] rounded-2xl border-2 px-3.5 py-3 text-center text-[17px] font-semibold transition-colors [overflow-wrap:anywhere]",
+                "flex min-h-[128px] flex-col items-center justify-center rounded-3xl border-2 px-4 py-4 text-center text-2xl font-bold transition-colors [overflow-wrap:anywhere] sm:text-[28px]",
                 picked === null
-                  ? "border-transparent bg-surface text-foreground shadow-card hover:bg-surface-2"
+                  ? "border-transparent bg-surface-2 text-foreground hover:bg-border"
                   : w.id === current.odd
                     ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                     : w.id === picked
                       ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))] text-[hsl(var(--danger))]"
-                      : "border-transparent bg-surface text-muted-foreground",
+                      : "border-transparent bg-surface-2 text-muted-foreground",
               )}
             >
               {w.noun}
-              {picked !== null && <span className="mt-1 block text-xs font-normal text-muted-foreground">{w.english}</span>}
+              {/* Always there (hidden until you pick) so the cards never change size. */}
+              <span className={cn("mt-1 block text-sm font-normal text-muted-foreground", picked === null && "invisible")}>
+                {w.english}
+              </span>
             </button>
           ))}
         </div>
         {picked !== null && (
           <>
-            <p className={cn("text-center text-base font-semibold", picked === current.odd ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+            <p className={cn("text-center text-xl font-bold", picked === current.odd ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
               {picked === current.odd ? "Correct" : "Not quite"}
             </p>
-            <p className="text-center text-muted-foreground">{current.why}</p>
+            <p className="rounded-2xl bg-surface-2 px-5 py-4 text-center text-lg text-muted-foreground">{current.why}</p>
             <Button size="lg" onClick={() => { setPicked(null); setI((n) => n + 1) }}>Next</Button>
           </>
         )}

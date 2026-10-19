@@ -97,7 +97,7 @@ function StartScreen({
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageHeader
-        title="Practice"
+        title="Exercises"
         subtitle="Short sets of about ten tasks from the lessons you've finished."
       />
 
@@ -202,7 +202,7 @@ function PracticeSet({ tasks, onDone }: { tasks: PracticeTask[]; onDone: () => v
       <SessionBar
         onClose={onDone}
         closeLabel="End this set"
-        title="Practice"
+        title="Exercises"
         progress={(step / tasks.length) * 100}
         counter={`${step + 1}/${tasks.length}`}
       />

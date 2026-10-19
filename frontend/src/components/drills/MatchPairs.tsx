@@ -80,10 +80,11 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
 
   return (
     <DrillShell title="Match Pairs" onExit={onExit} progress={(round / allRounds.length) * 100} counter={`${round + 1} / ${allRounds.length}`}>
-      <div className="mx-auto max-w-lg py-6">
-        <p className="mb-4 text-center text-sm text-muted-foreground">Tap a German word, then its English meaning.</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-2">
+      <div className="mx-auto w-full max-w-2xl rounded-[28px] bg-surface p-6 shadow-card sm:p-10">
+        <p className="mb-6 text-center text-lg font-semibold text-muted-foreground">Tap a German word, then its English meaning.</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-3">
+            <p className="px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Deutsch</p>
             {pairs.map((p) => {
               const done = matched[p.german]
               return (
@@ -92,12 +93,12 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
                   disabled={!!done}
                   onClick={() => setSelectedLeft(selectedLeft === p.german ? null : p.german)}
                   className={cn(
-                    "min-h-[52px] rounded-2xl border-2 px-3.5 py-2.5 text-left text-[15px] font-medium transition-colors",
+                    "min-h-[64px] rounded-2xl border-2 px-4 py-3 text-left text-lg font-semibold transition-colors [overflow-wrap:anywhere]",
                     done
                       ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                       : selectedLeft === p.german
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : "border-transparent bg-surface text-foreground shadow-card hover:bg-surface-2",
+                        ? "border-[hsl(var(--choice))] bg-[hsl(var(--choice-bg))] text-foreground"
+                        : "border-transparent bg-surface-2 text-foreground hover:bg-border",
                   )}
                 >
                   {p.german}
@@ -105,7 +106,8 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
               )
             })}
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
+            <p className="px-1 text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">English</p>
             {rights.map((english) => {
               const done = Object.values(matched).includes(english)
               return (
@@ -114,12 +116,12 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
                   disabled={done || !selectedLeft}
                   onClick={() => pickRight(english)}
                   className={cn(
-                    "min-h-[52px] rounded-2xl border-2 px-3.5 py-2.5 text-left text-[15px] font-medium transition-colors",
+                    "min-h-[64px] rounded-2xl border-2 px-4 py-3 text-left text-lg font-semibold transition-colors [overflow-wrap:anywhere]",
                     done
                       ? "border-[hsl(var(--success))] bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]"
                       : wrongFlash === english
                         ? "border-[hsl(var(--danger))] bg-[hsl(var(--danger-bg))]"
-                        : "border-transparent bg-surface text-foreground shadow-card hover:bg-surface-2",
+                        : "border-transparent bg-surface-2 text-foreground hover:bg-border",
                     !selectedLeft && !done && "opacity-60",
                   )}
                 >
@@ -130,7 +132,7 @@ export function MatchPairs({ onExit }: { onExit: () => void }) {
           </div>
         </div>
         {allMatched && (
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <Button size="lg" onClick={nextRound}>{round + 1 >= allRounds.length ? "Finish" : "Next round"}</Button>
           </div>
         )}

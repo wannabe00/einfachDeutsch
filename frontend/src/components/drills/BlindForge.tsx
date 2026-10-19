@@ -53,9 +53,12 @@ export function BlindForge({ onExit }: { onExit: () => void }) {
 
   return (
     <DrillShell title="Blind Forge" onExit={onExit} progress={(i / pool.length) * 100} counter={`${i + 1} / ${pool.length}`}>
-      <div className="mx-auto flex max-w-md flex-col gap-4 py-6">
-        <p className="text-center font-grotesk text-3xl font-extrabold tracking-tight text-foreground">{current.english}</p>
-        <form onSubmit={(e) => { e.preventDefault(); submit() }} className="flex flex-col gap-3">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-[28px] bg-surface p-6 shadow-card sm:p-10">
+        <div className="flex flex-col items-center gap-2 py-4 text-center">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">Type the German for</p>
+          <p className="font-grotesk text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{current.english}</p>
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); submit() }} className="flex flex-col gap-4">
           <Input
             ref={inputRef}
             value={value}
@@ -65,14 +68,14 @@ export function BlindForge({ onExit }: { onExit: () => void }) {
             aria-label="Type the German"
             autoFocus
             className={cn(
-              "h-14 text-center text-lg",
+              "h-16 text-center text-xl",
               verdict === "right" && "border-[hsl(var(--success))]",
               verdict === "wrong" && "border-[hsl(var(--danger))]",
             )}
           />
           {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
           {verdict && (
-            <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+            <p className={cn("text-center text-lg font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
               {verdict === "right" ? "Correct" : `Answer: ${current.german}`}
             </p>
           )}

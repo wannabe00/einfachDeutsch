@@ -23,6 +23,10 @@ from .serializers import SavedWordSerializer, WordProgressSerializer, WordSerial
 DRILL_POOL_SIZE = 60
 
 
+# Correct reviews in a row that make a word "known" (frontend lib/wordStrength.ts).
+KNOWN_AFTER = 2
+
+
 def drill_weight(progress) -> float:
     """How likely a word is to come up in a drill: weak words more, words the
     user has mastered less. A word never reviewed counts as fairly weak."""
@@ -261,10 +265,12 @@ class StatsView(APIView):
             from apps.curriculum.learned import learned_word_ids
 
             due_today = due_words_for(user).count()
-            # Learned = taught by a finished lesson; mastered = an SM-2 interval
-            # of over three weeks.
+            # Learned = taught by a finished lesson; mastered = "known" in the
+            # Word Bank (right twice in a row).
             words_learned = len(learned_word_ids(user))
-            mastered_total = WordProgress.objects.filter(user=user, interval__gt=21).count()
+            mastered_total = WordProgress.objects.filter(
+                user=user, repetitions__gte=KNOWN_AFTER
+            ).count()
             reviewed_today = (
                 WordProgress.objects.filter(user=user, last_reviewed__gte=midnight).count()
                 + ExerciseAttempt.objects.filter(user=user, attempted_at__gte=midnight).count()

@@ -16,9 +16,6 @@ export function StreakCard({ streak, activity }: { streak: StreakStatus; activit
   const weekday = (iso: string) => DAYS[new Date(`${iso}T00:00:00`).getDay()]
   const days = streak.current_streak
   const milestone = streakMilestone(days)
-  const nextLesson = streak.today_is_unlock_day
-    ? "New lesson today"
-    : `Next new lesson ${weekday(streak.next_unlock_date)}`
 
   return (
     <section className="d-card flex flex-col justify-between gap-4 p-5 sm:p-6" aria-label="Streak">
@@ -64,9 +61,7 @@ export function StreakCard({ streak, activity }: { streak: StreakStatus; activit
           ? `${FLAME_FROM - days} more ${FLAME_FROM - days === 1 ? "day" : "days"} to light the flame · `
           : ""}
         {streak.longest_streak > days && `Best ${streak.longest_streak} · `}
-        {streak.freeze_tokens > 0 &&
-          `${streak.freeze_tokens} ${streak.freeze_tokens === 1 ? "freeze" : "freezes"} · `}
-        {nextLesson}
+        {streak.freeze_tokens} {streak.freeze_tokens === 1 ? "freeze" : "freezes"} save a missed day
       </p>
     </section>
   )

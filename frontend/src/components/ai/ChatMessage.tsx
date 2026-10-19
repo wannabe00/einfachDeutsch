@@ -2,20 +2,23 @@ import { useRef, useState, type FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { BookmarkPlus, Check, Copy, RotateCcw, Volume2 } from "lucide-react"
+import { BookmarkPlus, Check, Copy, Loader2, RotateCcw, Square, Volume2 } from "lucide-react"
 
 import type { ConversationMessage } from "@/types"
+import { readAloud } from "@/api/ai"
 import { saveWord } from "@/api/vocabulary"
 import { errorText } from "@/lib/apiError"
-import { canSpeak, speak } from "@/lib/speech"
 import { cn } from "@/lib/utils"
 
 /*
- * One chat bubble. The tutor's answers get actions underneath: read aloud
- * (the German in bold, or the selected text), copy, save a word to the Word
- * Bank (the selected text or the first bold word), and, on the last answer,
- * retry.
+ * One chat bubble. Every message can be read aloud (the selected text, or all
+ * of it; Azure's multilingual voice reads English and German each correctly).
+ * The tutor's answers also get copy, save a word to the Word Bank (the
+ * selected text or the first bold word) and, on the last answer, retry.
  */
+
+// One message plays at a time, across all bubbles.
+let playing: { audio: HTMLAudioElement; stop: () => void } | null = null
 
 /** The bold parts of an answer: the tutor puts German examples in **bold**. */
 function boldParts(markdown: string): string[] {
@@ -33,26 +36,41 @@ export function ChatMessage({
   canRetry,
   retrying,
   onRetry,
-  englishReplies,
 }: {
   message: ConversationMessage
   canRetry: boolean
   retrying: boolean
   onRetry: () => void
-  /** Whether the tutor explains in English (then only the German is read). */
-  englishReplies: boolean
 }) {
   const bubbleRef = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState<string | null>(null)
   const mine = message.role === "user"
 
-  function readAloud() {
-    const selected = selectionIn(bubbleRef.current)
-    const german = boldParts(message.content)
-    if (selected) speak(selected)
-    else if (german.length) speak(german.join(". "))
-    else speak(bubbleRef.current?.innerText ?? message.content, false, englishReplies ? "en-US" : "de-DE")
+  const [speaking, setSpeaking] = useState(false)
+  const voice = useMutation({
+    mutationFn: readAloud,
+    onSuccess: (mp3) => {
+      playing?.stop()
+      const url = URL.createObjectURL(mp3)
+      const audio = new Audio(url)
+      const stop = () => {
+        audio.pause()
+        URL.revokeObjectURL(url)
+        setSpeaking(false)
+        if (playing?.audio === audio) playing = null
+      }
+      audio.onended = stop
+      playing = { audio, stop }
+      setSpeaking(true)
+      void audio.play().catch(stop)
+    },
+  })
+
+  function toggleVoice() {
+    if (speaking) return playing?.stop()
+    const text = selectionIn(bubbleRef.current) || bubbleRef.current?.innerText || message.content
+    voice.mutate(text.trim())
   }
 
   async function copy() {
@@ -82,29 +100,33 @@ export function ChatMessage({
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
       </div>
 
-      {!mine && (
-        <div className="mt-1 flex flex-wrap items-center gap-0.5 pl-1">
-          {canSpeak() && (
-            <Action label="Read aloud" onClick={readAloud}>
-              <Volume2 />
+      <div className={cn("mt-1 flex flex-wrap items-center gap-0.5", mine ? "pr-1" : "pl-1")}>
+        <Action
+          label={speaking ? "Stop" : voice.isPending ? "Loading…" : voice.isError ? errorText(voice.error) : "Read aloud"}
+          onClick={toggleVoice}
+          disabled={voice.isPending}
+        >
+          {speaking ? <Square /> : voice.isPending ? <Loader2 className="animate-spin" /> : <Volume2 />}
+        </Action>
+        {!mine && (
+          <>
+            <Action label={copied ? "Copied" : "Copy"} onClick={copy}>
+              {copied ? <Check /> : <Copy />}
             </Action>
-          )}
-          <Action label={copied ? "Copied" : "Copy"} onClick={copy}>
-            {copied ? <Check /> : <Copy />}
-          </Action>
-          <Action
-            label="Save a word"
-            onClick={() => setSaving(selectionIn(bubbleRef.current) || boldParts(message.content)[0] || "")}
-          >
-            <BookmarkPlus />
-          </Action>
-          {canRetry && (
-            <Action label={retrying ? "Retrying…" : "Retry"} onClick={onRetry} disabled={retrying}>
-              <RotateCcw className={cn(retrying && "animate-spin")} />
+            <Action
+              label="Save a word"
+              onClick={() => setSaving(selectionIn(bubbleRef.current) || boldParts(message.content)[0] || "")}
+            >
+              <BookmarkPlus />
             </Action>
-          )}
-        </div>
-      )}
+            {canRetry && (
+              <Action label={retrying ? "Retrying…" : "Retry"} onClick={onRetry} disabled={retrying}>
+                <RotateCcw className={cn(retrying && "animate-spin")} />
+              </Action>
+            )}
+          </>
+        )}
+      </div>
       {saving !== null && <SaveWordForm initial={saving} onClose={() => setSaving(null)} />}
     </div>
   )

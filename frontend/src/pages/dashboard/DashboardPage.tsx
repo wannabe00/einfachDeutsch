@@ -48,12 +48,13 @@ export default function DashboardPage() {
   const continueHref =
     nextUp && nextUnit ? `/path/${nextUnit.id}/lesson/${nextUp.lesson_id}` : "/path"
 
-  const reviewTarget = reviewedToday + dueToday
+  // The daily goal from Settings (reviews per day).
+  const dailyGoal = Number(user?.preferences?.daily_goal) || 20
   const rings = [
     {
-      label: "Reviews today",
-      value: `${reviewedToday}/${reviewTarget}`,
-      pct: reviewTarget > 0 ? reviewedToday / reviewTarget : 1,
+      label: "Daily goal",
+      value: `${reviewedToday}/${dailyGoal}`,
+      pct: Math.min(1, reviewedToday / dailyGoal),
       color: "var(--d-red)",
     },
     {
@@ -63,7 +64,7 @@ export default function DashboardPage() {
       color: "var(--d-u1)",
     },
     {
-      label: "Words mastered",
+      label: "Words known",
       value: `${mastered}/${wordsLearned}`,
       pct: wordsLearned > 0 ? mastered / wordsLearned : 0,
       color: "var(--d-u4)",
@@ -90,7 +91,7 @@ export default function DashboardPage() {
           className={streak ? "md:col-span-2 md:grid-cols-4 lg:col-span-1 lg:grid-cols-2" : ""}
           items={[
             { label: "Words learned", value: wordsLearned },
-            { label: "Mastered", value: mastered },
+            { label: "Known", value: mastered },
             { label: "Total XP", value: game?.total_xp ?? 0 },
             { label: game?.crowns === 1 ? "Crown" : "Crowns", value: game?.crowns ?? 0 },
           ]}

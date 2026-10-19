@@ -13,6 +13,7 @@ import {
   Tags,
   Users,
   type LucideIcon,
+  Star,
 } from "lucide-react"
 import { Link } from "react-router-dom"
 
@@ -237,9 +238,12 @@ function LevelSection({
   rules: GrammarRule[]
   onOpen: (id: number) => void
 }) {
+  // The level's main topics together, in the order you learn them; the
+  // smaller ones grouped by kind.
+  const core = rules.filter((r) => r.core)
   const groups = GRAMMAR_CATEGORIES.map((c) => ({
     ...c,
-    items: rules.filter((r) => r.category === c.value),
+    items: rules.filter((r) => !r.core && r.category === c.value),
   })).filter((g) => g.items.length > 0)
 
   return (
@@ -248,6 +252,27 @@ function LevelSection({
         <h2 className="text-[22px] font-bold">{level}</h2>
         <span className="text-sm text-muted-foreground">{rules.length} topics</span>
       </div>
+
+      {core.length > 0 && (
+        <Card className="mb-5 overflow-hidden">
+          <div className="flex items-center gap-3 px-5 pb-2 pt-5">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <Star className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h3 className="text-lg font-bold leading-tight">Core grammar</h3>
+              <p className="text-sm text-muted-foreground">
+                The main {level} topics, in the order you learn them
+              </p>
+            </div>
+          </div>
+          <div className="grid p-1.5 md:grid-cols-2">
+            {core.map((rule) => (
+              <TopicRow key={rule.id} rule={rule} onOpen={onOpen} />
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="gap-5 lg:columns-2">
         {groups.map((g) => (
@@ -265,20 +290,7 @@ function LevelSection({
               {g.items.map((rule, i) => (
                 <div key={rule.id}>
                   {i > 0 && <div className="mx-3.5 h-px bg-border/70" aria-hidden="true" />}
-                  <button
-                    onClick={() => onOpen(rule.id)}
-                    className="flex min-h-[60px] w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left transition-colors hover:bg-surface-2"
-                  >
-                    <span className="min-w-0">
-                      <span className="block font-semibold">{rule.title}</span>
-                      {preview(rule.content) && (
-                        <span className="block truncate text-sm text-muted-foreground">
-                          {preview(rule.content)}
-                        </span>
-                      )}
-                    </span>
-                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  </button>
+                  <TopicRow rule={rule} onOpen={onOpen} />
                 </div>
               ))}
             </div>
@@ -286,5 +298,22 @@ function LevelSection({
         ))}
       </div>
     </section>
+  )
+}
+
+function TopicRow({ rule, onOpen }: { rule: GrammarRule; onOpen: (id: number) => void }) {
+  return (
+    <button
+      onClick={() => onOpen(rule.id)}
+      className="flex min-h-[60px] w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left transition-colors hover:bg-surface-2"
+    >
+      <span className="min-w-0">
+        <span className="block font-semibold">{rule.title}</span>
+        {preview(rule.content) && (
+          <span className="block truncate text-sm text-muted-foreground">{preview(rule.content)}</span>
+        )}
+      </span>
+      <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+    </button>
   )
 }

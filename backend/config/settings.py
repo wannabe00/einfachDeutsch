@@ -292,11 +292,7 @@ AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "")
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "")
 
 
-# ---- Lesson schedule and streaks ----
-# Weekdays new lessons unlock on (Mon=0 … Sun=6). Default Mon/Wed/Fri.
-LESSON_UNLOCK_WEEKDAYS = [
-    int(d) for d in os.getenv("LESSON_UNLOCK_WEEKDAYS", "0,2,4").split(",") if d != ""
-]
+# ---- Streaks (every day counts; a missed day uses a freeze) ----
 STREAK_INITIAL_FREEZE_TOKENS = int(os.getenv("STREAK_INITIAL_FREEZE_TOKENS", "2"))
 STREAK_FREEZE_EARN_DAYS = int(os.getenv("STREAK_FREEZE_EARN_DAYS", "14"))
 STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))

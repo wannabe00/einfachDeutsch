@@ -22,7 +22,7 @@ import type { User } from "@/types"
 interface AuthContextValue {
   user: User | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, code?: string) => Promise<void>
   loginWithCode: (provider: SocialProvider, code: string) => Promise<void>
   completeProfile: (payload: OnboardingPayload) => Promise<void>
   logout: () => Promise<void>
@@ -65,8 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("auth:logout", onLogout)
   }, [])
 
-  const login = useCallback(async (username: string, password: string) => {
-    await loginUser(username, password)
+  const login = useCallback(async (username: string, password: string, code?: string) => {
+    await loginUser(username, password, code)
     setUser(await fetchCurrentUser())
   }, [])
 

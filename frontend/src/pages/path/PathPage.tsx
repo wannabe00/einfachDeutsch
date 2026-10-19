@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Award, Check, Lock, PartyPopper } from "lucide-react"
+import { ArrowRight, Award, Check, ChevronDown, Lock, PartyPopper } from "lucide-react"
 
 import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
@@ -13,6 +13,8 @@ import { lektionColor } from "@/components/lektion/lektionColor"
 
 type UnitStatus = "done" | "current" | "open" | "locked"
 
+const MODUL_SIZE = 3 // Lektionen per Modul, like the books (backend curriculum/checks.py)
+
 function unitStatus(unit: PathUnit): UnitStatus {
   const states = unit.lessons.map((l) => l.state)
   if (states.length > 0 && states.every((s) => s === "completed")) return "done"
@@ -23,7 +25,8 @@ function unitStatus(unit: PathUnit): UnitStatus {
 
 /*
  * The learning path, like the chapters of a book: the Lektion you're on is
- * opened up with its lessons, the rest are listed with a cover and progress.
+ * opened up with its lessons, the rest are listed by Modul (folded, except the
+ * Modul you're in) with a cover and progress.
  * Future Lektionen are locked and blurred. The API only returns units at or
  * below your level.
  */
@@ -40,8 +43,6 @@ export default function PathPage() {
   const pct = lessons.length > 0 ? done / lessons.length : 0
 
   const current = units.find((u) => unitStatus(u) === "current")
-  const opened = units.filter((u) => u !== current && unitStatus(u) !== "locked")
-  const locked = units.filter((u) => unitStatus(u) === "locked")
   const finishedUnits = units.filter((u) => unitStatus(u) === "done").length
 
   return (
@@ -88,12 +89,7 @@ export default function PathPage() {
 
       <ModulTests level={level} />
 
-      {opened.length > 0 && (
-        <ChapterList title={current ? "Finished" : "Your Lektionen"} units={opened} />
-      )}
-      {locked.length > 0 && (
-        <ChapterList title="Coming up" hint="Unlocks in order" units={locked} />
-      )}
+      <ModulList units={units} current={current} />
     </div>
   )
 }
@@ -134,22 +130,77 @@ function CurrentUnit({ unit, nextLessonId }: { unit: PathUnit; nextLessonId: num
   )
 }
 
-/** A titled list of Lektionen, Apple Books chapter style. */
-function ChapterList({ title, hint, units }: { title: string; hint?: string; units: PathUnit[] }) {
+/** The Lektionen in Moduls of three, like the books. Each Modul folds to one
+    row; the one you're in starts open, so the page stays short as levels grow. */
+function ModulList({ units, current }: { units: PathUnit[]; current?: PathUnit }) {
+  const moduls: { key: string; level: string; modul: number; units: PathUnit[] }[] = []
+  for (const unit of units) {
+    const modul = Math.ceil(unit.order / MODUL_SIZE)
+    const key = `${unit.cefr_level}-${modul}`
+    const last = moduls[moduls.length - 1]
+    if (last?.key === key) last.units.push(unit)
+    else moduls.push({ key, level: unit.cefr_level, modul, units: [unit] })
+  }
+  const showLevel = new Set(moduls.map((m) => m.level)).size > 1
+  const openKey = current
+    ? `${current.cefr_level}-${Math.ceil(current.order / MODUL_SIZE)}`
+    : moduls.find((m) => m.units.some((u) => unitStatus(u) !== "done"))?.key
+
+  if (moduls.length === 0) return null
   return (
     <section>
-      <div className="mb-2 flex items-baseline justify-between px-1">
-        <h2 className="text-[22px] font-bold">{title}</h2>
-        {hint && <span className="text-sm text-muted-foreground">{hint}</span>}
+      <h2 className="mb-2 px-1 text-[22px] font-bold">Moduls</h2>
+      <div className="flex flex-col gap-2.5">
+        {moduls.map((m) => {
+          const statuses = m.units.map(unitStatus)
+          const finished = statuses.filter((st) => st === "done").length
+          const locked = statuses.every((st) => st === "locked")
+          const first = m.units[0].order
+          const last = m.units[m.units.length - 1].order
+          return (
+            <details
+              key={m.key}
+              open={m.key === openKey}
+              className="group overflow-hidden rounded-[20px] bg-surface shadow-card"
+            >
+              <summary className="flex min-h-[64px] cursor-pointer list-none items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+                <span className={cn("min-w-0 flex-1", locked && "opacity-60")}>
+                  <span className="block font-bold">
+                    {showLevel && `${m.level} · `}Modul {m.modul}
+                  </span>
+                  <span className="block text-sm text-muted-foreground">
+                    Lektion {first}–{last}
+                    {m.key === openKey && current ? " · You are here" : ""}
+                  </span>
+                </span>
+                {locked ? (
+                  <Lock className="size-5 shrink-0 text-muted-foreground" aria-label="Locked" />
+                ) : finished === m.units.length ? (
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]">
+                    <Check className="size-4" aria-label="Finished" />
+                  </span>
+                ) : (
+                  <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+                    {finished}/{m.units.length}
+                  </span>
+                )}
+                <ChevronDown
+                  className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </summary>
+              <ul className="border-t border-border/70 p-1.5">
+                {m.units.map((unit, i) => (
+                  <li key={unit.id}>
+                    {i > 0 && <div className="ml-[92px] h-px bg-border/70" aria-hidden="true" />}
+                    <ChapterRow unit={unit} />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )
+        })}
       </div>
-      <ul className="overflow-hidden rounded-[20px] bg-surface p-1.5 shadow-card">
-        {units.map((unit, i) => (
-          <li key={unit.id}>
-            {i > 0 && <div className="ml-[92px] h-px bg-border/70" aria-hidden="true" />}
-            <ChapterRow unit={unit} />
-          </li>
-        ))}
-      </ul>
     </section>
   )
 }
