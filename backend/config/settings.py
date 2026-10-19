@@ -408,3 +408,29 @@ AI_DISABLED = {f.strip() for f in os.getenv("AI_DISABLED", "").split(",") if f.s
 # (an avatar or a minute of audio), refused before it is read.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
 MAX_REQUEST_BYTES = int(os.getenv("MAX_REQUEST_BYTES", str(6 * 1024 * 1024)))
+
+
+# ---- Monitoring ----
+# Logs go to stdout, where the host keeps them. The "security" logger records
+# sign-ins, password and 2FA changes, account deletion and AI caps being hit.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "%(levelname)s %(name)s: %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {"security": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+}
+
+# Error tracking (sentry.io), on when SENTRY_DSN is set. No personal data: no
+# cookies, headers with credentials or user details; no performance tracing.
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production" if not DEBUG else "development"),
+        send_default_pii=False,
+        traces_sample_rate=0,
+    )

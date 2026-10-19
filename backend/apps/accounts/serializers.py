@@ -1,3 +1,5 @@
+import logging
+
 from allauth.account.utils import user_pk_to_url_str
 from dj_rest_auth.serializers import (
     PasswordResetConfirmSerializer as BasePasswordResetConfirmSerializer,
@@ -25,8 +27,12 @@ class LoginSerializer(serializers.Serializer):
         from .views.twofactor import second_factor_ok
 
         invalid = serializers.ValidationError("Unable to log in with the provided credentials.")
+        from .audit import audit
+
+        request = self.context.get("request")
         user = User.objects.filter(username__iexact=attrs["username"].strip()).first()
         if not user or not user.check_password(attrs["password"]):
+            audit("login_failed", request, level=logging.WARNING)
             raise invalid
         if not user.is_active:
             raise serializers.ValidationError("This account is disabled.")
@@ -38,7 +44,9 @@ class LoginSerializer(serializers.Serializer):
                     {"code": "Enter the 6-digit code from your authenticator app."}
                 )
             if not second_factor_ok(profile, code):
+                audit("login_bad_2fa_code", request, user=user, level=logging.WARNING)
                 raise serializers.ValidationError({"code": "That code isn't right."})
+        audit("login", request, user=user)
         attrs["user"] = user
         return attrs
 
