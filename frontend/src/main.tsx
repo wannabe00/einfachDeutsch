@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import "./index.css"
 import App from "./App.tsx"
+import { CanonicalUrl } from "@/components/layout/CanonicalUrl"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { GuestLimitProvider } from "@/contexts/GuestLimitContext"
 import { applyTheme, getThemePref } from "@/lib/theme"
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
         <BrowserRouter>
           <AuthProvider>
             <GuestLimitProvider>
+              <CanonicalUrl />
               <App />
             </GuestLimitProvider>
           </AuthProvider>

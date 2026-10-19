@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
 import { AUTH_CARD } from "@/lib/authCard"
 import { MIN_AGE } from "@/lib/site"
+import { usePageTitle } from "@/lib/usePageTitle"
 
 export default function AuthPage() {
   const { login } = useAuth()
@@ -18,6 +19,7 @@ export default function AuthPage() {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   // Two-factor login: asked for once the password was right.
+  usePageTitle("Log in or sign up")
   const [needCode, setNeedCode] = useState(false)
   const [code, setCode] = useState("")
 

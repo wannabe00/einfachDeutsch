@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 
 import { CONTACT_EMAIL, LEGAL_PAGES, LEGAL_UPDATED, SITE_NAME } from "@/lib/site"
+import { usePageTitle } from "@/lib/usePageTitle"
 import { BackLink } from "@/components/ui/BackLink"
 import { Logo } from "@/components/layout/TopBar"
 
@@ -9,6 +10,7 @@ import { Logo } from "@/components/layout/TopBar"
    the landing page and sign-in), with their own logo, back link and the
    links between them. */
 export function LegalLayout({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
+  usePageTitle(title)
   return (
     <div className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 sm:py-10">
       <div className="mx-auto max-w-2xl">
