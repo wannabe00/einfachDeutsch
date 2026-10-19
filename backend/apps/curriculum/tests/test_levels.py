@@ -14,7 +14,7 @@ class SetLevelTests(TestCase):
         first = api.post("/api/accounts/set-level/", {"cefr_level": "A2"}, format="json")
         self.assertEqual(first.status_code, 200)
 
-        again = api.post("/api/accounts/set-level/", {"cefr_level": "C1"}, format="json")
+        again = api.post("/api/accounts/set-level/", {"cefr_level": "B1"}, format="json")
         self.assertEqual(again.status_code, 403)
         user.profile.refresh_from_db()
         self.assertEqual(user.profile.cefr_level, "A2")

@@ -5,6 +5,7 @@ import { ArrowRight, Award, Check, ChevronDown, Lock, PartyPopper } from "lucide
 import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
 import { cn } from "@/lib/utils"
+import { SITE_NAME } from "@/lib/site"
 import { LektionCover } from "@/components/lektion/LektionCover"
 import { ModulTests } from "@/components/checks/CheckCards"
 import { LessonRows } from "@/components/lektion/LessonRows"
@@ -71,7 +72,11 @@ export default function PathPage() {
         </div>
       </header>
 
-      {exam?.unlocked && <ExamCard level={exam.level} nextLevel={exam.next_level} />}
+      {exam?.course_complete ? (
+        <CourseCompleteCard />
+      ) : (
+        exam?.unlocked && <ExamCard level={exam.level} nextLevel={exam.next_level} />
+      )}
 
       {current ? (
         <CurrentUnit unit={current} nextLessonId={next_up?.lesson_id ?? null} />
@@ -285,6 +290,24 @@ function ExamCard({ level, nextLevel }: { level: string; nextLevel: string | nul
       >
         Take the exam
       </Link>
+    </section>
+  )
+}
+
+/** B1 passed: the whole course is done. Everything stays open for review. */
+function CourseCompleteCard() {
+  return (
+    <section className="flex flex-col gap-4 rounded-[24px] bg-surface p-5 shadow-card ring-2 ring-[hsl(var(--success))]/60 sm:flex-row sm:items-center sm:p-6">
+      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]">
+        <PartyPopper className="size-6" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-lg font-bold">You finished {SITE_NAME}!</p>
+        <p className="text-muted-foreground">
+          You passed the B1 exam, the last level. Keep everything fresh with Review, the skills and
+          Talk to AI.
+        </p>
+      </div>
     </section>
   )
 }

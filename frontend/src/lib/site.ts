@@ -20,3 +20,6 @@ export const LEGAL_PAGES = [
 
 /** Premium prices as Stripe charges them (the price IDs live in the backend env). */
 export const PRICES = { monthly: "$2.99", annual: "$29.99" }
+
+/** The course's levels: it ends at B1 (the backend's COURSE_LEVELS). */
+export const COURSE_LEVELS = ["A1", "A2", "B1"] as const
