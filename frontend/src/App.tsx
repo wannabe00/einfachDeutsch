@@ -162,12 +162,6 @@ function App() {
           <Route path="/path" element={<PathPage />} />
           <Route path="/path/exam" element={<ExamPage />} />
           <Route path="/check/:checkId" element={<CheckPage />} />
-          <Route path="/lesen" element={<QuizSetsPage skill="lesen" key="lesen" />} />
-          <Route path="/lesen/:level/:modul" element={<QuizSetPage skill="lesen" key="lesen" />} />
-          <Route path="/hoeren" element={<QuizSetsPage skill="hoeren" key="hoeren" />} />
-          <Route path="/hoeren/:level/:modul" element={<QuizSetPage skill="hoeren" key="hoeren" />} />
-          <Route path="/schreiben" element={<SchreibenPage />} />
-          <Route path="/schreiben/:level/:modul" element={<SchreibenSetPage />} />
           <Route path="/path/:unitId" element={<UnitPage />} />
           <Route path="/path/:unitId/lesson/:lessonId" element={<LessonPlayerPage />} />
           <Route path="/videos" element={<VideosPage />} />
@@ -175,7 +169,14 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
 
           <Route path="/speak" element={<Navigate to="/talk" replace />} />
+          {/* The four exam skills and the AI are premium. */}
           <Route element={<RequirePremium />}>
+            <Route path="/lesen" element={<QuizSetsPage skill="lesen" key="lesen" />} />
+            <Route path="/lesen/:level/:modul" element={<QuizSetPage skill="lesen" key="lesen" />} />
+            <Route path="/hoeren" element={<QuizSetsPage skill="hoeren" key="hoeren" />} />
+            <Route path="/hoeren/:level/:modul" element={<QuizSetPage skill="hoeren" key="hoeren" />} />
+            <Route path="/schreiben" element={<SchreibenPage />} />
+            <Route path="/schreiben/:level/:modul" element={<SchreibenSetPage />} />
             <Route path="/talk" element={<TalkPage />} />
             <Route path="/ai" element={<AIAssistantPage />} />
           </Route>

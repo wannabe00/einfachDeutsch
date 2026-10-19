@@ -82,6 +82,16 @@ class TalkTests(TestCase):
         self.assertEqual(self.start().status_code, 200)
         self.assertEqual(self.start().status_code, 429)
 
+    @override_settings(TALK_MONTHLY_MINUTES=15)
+    def test_monthly_minutes(self):
+        self.assertEqual(self.start().json()["minutes"], llm.LIVE_MINUTES)  # unfinished: 10
+        talk = Talk.objects.create(user=self.user, level="A1")
+        Talk.objects.filter(id=talk.id).update(
+            started_at=timezone.now() - timezone.timedelta(minutes=4), ended_at=timezone.now()
+        )
+        self.assertEqual(self.start().json()["minutes"], 1)  # 14 of 15 used
+        self.assertEqual(self.start().status_code, 429)
+
     def test_ai_errors_create_no_talk(self):
         self.token.side_effect = llm.AIResponseError("busy")
         self.assertEqual(self.start().status_code, 502)

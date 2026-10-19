@@ -102,6 +102,8 @@ class SchreibenFlowTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
+        self.user.profile.is_premium = True  # the skills are premium
+        self.user.profile.save()
         self.api = APIClient()
         self.api.force_authenticate(self.user)
         self.units = {u.order: u for u in Unit.objects.filter(cefr_level="A1")}
@@ -117,9 +119,11 @@ class SchreibenFlowTests(TestCase):
         exercise = exercise or self.message
         return self.api.post(f"{BASE}/teil/{exercise.id}/write/", {"text": text}, format="json")
 
-    def premium(self):
-        self.user.profile.is_premium = True
+    def test_free_users_are_turned_away(self):
+        self.user.profile.is_premium = False
         self.user.profile.save()
+        for skill in ("lesen", "schreiben", "hoeren"):
+            self.assertEqual(self.api.get(f"/api/curriculum/{skill}/").status_code, 403)
 
     def test_sets_are_seeded_and_locked_like_lesen(self):
         self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 32)
@@ -175,6 +179,8 @@ class SchreibenFlowTests(TestCase):
         rows = self.api.get(f"{BASE}/teil/{self.message.id}/attempts/").json()
         self.assertEqual(len(rows), 2)
         other = get_user_model().objects.create_user("ben", password="pw")
+        other.profile.is_premium = True
+        other.profile.save()
         attempt = WritingAttempt.objects.filter(user=self.user).first()
         api = APIClient()
         api.force_authenticate(other)
@@ -188,9 +194,6 @@ class SchreibenFlowTests(TestCase):
             "Guten Tag, Frau Berg,\nich bin Ana aus Brasilien und wohne in Köln.\nGruß, Ana"
         )
         url = f"{BASE}/attempts/{attempt.json()['attempt']['id']}/ai/"
-        self.assertEqual(self.api.post(url).status_code, 403)
-
-        self.premium()
         graded = {
             "points": ["full", "full", "missing"],
             "comments": ["ok", "ok", "Say which languages you speak."],
@@ -204,7 +207,6 @@ class SchreibenFlowTests(TestCase):
         self.assertEqual(res["feedback"]["tips"], ["Name your languages."])
 
     def test_ai_errors_save_nothing(self):
-        self.premium()
         attempt = self.write(
             "Guten Tag, Frau Berg,\nich bin Ana aus Brasilien und wohne in Köln.\nGruß, Ana"
         )

@@ -44,6 +44,18 @@ def _summary(talk: Talk) -> dict:
     }
 
 
+def minutes_used(user) -> int:
+    """Talk minutes used this calendar month. A talk without an end counts as the
+    full LIVE_MINUTES, so not calling `finish` saves nothing."""
+    month = timezone.localtime().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    full = llm.LIVE_MINUTES * 60
+    seconds = sum(
+        min((t.ended_at - t.started_at).total_seconds(), full) if t.ended_at else full
+        for t in Talk.objects.filter(user=user, started_at__gte=month)
+    )
+    return int(seconds // 60)
+
+
 def _topics(user) -> list[str]:
     """Themes of the Lektionen the user has finished, and of all lower levels."""
     level = user.profile.cefr_level
@@ -66,7 +78,7 @@ def _ai_error(fn):
 @permission_classes(PREMIUM)
 @throttle_classes(AI_THROTTLES)
 def start(request):
-    """Check the daily cap, then hand out a Live token for one talk."""
+    """Check the monthly minutes and the daily cap, then hand out a Live token."""
     user = request.user
     level = user.profile.cefr_level
     today = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -75,13 +87,23 @@ def start(request):
             {"detail": f"That's {settings.TALK_DAILY_CAP} talks today. Come back tomorrow!"},
             status=status.HTTP_429_TOO_MANY_REQUESTS,
         )
+    left = settings.TALK_MONTHLY_MINUTES - minutes_used(user)
+    if left < 1:
+        return Response(
+            {"detail": f"You've used your {settings.TALK_MONTHLY_MINUTES} minutes this month."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+    # shortcut: the token still lives LIVE_MINUTES + 5 and `finish` is the browser's
+    # word, so a tampered client can overrun; the daily cap bounds it. Upgrade: track
+    # the Live session server-side if abuse shows up in Gemini spend.
+    minutes = min(llm.LIVE_MINUTES, left)
 
     def go():
         opener = random.choice(llm.TALK_OPENERS)
         token = llm.live_token(llm.talk_instruction(level, _topics(user), opener))
         talk = Talk.objects.create(user=user, level=level)
         return Response(
-            {"id": talk.id, "token": token, "model": llm.LIVE_MODEL, "minutes": llm.LIVE_MINUTES}
+            {"id": talk.id, "token": token, "model": llm.LIVE_MODEL, "minutes": minutes}
         )
 
     return _ai_error(go)

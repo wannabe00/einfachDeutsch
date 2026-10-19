@@ -474,21 +474,21 @@ def _exam_set(fn, *args) -> Response:
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def lesen_status(request):
     """Every Lesen set the user may see, with locks and best scores."""
     return Response(lesen.status(request.user))
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def lesen_set(request, level: str, modul: int):
     """One open Lesen set, without answers."""
     return _exam_set(lesen.detail, request.user, level, modul)
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def lesen_answer(request, exercise_id: int):
     """Grade one Teil of a Lesen set and reveal its solution."""
     response = _exam_set(lesen.answer, request.user, exercise_id, request.data.get("answer"))
@@ -501,21 +501,21 @@ def lesen_answer(request, exercise_id: int):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_status(request):
     """Every Schreiben set the user may see, with locks and best scores."""
     return Response(schreiben.status(request.user))
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_set(request, level: str, modul: int):
     """One open Schreiben set (no form answers, no model texts)."""
     return _exam_set(schreiben.detail, request.user, level, modul)
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_form(request, exercise_id: int):
     """Grade the A1 form (Teil 1) locally."""
     response = _exam_set(
@@ -527,7 +527,7 @@ def schreiben_form(request, exercise_id: int):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_write(request, exercise_id: int):
     """Keep a written text; return the checks, the points and the model answer."""
     response = _exam_set(schreiben.write, request.user, exercise_id, request.data.get("text"))
@@ -537,14 +537,14 @@ def schreiben_write(request, exercise_id: int):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_attempts(request, exercise_id: int):
     """The user's past attempts at one Teil."""
     return _exam_set(schreiben.attempts, request.user, exercise_id)
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def schreiben_self_check(request, attempt_id: int):
     """Score a text from the user's own rating of its three points."""
     return _exam_set(schreiben.self_check, request.user, attempt_id, request.data.get("points"))
@@ -562,21 +562,21 @@ def schreiben_ai_grade(request, attempt_id: int):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def hoeren_status(request):
     """Every recorded Hören set the user may see, with locks and best scores."""
     return Response(hoeren.status(request.user))
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def hoeren_set(request, level: str, modul: int):
     """One open Hören set: questions and audio, no answers or scripts."""
     return _exam_set(hoeren.detail, request.user, level, modul)
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsPremium])
 def hoeren_answer(request, exercise_id: int):
     """Grade one Teil and reveal its solution and transcripts."""
     response = _exam_set(hoeren.answer, request.user, exercise_id, request.data.get("answer"))
