@@ -35,6 +35,7 @@ ALLOWED_PREFERENCE_KEYS = {
 MAX_PREFERENCES_CHARS = 2000
 
 MAX_AVATAR_MB = 5
+AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"}
 
 
 def _validate_username_change(user, profile, new_username):
@@ -105,8 +106,9 @@ def upload_avatar(request):
     # S4: don't stream arbitrary files to Cloudinary.
     if image.size > MAX_AVATAR_MB * 1024 * 1024:
         return Response({"detail": f"Image too large (max {MAX_AVATAR_MB} MB)."}, status=400)
-    if not (image.content_type or "").startswith("image/"):
-        return Response({"detail": "File must be an image."}, status=400)
+    # SVG can carry scripts; only photo formats, and Cloudinary re-encodes to JPEG.
+    if image.content_type not in AVATAR_TYPES:
+        return Response({"detail": "Use a JPEG, PNG, WebP, GIF or HEIC picture."}, status=400)
     if not settings.CLOUDINARY_CLOUD_NAME:
         return Response({"detail": "Image uploads aren't configured yet."}, status=503)
     try:
@@ -118,6 +120,7 @@ def upload_avatar(request):
             public_id=f"user_{request.user.id}",
             overwrite=True,
             transformation=[{"width": 256, "height": 256, "crop": "fill", "gravity": "face"}],
+            format="jpg",
         )
         url = result.get("secure_url", "")
     except Exception:  # noqa: BLE001 - any upload or provider failure

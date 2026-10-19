@@ -100,7 +100,7 @@ export function ProfileSection() {
             <input
               ref={avatarInput}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];

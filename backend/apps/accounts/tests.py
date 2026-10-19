@@ -206,6 +206,48 @@ class AdminLoginTests(TestCase):
         self.assertEqual(guest.get("/api/accounts/export/").status_code, 401)
 
 
+
+class InputSafetyTests(TestCase):
+    """The user endpoint can't be written, and avatars must be photos."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = get_user_model().objects.create_user("dora", password="pw", first_name="Dora")
+        self.api = APIClient()
+        self.api.force_authenticate(self.user)
+
+    def test_auth_user_endpoint_changes_nothing(self):
+        self.api.patch(
+            "/api/auth/user/",
+            {"is_staff": True, "username": "admin2", "first_name": "X"},
+            format="json",
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(
+            (self.user.is_staff, self.user.username, self.user.first_name), (False, "dora", "Dora")
+        )
+
+    @override_settings(CLOUDINARY_CLOUD_NAME="demo")
+    def test_svg_avatars_are_refused(self):
+        from unittest import mock
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        svg = SimpleUploadedFile("x.svg", b"<svg onload=alert(1)/>", content_type="image/svg+xml")
+        with mock.patch("cloudinary.uploader.upload") as upload:
+            res = self.api.post("/api/accounts/avatar/", {"image": svg}, format="multipart")
+        self.assertEqual(res.status_code, 400)
+        upload.assert_not_called()
+        jpg = SimpleUploadedFile("x.jpg", b"\xff\xd8\xff", content_type="image/jpeg")
+        with mock.patch(
+            "cloudinary.uploader.upload",
+            return_value={"secure_url": "https://res.cloudinary.com/x.jpg"},
+        ) as upload:
+            res = self.api.post("/api/accounts/avatar/", {"image": jpg}, format="multipart")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(upload.call_args.kwargs["format"], "jpg")
+
+        
 class HealthCheckTests(TestCase):
     def test_healthz_never_touches_the_database(self):
         with self.assertNumQueries(0):

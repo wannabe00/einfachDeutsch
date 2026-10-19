@@ -78,6 +78,9 @@ class UserDetailsSerializer(BaseUserDetailsSerializer):
             "trial_started_at",
             "is_staff",
         )
+        # Read-only: dj-rest-auth's /api/auth/user/ also takes PUT/PATCH, which
+        # would skip the profile endpoint's checks (username cooldown etc.).
+        read_only_fields = fields
 
 
 def frontend_reset_url(request, user, temp_key) -> str:
