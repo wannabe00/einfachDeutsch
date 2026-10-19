@@ -68,9 +68,23 @@ Google and GitHub sign-in need OAuth credentials in the environment:
 ## Checks
 
 ```bash
-cd backend && ruff check . && ruff format --check . && python manage.py check
-cd frontend && npx tsc --noEmit && npx eslint src && npm run build
+cd backend && ruff check . && ruff format --check . && python manage.py check && python manage.py test
+cd frontend && npx tsc -p tsconfig.app.json --noEmit && npx eslint src && npm run build
 ```
+
+## Security
+
+- Sign-up through Google or GitHub only; optional two-factor login with an
+  authenticator app (required for staff); login tokens expire after 30 days.
+- Every API endpoint needs a signed-in user unless it is explicitly public;
+  rate limits per user and per IP, and daily caps on paid AI calls.
+- Strict Content Security Policy and security headers, HTTPS with HSTS,
+  JSON-only API in production, a secret admin path.
+- Dependencies pinned and watched by Dependabot; errors tracked in Sentry; a
+  security event log for sign-ins and account changes.
+
+Found a vulnerability? Please report it privately through the repository's
+**Security** tab ("Report a vulnerability") rather than in a public issue.
 
 ## Deployment
 
