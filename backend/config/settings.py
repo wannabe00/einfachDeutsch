@@ -382,6 +382,12 @@ CACHES = {
     }
 }
 
+# A password-reset link works for one hour (Django's default is three days).
+PASSWORD_RESET_TIMEOUT = 60 * 60
+# Only the admin uses sessions (the app signs in with tokens): log staff out
+# after a working day instead of two weeks.
+SESSION_COOKIE_AGE = 8 * 60 * 60
+
 # ---- Admin ----
 # A secret path in production (e.g. "manage-7f3k9q/"), so bots scanning for
 # /admin/ find nothing. Must end with "/".
