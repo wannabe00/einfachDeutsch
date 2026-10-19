@@ -11,7 +11,8 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(self)" },
+        { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(self), payment=(), usb=(), serial=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), browsing-topics=()" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.unsplash.com https://res.cloudinary.com https://i.ytimg.com https://static.dw.com https://www.logo.de https://images.tagesschau.de https://www.ardmediathek.de https://www.zdf.de https://www.wdrmaus.de https://slowgerman.com https://api.openverse.org https://images.metmuseum.org https://www.artic.edu https://images.pexels.com https://upload.wikimedia.org https://thumb.wikimedia.org; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://einfachdeutsch-api.onrender.com wss://generativelanguage.googleapis.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"

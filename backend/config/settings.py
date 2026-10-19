@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     # Right after CORS, so even a refused oversized request carries CORS headers.
     "config.middleware.RequestSizeLimitMiddleware",
+    "config.middleware.ApiSecurityHeadersMiddleware",
     "django.middleware.security.SecurityMiddleware",
     # WhiteNoise serves static files in production (must follow SecurityMiddleware).
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -159,6 +160,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # browsable API/admin. Content endpoints stay public-readable; per-user endpoints
 # enforce auth at the view level.
 REST_FRAMEWORK = {
+    # JSON only in production: the HTML "browsable API" would show every
+    # endpoint's name and docs to anyone (kept locally for development).
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"]
+    + ([] if not DEBUG else ["rest_framework.renderers.BrowsableAPIRenderer"]),
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # Expiring variant of TokenAuthentication: tokens older than
         # TOKEN_TTL_DAYS are rejected + deleted (stolen tokens stop working).
@@ -301,7 +306,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True") == "True"
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "2592000"))  # 30 days
+    # A year: browsers only accept "preload" (below) with at least that.
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
