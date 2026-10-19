@@ -206,6 +206,7 @@ class AdminLoginTests(TestCase):
         self.assertEqual(guest.get("/api/accounts/export/").status_code, 401)
 
 
+
 class InputSafetyTests(TestCase):
     """The user endpoint can't be written, and avatars must be photos."""
 
@@ -245,3 +246,10 @@ class InputSafetyTests(TestCase):
             res = self.api.post("/api/accounts/avatar/", {"image": jpg}, format="multipart")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(upload.call_args.kwargs["format"], "jpg")
+
+        
+class HealthCheckTests(TestCase):
+    def test_healthz_never_touches_the_database(self):
+        with self.assertNumQueries(0):
+            res = self.client.get("/healthz")
+        self.assertEqual((res.status_code, res.content), (200, b"ok"))

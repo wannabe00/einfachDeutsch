@@ -7,9 +7,10 @@ from django.urls import include, path
 from apps.accounts import views
 
 from .admin_login import admin_login
-from .views import api_root
+from .views import api_root, healthz
 
 urlpatterns = [
+    path("healthz", healthz, name="healthz"),
     # The admin lives at a secret path in production (ADMIN_URL). Its login comes
     # first so it gets the attempt limit and the authenticator code.
     path(f"{settings.ADMIN_URL}login/", admin_login, name="admin-login"),
