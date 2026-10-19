@@ -16,14 +16,12 @@ from apps.curriculum.models import PathLessonProgress, ReadingResult, Unit
 from apps.exercises.models import Exercise
 
 # Questions per Teil and Teile per set, as in the exams.
-SHAPE = {"A1": [5, 5, 5], "A2": [5, 5, 5, 5]}
+SHAPE = {"A1": [5, 5, 5], "A2": [5, 5, 5, 5], "B1": [5, 5, 5, 5]}
 
 
 class ContentTests(TestCase):
     def test_every_set_has_the_exam_shape_and_valid_answers(self):
         for level, spec in LEVELS.items():
-            if level == "B1" and not spec["lesen"]:
-                continue  # shortcut: B1's skill sets land after its Module; remove then
             self.assertEqual(sorted(spec["lesen"]), list(range(1, 9)), level)
             for modul, teile in spec["lesen"].items():
                 where = f"{level} Modul {modul}"
@@ -75,7 +73,7 @@ class LesenFlowTests(TestCase):
 
     def test_sets_are_seeded_once(self):
         count = Exercise.objects.filter(source__contains="-lesen-m").count()
-        self.assertEqual(count, 8 * 3 + 8 * 4)
+        self.assertEqual(count, 8 * 3 + 8 * 4 + 8 * 4)  # A1, A2, B1
         call_command("seed_path", stdout=StringIO())
         self.assertEqual(Exercise.objects.filter(source__contains="-lesen-m").count(), count)
 

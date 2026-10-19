@@ -23,8 +23,6 @@ BASE = "/api/curriculum/schreiben"
 class ContentTests(TestCase):
     def test_every_set_has_the_exam_shape(self):
         for level, spec in LEVELS.items():
-            if level == "B1" and not spec["schreiben"]:
-                continue  # shortcut: B1's skill sets land after its Module; remove then
             self.assertEqual(sorted(spec["schreiben"]), list(range(1, 9)), level)
             for modul, (teil1, teil2) in spec["schreiben"].items():
                 where = f"{level} Modul {modul}"
@@ -35,8 +33,9 @@ class ContentTests(TestCase):
                     self.assertTrue(teil1["context"], where)
                     texts = [teil2]
                 else:
-                    self.assertEqual((teil1["min_words"], teil1["max_words"]), (20, 30), where)
-                    self.assertEqual((teil2["min_words"], teil2["max_words"]), (30, 40), where)
+                    first, second = {"A2": ((20, 30), (30, 40)), "B1": ((60, 80), (40, 60))}[level]
+                    self.assertEqual((teil1["min_words"], teil1["max_words"]), first, where)
+                    self.assertEqual((teil2["min_words"], teil2["max_words"]), second, where)
                     self.assertTrue(teil2["formal"], where)
                     texts = [teil1, teil2]
                 for task in texts:
@@ -128,7 +127,7 @@ class SchreibenFlowTests(TestCase):
             self.assertEqual(self.api.get(f"/api/curriculum/{skill}/").status_code, 403)
 
     def test_sets_are_seeded_and_locked_like_lesen(self):
-        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 32)
+        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 48)  # 16 per level
         sets = self.api.get(f"{BASE}/").json()
         self.assertEqual([s["locked"] for s in sets], [False] + [True] * 7)
         self.assertEqual(self.api.get(f"{BASE}/A1/2/").status_code, 403)
