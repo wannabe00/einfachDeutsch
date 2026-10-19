@@ -4,6 +4,7 @@ import base64
 import time
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import TestCase, override_settings
@@ -114,3 +115,57 @@ class SocialLoginTests(TestCase):
             with mock.patch("requests.Session.request", return_value=refused):
                 res = APIClient().post(f"/api/auth/{provider}/", {"code": "bogus"}, format="json")
             self.assertEqual(res.status_code, 400, provider)
+
+
+class RateLimitTests(TestCase):
+    """Password checks, client addresses behind the proxy, and the admin login."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = get_user_model().objects.create_user("carl", password="orig-pass-123")
+        self.api = APIClient()
+        self.api.force_authenticate(self.user)
+
+    def test_password_change_needs_the_current_password(self):
+        new = {"new_password1": "New-pass-4567", "new_password2": "New-pass-4567"}
+        res = self.api.post("/api/auth/password/change/", {"old_password": "WRONG", **new})
+        self.assertEqual(res.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("orig-pass-123"))
+        res = self.api.post("/api/auth/password/change/", {"old_password": "orig-pass-123", **new})
+        self.assertEqual(res.status_code, 200)
+
+    def test_password_checks_are_limited(self):
+        codes = [
+            self.api.post("/api/accounts/delete/", {"password": "guess"}).status_code
+            for _ in range(6)
+        ]
+        self.assertEqual(codes[:5], [400] * 5)
+        self.assertEqual(codes[5], 429)
+
+    def test_a_faked_forwarded_for_does_not_dodge_the_login_limit(self):
+        rf = {**settings.REST_FRAMEWORK, "NUM_PROXIES": 1}
+        with self.settings(REST_FRAMEWORK=rf):
+            codes = [
+                APIClient(HTTP_X_FORWARDED_FOR=f"6.6.6.{i}, 203.0.113.7")
+                .post("/api/auth/login/", {"username": "carl", "password": "x"})
+                .status_code
+                for i in range(6)
+            ]
+        self.assertEqual(codes[5], 429)
+
+    def test_admin_login_is_limited(self):
+        from django.test import Client
+
+        c = Client()
+        codes = [
+            c.post("/admin/login/", {"username": "x", "password": "y"}).status_code
+            for _ in range(6)
+        ]
+        self.assertEqual(codes[5], 429)
+
+    def test_client_ip_check_is_staff_only(self):
+        self.assertEqual(self.api.get("/api/accounts/client-ip/").status_code, 403)
+        self.user.is_staff = True
+        self.user.save()
+        self.assertIn("throttle_ip", self.api.get("/api/accounts/client-ip/").json())

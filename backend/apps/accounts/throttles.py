@@ -19,8 +19,22 @@ class OnboardingThrottle(UserRateThrottle):
     scope = "onboarding"
 
 
+class PasswordChangeThrottle(UserRateThrottle):
+    """Per-user cap on actions that check the account password (password change,
+    two-factor changes, deleting the account), so a stolen token can't be used
+    to guess it."""
+
+    scope = "password_change"
+
+
 class PasswordResetThrottle(AnonRateThrottle):
     """Per-IP cap on reset e-mails and reset attempts, so the endpoint can't be
     used to flood someone's inbox."""
 
     scope = "password_reset"
+
+
+class UploadThrottle(UserRateThrottle):
+    """Avatar uploads go to Cloudinary (storage and bandwidth on a free plan)."""
+
+    scope = "uploads"

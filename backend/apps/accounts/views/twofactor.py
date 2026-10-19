@@ -3,11 +3,12 @@ backup codes. Turning it on or off and new codes need the account password,
 so a stolen token alone can't lock the owner out. The login step itself is in
 `serializers.LoginSerializer` (Google/GitHub logins rely on their own 2FA)."""
 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .. import totp
+from ..throttles import PasswordChangeThrottle
 from .danger import _password_error
 
 
@@ -51,6 +52,7 @@ def setup(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def enable(request):
     """Turn it on with a first code from the app; answers the backup codes, once."""
     error = _password_error(request)
@@ -71,6 +73,7 @@ def enable(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def disable(request):
     error = _password_error(request)
     if error:
@@ -86,6 +89,7 @@ def disable(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def backup_codes(request):
     """Replace the backup codes (the old ones stop working)."""
     error = _password_error(request)
