@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 
 import { fetchPublicStats } from "@/api/stats"
-import { SITE_NAME } from "@/lib/site"
+import { LEGAL_PAGES, SITE_NAME } from "@/lib/site"
 import { MUNICH_PHOTO } from "@/lib/photos"
 import { cn } from "@/lib/utils"
 import { BookMarked, GraduationCap, Landmark, Route as RouteIcon, Sparkles, Swords, type LucideIcon } from "lucide-react"
@@ -423,10 +423,12 @@ function FaqCta() {
         <span>
           © {new Date().getFullYear()} {SITE_NAME}
         </span>
-        <div className="flex gap-4">
-          <Link to="/privacy" className="hover:text-foreground">
-            Privacy
-          </Link>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+          {LEGAL_PAGES.map((p) => (
+            <Link key={p.to} to={p.to} className="hover:text-foreground">
+              {p.label}
+            </Link>
+          ))}
           <Link to="/login" className="hover:text-foreground">
             Log in
           </Link>
