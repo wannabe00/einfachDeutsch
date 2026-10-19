@@ -23,4 +23,5 @@ urlpatterns = [
     path("accounts/delete/", views.delete_account, name="delete-account"),
     path("accounts/reset-progress/", views.reset_progress, name="reset-progress"),
     path("accounts/export/", views.export_data, name="export-data"),
+    path("accounts/client-ip/", views.client_ip, name="client-ip"),
 ]

@@ -8,12 +8,17 @@ from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
-from dj_rest_auth.views import LoginView, PasswordResetConfirmView, PasswordResetView
+from dj_rest_auth.views import (
+    LoginView,
+    PasswordChangeView,
+    PasswordResetConfirmView,
+    PasswordResetView,
+)
 from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
-from ..throttles import LoginThrottle, PasswordResetThrottle
+from ..throttles import LoginThrottle, PasswordChangeThrottle, PasswordResetThrottle
 
 
 class ThrottledLoginView(LoginView):
@@ -21,6 +26,12 @@ class ThrottledLoginView(LoginView):
     anonymous rate is far too generous for password guessing."""
 
     throttle_classes = [LoginThrottle]
+
+
+class ThrottledPasswordChangeView(PasswordChangeView):
+    """Change password; needs the current one (OLD_PASSWORD_FIELD_ENABLED)."""
+
+    throttle_classes = [PasswordChangeThrottle]
 
 
 class ThrottledPasswordResetView(PasswordResetView):

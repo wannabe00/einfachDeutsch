@@ -171,6 +171,11 @@ REST_FRAMEWORK = {
     # Anti-abuse: a request ceiling per anonymous IP and per signed-in user.
     # This is the real spam/DDoS guard (the frontend guest cap is just UX).
     # AI endpoints add their own tighter per-user caps (see ai_assistant.throttles).
+    # How many proxies in front of us append to X-Forwarded-For (Render's: 1).
+    # Throttles then use the address our own proxy saw, not the client-written
+    # part of the header, which anyone can fake to dodge every limit. 0 locally.
+    # Check it with /api/accounts/client-ip/ (staff) after a hosting change.
+    "NUM_PROXIES": int(os.getenv("NUM_PROXIES", "0" if DEBUG else "1")),
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -189,6 +194,11 @@ REST_FRAMEWORK = {
         "password_reset": os.getenv("THROTTLE_PASSWORD_RESET", "5/hour"),
         # Placement test submissions (each asks Gemini), per user.
         "placement": os.getenv("THROTTLE_PLACEMENT", "5/day"),
+        # Password changes and 2FA changes (each checks the password), per user,
+        # so a stolen token can't guess the password.
+        "password_change": os.getenv("THROTTLE_PASSWORD_CHANGE", "5/hour"),
+        # Avatar uploads (Cloudinary), per user.
+        "uploads": os.getenv("THROTTLE_UPLOADS", "10/hour"),
     },
 }
 
@@ -235,6 +245,9 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 REST_AUTH = {
     "USE_JWT": False,  # A plain DRF token in localStorage is simplest for the SPA.
+    # A password change must prove the current password; without this a stolen
+    # token alone could change it and take the account over.
+    "OLD_PASSWORD_FIELD_ENABLED": True,
     "SESSION_LOGIN": False,
     "TOKEN_MODEL": "rest_framework.authtoken.models.Token",
     "USER_DETAILS_SERIALIZER": "apps.accounts.serializers.UserDetailsSerializer",
@@ -352,6 +365,16 @@ if CLOUDINARY_CLOUD_NAME:
         secure=True,
     )
 
+
+# The cache holds the rate-limit counters, so it lives in the database: shared by
+# every server process (and serverless instance) and kept across restarts. The
+# table is made by a migration (accounts 0012).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
 
 # ---- Cost guards (site-wide, on top of the per-user throttles) ----
 # Daily caps for the whole site, per paid AI service: calls of "text" (Gemini

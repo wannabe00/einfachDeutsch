@@ -16,7 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..serializers import UserDetailsSerializer
-from ..throttles import OnboardingThrottle
+from ..throttles import OnboardingThrottle, UploadThrottle
 
 User = get_user_model()
 USERNAME_COOLDOWN_DAYS = 30
@@ -96,6 +96,7 @@ def update_profile(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
+@throttle_classes([UploadThrottle])
 def upload_avatar(request):
     """Upload a profile picture to Cloudinary (server-side) and store the URL."""
     image = request.FILES.get("image")

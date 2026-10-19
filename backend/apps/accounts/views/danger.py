@@ -2,9 +2,11 @@
 password, so a stolen token alone can't wipe or delete an account."""
 
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from ..throttles import PasswordChangeThrottle
 
 
 def _password_error(request):
@@ -34,6 +36,7 @@ def logout_all(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def deactivate_account(request):
     """Soft-disable the account (reversible by an admin re-enabling it)."""
     error = _password_error(request)
@@ -48,6 +51,7 @@ def deactivate_account(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def delete_account(request):
     """Permanently delete the account (password-confirmed)."""
     error = _password_error(request)
@@ -59,6 +63,7 @@ def delete_account(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PasswordChangeThrottle])
 def reset_progress(request):
     """Clear all of the user's learning progress (keeps the account)."""
     from apps.curriculum.models import LessonDraft, LevelExamAttempt, PathLessonProgress
