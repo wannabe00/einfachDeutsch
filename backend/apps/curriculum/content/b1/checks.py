@@ -325,6 +325,60 @@ LEKTION_CHECKS = dict(
                 ),
             ],
         ),
+        _l(
+            16,
+            [
+                ("Du brauchst nicht [zu] kochen.", "zu"),
+                ("Sie brauchen nur [anzurufen].", "anrufen"),
+                ("Wir [brauchten] uns um nichts zu kümmern.", "brauchen"),
+                ("Im Zug bin ich ihr [begegnet].", "begegnen"),
+                ("Meine Oma hat sich um uns [gekümmert].", "kümmern"),
+            ],
+            [
+                ("Ah, that was a wonderful time!", "Ach, das war eine herrliche Zeit!"),
+                (
+                    "You don't need to get up early tomorrow. (du)",
+                    "Du brauchst morgen nicht früh aufzustehen.",
+                ),
+                ("That was out of the question for us.", "Bei uns kam das nicht infrage."),
+                ("It was completely different for me.", "Bei mir war das ganz anders."),
+            ],
+        ),
+        _l(
+            17,
+            [
+                ("[Es] fällt mir schwer, Nein zu sagen.", "es"),
+                ("Im Museum [gibt] es eine Ausstellung.", "geben"),
+                ("Es [lohnt] sich, die Galerie zu besuchen.", "lohnen"),
+                ("Die Malerin wurde 1877 [geboren].", "born"),
+                ("Die Bilder haben mich [beeindruckt].", "beeindrucken"),
+            ],
+            [
+                ("Look! That's beautiful!", "Guck mal! Das ist schön!"),
+                ("It depends.", "Es kommt darauf an."),
+                (
+                    "It is worth visiting the museum.",
+                    "Es lohnt sich, das Museum zu besuchen.",
+                ),
+                ("The painting was made in 1911.", "Das Gemälde ist 1911 entstanden."),
+            ],
+        ),
+        _l(
+            18,
+            [
+                ("Ich habe [weder] Zeit noch Geld.", "neither"),
+                ("[Entweder] wir fahren Rad oder wir gehen.", "either"),
+                ("Die Idee ist [zwar] gut, aber teuer.", "admittedly"),
+                ("Sie [engagiert] sich für die Umwelt.", "engagieren"),
+                ("frei → die [Freiheit]", "noun"),
+            ],
+            [
+                ("I don't think much of that.", "Davon halte ich nicht viel."),
+                ("I agree with you. (dir)", "Ich stimme dir zu."),
+                ("She works voluntarily.", "Sie arbeitet ehrenamtlich."),
+                ("I have to contradict you. (Ihnen)", "Ich muss Ihnen widersprechen."),
+            ],
+        ),
     ]
 )
 
@@ -660,6 +714,67 @@ Herbst den Kurs für Fortgeschrittene.
             "Die Teilnahme ist auf eigene Gefahr.",
             "Schön, dass Sie da sind.",
             "Ich spreche sowohl Deutsch als auch Englisch.",
+        ],
+    ),
+    6: modul_check(
+        LEVEL,
+        18,
+        dialogue=(
+            [
+                "A: Ich finde, man sollte das Auto in der Innenstadt verbieten.",
+                "B: ___",
+                "A: Warum? Es gibt doch Busse und Fahrräder.",
+            ],
+            "Davon halte ich nicht viel.",
+            "Es lohnt sich, die Galerie zu besuchen.",
+            "Wir brauchten uns um nichts zu kümmern.",
+        ),
+        qa=[
+            ("Musstest du als Kind im Haushalt helfen?", "Nein, ich brauchte nichts zu tun."),
+            ("Wann wurde die Malerin geboren?", "Im Jahr 1877."),
+            ("Wen wählst du?", "Weder Partei A noch Partei B."),
+            ("Wie geht es dir?", "Danke, es geht mir gut."),
+            ("Was hältst du von der Idee?", "Sie ist zwar gut, aber teuer."),
+        ],
+        odd=[
+            ("der Pinsel", "die Regierung", "das Parlament", "die Partei"),
+            ("die Ernte", "das Gemälde", "die Zeichnung", "die Galerie"),
+            ("regieren", "die Träne", "der Kuss", "die Lüge"),
+            ("farbig", "die Freiheit", "die Sicherheit", "die Möglichkeit"),
+        ],
+        reading=(
+            """
+Herr Wagner ist 78 Jahre alt. Als Kind wohnte er auf einem Bauernhof. Er
+brauchte nicht jeden Tag in die Schule zu gehen, aber er musste bei der Ernte
+helfen. Taschengeld bekam er nie. Heute engagiert er sich ehrenamtlich in einer
+Bürgerinitiative für einen Park. Er sagt: Es fällt mir zwar manchmal schwer, aber
+es lohnt sich.
+""",
+            [
+                ("Herr Wagner ist in der Stadt aufgewachsen.", False),
+                ("Er musste bei der Ernte helfen.", True),
+                ("Er bekam jede Woche Taschengeld.", False),
+                ("Er arbeitet heute ohne Geld für einen Park.", True),
+            ],
+        ),
+        form=[
+            ("Du brauchst nicht ___. (aufstehen)", "aufzustehen"),
+            ("___ regnet seit Stunden.", "Es"),
+            ("Ich habe ___ Hunger noch Durst. (neither)", "weder"),
+            ("möglich → die ___", "Möglichkeit"),
+            ("Das Bild ist 1911 ___. (entstehen)", "entstanden"),
+        ],
+        mistake=[
+            ("Du brauchst nicht *kommen*.", "Du brauchst nicht zu kommen."),
+            ("Ich muss *zu* arbeiten.", "Ich muss arbeiten."),
+            ("Ich habe weder *keine* Zeit noch Geld.", "Ich habe weder Zeit noch Geld."),
+            ("Die Malerin wurde *in* 1877 geboren.", "Die Malerin wurde 1877 geboren."),
+        ],
+        dictation=[
+            "Wir brauchten uns um nichts zu kümmern.",
+            "Es fällt mir schwer, Nein zu sagen.",
+            "Davon halte ich nicht viel.",
+            "Ich wähle weder Partei A noch Partei B.",
         ],
     ),
 }
