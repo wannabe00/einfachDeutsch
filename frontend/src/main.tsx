@@ -8,8 +8,10 @@ import App from "./App.tsx"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { GuestLimitProvider } from "@/contexts/GuestLimitContext"
 import { applyTheme, getThemePref } from "@/lib/theme"
+import { startMonitoring } from "@/lib/monitoring"
 
 applyTheme(getThemePref())
+startMonitoring()
 
 const queryClient = new QueryClient()
 

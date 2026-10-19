@@ -3,7 +3,10 @@ throttles: whatever happens (a bug, a bot, many accounts), one day can only
 use so much. Caps and the off switch come from settings (AI_DAILY_CAPS,
 AI_DISABLED); a feature over its cap answers like a missing key (503)."""
 
+import logging
+
 from django.conf import settings
+from django.core.cache import cache
 from django.db import IntegrityError
 from django.db.models import F
 from django.utils import timezone
@@ -28,6 +31,7 @@ def spend(feature: str, amount: int = 1) -> None:
     if rows.update(amount=F("amount") + amount):
         return
     if AIUsage.objects.filter(feature=feature, day=today).exists():
+        _alert_cap_hit(feature, today)
         raise BudgetExceeded(feature)  # the row is there, so the cap was hit
     if cap is not None and amount > cap:
         raise BudgetExceeded(feature)
@@ -40,3 +44,10 @@ def spend(feature: str, amount: int = 1) -> None:
 def used_today() -> dict[str, int]:
     rows = AIUsage.objects.filter(day=timezone.localdate())
     return {r.feature: r.amount for r in rows}
+
+
+def _alert_cap_hit(feature: str, day) -> None:
+    """Log (and so alert, through error tracking) the first refusal of the day
+    per feature: a cap being hit means real growth, a bug or abuse."""
+    if cache.add(f"ai-cap-alert:{feature}:{day}", 1, timeout=60 * 60 * 24):
+        logging.getLogger("security").error("ai_cap_reached feature=%s day=%s", feature, day)

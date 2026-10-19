@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from ..audit import audit
 from ..throttles import PasswordChangeThrottle
 
 
@@ -45,6 +46,7 @@ def deactivate_account(request):
     user = request.user
     user.is_active = False
     user.save(update_fields=["is_active"])
+    audit("account_deactivated", request)
     Token.objects.filter(user=user).delete()
     return Response({"detail": "Account deactivated."})
 
@@ -57,6 +59,7 @@ def delete_account(request):
     error = _password_error(request)
     if error:
         return error
+    audit("account_deleted", request)
     request.user.delete()
     return Response({"detail": "Account deleted."}, status=200)
 

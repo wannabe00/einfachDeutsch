@@ -18,6 +18,7 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
+from ..audit import audit
 from ..throttles import LoginThrottle, PasswordChangeThrottle, PasswordResetThrottle
 
 
@@ -32,6 +33,12 @@ class ThrottledPasswordChangeView(PasswordChangeView):
     """Change password; needs the current one (OLD_PASSWORD_FIELD_ENABLED)."""
 
     throttle_classes = [PasswordChangeThrottle]
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            audit("password_changed", request)
+        return response
 
 
 class ThrottledPasswordResetView(PasswordResetView):

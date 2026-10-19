@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .. import totp
+from ..audit import audit
 from ..throttles import PasswordChangeThrottle
 from .danger import _password_error
 
@@ -68,6 +69,7 @@ def enable(request):
     profile.totp_last_step = step
     codes = _new_backup_codes(profile)
     profile.save()
+    audit("2fa_enabled", request)
     return Response({"backup_codes": codes})
 
 
@@ -84,6 +86,7 @@ def disable(request):
     profile.totp_backup_codes = []
     profile.totp_last_step = None
     profile.save()
+    audit("2fa_disabled", request)
     return Response({"detail": "Two-factor login is off."})
 
 
