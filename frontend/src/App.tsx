@@ -32,7 +32,10 @@ import QuizSetsPage from "@/pages/QuizSetsPage"
 import QuizSetPage from "@/pages/QuizSetPage"
 import SchreibenPage from "@/pages/SchreibenPage"
 import SchreibenSetPage from "@/pages/SchreibenSetPage"
-import PrivacyPage from "@/pages/PrivacyPage"
+import PrivacyPage from "@/pages/legal/PrivacyPage"
+import TermsPage from "@/pages/legal/TermsPage"
+import RefundPage from "@/pages/legal/RefundPage"
+import CookiesPage from "@/pages/legal/CookiesPage"
 
 function Loading() {
   return (
@@ -179,8 +182,11 @@ function App() {
         </Route>
       </Route>
 
-      {/* Linked from the landing footer, so it lives outside the app shell. */}
+      {/* Legal pages: linked from the landing footer and sign-in, outside the app shell. */}
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/refunds" element={<RefundPage />} />
+      <Route path="/cookies" element={<CookiesPage />} />
     </Routes>
   )
 }

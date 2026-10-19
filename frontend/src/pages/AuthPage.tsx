@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
 import { AUTH_CARD } from "@/lib/authCard"
+import { MIN_AGE } from "@/lib/site"
 
 export default function AuthPage() {
   const { login } = useAuth()
@@ -125,6 +126,12 @@ export default function AuthPage() {
         <p className="mt-5 text-center text-sm text-muted-foreground">
           New here? Continue with Google or GitHub and we'll set up your
           profile next.
+        </p>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          By continuing you agree to the{" "}
+          <Link to="/terms" className="font-semibold text-foreground hover:underline">Terms</Link> and{" "}
+          <Link to="/privacy" className="font-semibold text-foreground hover:underline">Privacy Policy</Link>, and
+          confirm you are at least {MIN_AGE}.
         </p>
       </div>
     </AuthShell>
