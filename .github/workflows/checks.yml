@@ -32,6 +32,8 @@ jobs:
       - run: ruff check . && ruff format --check .
       - run: python manage.py check
       - run: python manage.py makemigrations --check --dry-run
+      # The admin pages the tests render need the static-file manifest.
+      - run: python manage.py collectstatic --noinput -v0
       - run: python manage.py test
 
   frontend:
