@@ -378,7 +378,7 @@ function CultureMoment() {
 const FAQS = [
   {
     q: "Is it free?",
-    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, the AI tutor and Talk to AI.",
+    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, Lesen, Hören and Schreiben practice, the AI tutor and Talk to AI.",
   },
   {
     q: "Do I need an account?",

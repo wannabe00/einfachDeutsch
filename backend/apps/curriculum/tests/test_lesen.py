@@ -51,6 +51,8 @@ class LesenFlowTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
+        self.user.profile.is_premium = True  # the skills are premium
+        self.user.profile.save()
         self.api = APIClient()
         self.api.force_authenticate(self.user)
         self.units = {u.order: u for u in Unit.objects.filter(cefr_level="A1")}
