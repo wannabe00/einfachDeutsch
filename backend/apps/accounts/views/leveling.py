@@ -1,8 +1,10 @@
 """Level and streak endpoints: set level, placement test, streak."""
 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from apps.ai_assistant.throttles import PlacementThrottle
 
 from ..leveling import local_level, public_test, score_objective
 from ..models import CEFR_LEVELS
@@ -34,6 +36,7 @@ def set_level(request):
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PlacementThrottle])
 def placement_test(request):
     """GET: the test (grammar + reading + writing, shuffled, no answers).
     POST {answers:{id:choice}, writing:str}: score the MCQs locally, then ask

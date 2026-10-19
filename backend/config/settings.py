@@ -69,6 +69,8 @@ SITE_ID = 1
 MIDDLEWARE = [
     # CorsMiddleware must come first so CORS headers are added to every response.
     "corsheaders.middleware.CorsMiddleware",
+    # Right after CORS, so even a refused oversized request carries CORS headers.
+    "config.middleware.RequestSizeLimitMiddleware",
     "django.middleware.security.SecurityMiddleware",
     # WhiteNoise serves static files in production (must follow SecurityMiddleware).
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -185,6 +187,8 @@ REST_FRAMEWORK = {
         "onboarding": os.getenv("THROTTLE_ONBOARDING", "5/min"),
         # Reset e-mails and reset attempts (per IP), so nobody can flood an inbox.
         "password_reset": os.getenv("THROTTLE_PASSWORD_RESET", "5/hour"),
+        # Placement test submissions (each asks Gemini), per user.
+        "placement": os.getenv("THROTTLE_PLACEMENT", "5/day"),
     },
 }
 
@@ -347,3 +351,24 @@ if CLOUDINARY_CLOUD_NAME:
         api_secret=CLOUDINARY_API_SECRET,
         secure=True,
     )
+
+
+# ---- Cost guards (site-wide, on top of the per-user throttles) ----
+# Daily caps for the whole site, per paid AI service: calls of "text" (Gemini
+# chat, grading, reports, history lessons, placement), "transcribe" (the mic),
+# "talk" (live voice sessions), and characters of "speech" (read-aloud). Over
+# the cap a feature answers 503 until tomorrow. AI_DISABLED switches features
+# off at once (comma-separated), e.g. "talk,speech".
+AI_DAILY_CAPS = {
+    "text": int(os.getenv("AI_CAP_TEXT", "2000")),
+    "transcribe": int(os.getenv("AI_CAP_TRANSCRIBE", "500")),
+    "talk": int(os.getenv("AI_CAP_TALK", "60")),
+    "speech": int(os.getenv("AI_CAP_SPEECH_CHARS", "15000")),
+}
+AI_DISABLED = {f.strip() for f in os.getenv("AI_DISABLED", "").split(",") if f.strip()}
+
+# Request bodies: JSON/form data held in memory is capped at 1 MB (the longest
+# legitimate body is a Talk transcript, ~120 KB), and the whole request at 6 MB
+# (an avatar or a minute of audio), refused before it is read.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
+MAX_REQUEST_BYTES = int(os.getenv("MAX_REQUEST_BYTES", str(6 * 1024 * 1024)))

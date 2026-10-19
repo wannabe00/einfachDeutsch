@@ -66,3 +66,83 @@ class VoiceTests(TestCase):
         self.user.profile.save()
         self.assertEqual(self.api.post("/api/ai/transcribe/", self._audio()).status_code, 403)
         self.assertEqual(self.api.post("/api/ai/read-aloud/", {"text": "x"}).status_code, 403)
+
+
+class CostGuardTests(TestCase):
+    """Site-wide daily caps, off switches and size limits on the paid AI calls."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = get_user_model().objects.create_user("bob", password="pw")
+        self.user.profile.is_premium = True
+        self.user.profile.save()
+        self.api = APIClient()
+        self.api.force_authenticate(self.user)
+
+    def test_spend_stops_at_the_cap(self):
+        from .budget import BudgetExceeded, spend, used_today
+
+        with self.settings(AI_DAILY_CAPS={"speech": 10}):
+            spend("speech", 6)
+            spend("speech", 4)  # exactly the cap is fine
+            with self.assertRaises(BudgetExceeded):
+                spend("speech", 1)
+            with self.assertRaises(BudgetExceeded):
+                spend("speech", 11)
+        self.assertEqual(used_today()["speech"], 10)
+
+    def test_a_feature_can_be_switched_off(self):
+        from .budget import BudgetExceeded, spend
+
+        with self.settings(AI_DISABLED={"talk"}), self.assertRaises(BudgetExceeded):
+            spend("talk")
+
+    def test_over_the_cap_the_provider_is_never_called(self):
+        with (
+            self.settings(AI_DAILY_CAPS={"speech": 5}),
+            mock.patch.object(llm, "_azure", return_value=b"mp3") as azure,
+        ):
+            self.assertEqual(llm.read_aloud("Hallo"), b"mp3")
+            with self.assertRaises(llm.AIBudgetError):
+                llm.read_aloud("Hallo")
+        self.assertEqual(azure.call_count, 1)
+
+    def test_endpoints_answer_503_over_the_cap(self):
+        with self.settings(AI_DAILY_CAPS={"speech": 0}):
+            res = self.api.post("/api/ai/read-aloud/", {"text": "Hallo"}, format="json")
+        self.assertEqual(res.status_code, 503)
+        with (
+            self.settings(AI_DAILY_CAPS={"text": 0}),
+            mock.patch.object(llm, "_complete", return_value="hi") as complete,
+        ):
+            res = self.api.post("/api/ai/chat/", {"message": "Hallo"}, format="json")
+        self.assertEqual(res.status_code, 503)
+        complete.assert_not_called()
+
+    def test_long_messages_and_history_are_limited(self):
+        long = "x" * (llm.MAX_MESSAGE_CHARS + 1)
+        res = self.api.post("/api/ai/chat/", {"message": long}, format="json")
+        self.assertEqual(res.status_code, 400)
+        history = [{"role": "user", "content": long}] * 50
+        with mock.patch.object(llm, "_complete", return_value="ok") as complete:
+            llm.chat("Hallo", history)
+        contents = complete.call_args.args[1]
+        self.assertEqual(len(contents), llm.MAX_HISTORY_TURNS + 1)
+        self.assertEqual(len(contents[0].parts[0].text), llm.MAX_MESSAGE_CHARS)
+
+    def test_oversized_requests_are_refused_unread(self):
+        res = self.api.generic(
+            "POST", "/api/ai/chat/", b"{}", "application/json", CONTENT_LENGTH=str(50 * 1024 * 1024)
+        )
+        self.assertEqual(res.status_code, 413)
+
+    def test_placement_submissions_are_limited(self):
+        free = APIClient()
+        free.force_authenticate(get_user_model().objects.create_user("free", password="pw"))
+        codes = [
+            free.post("/api/accounts/placement-test/", {}, format="json").status_code
+            for _ in range(6)
+        ]
+        self.assertNotEqual(codes[4], 429)
+        self.assertEqual(codes[5], 429)
+        self.assertEqual(free.get("/api/accounts/placement-test/").status_code, 200)
