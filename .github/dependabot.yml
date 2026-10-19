@@ -1,6 +1,7 @@
-# Weekly pull requests for outdated or vulnerable dependencies (security fixes
-# also arrive as soon as an advisory is published). Minor and patch updates are
-# grouped into one PR per ecosystem to keep the noise down.
+# Pull requests for outdated or vulnerable dependencies. Security fixes come
+# right away; routine updates weekly, minor and patch only, grouped per
+# ecosystem. Major versions are done by hand. Every PR must pass the "Checks"
+# workflow before merging.
 version: 2
 updates:
   - package-ecosystem: pip
@@ -10,6 +11,11 @@ updates:
     groups:
       python-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # The Gemini SDK changes its internals often; upgraded on purpose.
+      - dependency-name: google-genai
   - package-ecosystem: npm
     directory: /frontend
     schedule:
@@ -17,3 +23,10 @@ updates:
     groups:
       npm-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
