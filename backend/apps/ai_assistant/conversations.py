@@ -96,6 +96,11 @@ def conversation_messages(request, pk: int):
     text = str(request.data.get("message", "")).strip()
     if not text:
         return Response({"detail": "Message can't be empty."}, status=status.HTTP_400_BAD_REQUEST)
+    if len(text) > llm.MAX_MESSAGE_CHARS:
+        return Response(
+            {"detail": f"Keep messages under {llm.MAX_MESSAGE_CHARS} characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     mode = str(request.data.get("mode") or convo.mode)
     if mode not in context.MODES:
         return Response({"detail": "Unknown mode."}, status=status.HTTP_400_BAD_REQUEST)

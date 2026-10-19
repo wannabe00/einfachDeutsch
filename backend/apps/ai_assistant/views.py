@@ -48,6 +48,11 @@ def chat(request):
     error = _missing_fields_response(request.data, "message")
     if error:
         return error
+    if len(str(request.data["message"])) > llm.MAX_MESSAGE_CHARS:
+        return Response(
+            {"detail": f"Keep messages under {llm.MAX_MESSAGE_CHARS} characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     return _run(
         llm.chat,
         request.data["message"],

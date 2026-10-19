@@ -97,3 +97,20 @@ class AISettings(models.Model):
 
     def __str__(self):
         return f"{self.user}: {self.reply_language}, {self.tone}"
+
+
+class AIUsage(models.Model):
+    """How much of each paid AI service the whole site used on one day, so a
+    daily cap holds across every server process (see budget.py)."""
+
+    feature = models.CharField(max_length=20)
+    day = models.DateField()
+    amount = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["feature", "day"], name="ai_usage_once_a_day")
+        ]
+
+    def __str__(self):
+        return f"{self.day} {self.feature}: {self.amount}"

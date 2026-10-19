@@ -14,3 +14,14 @@ class AIBurstThrottle(UserRateThrottle):
 
 class AIDailyThrottle(UserRateThrottle):
     scope = "ai_daily"
+
+
+class PlacementThrottle(UserRateThrottle):
+    """Submitting the placement test asks Gemini for the level, and any account
+    can take it, so submissions get their own small daily limit (loading the
+    test is free)."""
+
+    scope = "placement"
+
+    def allow_request(self, request, view):
+        return request.method != "POST" or super().allow_request(request, view)

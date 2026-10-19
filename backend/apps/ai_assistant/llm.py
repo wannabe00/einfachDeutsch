@@ -6,6 +6,7 @@ AIConfigError and the views answer 503.
 
 import base64
 import datetime
+import functools
 import io
 import json
 import wave
@@ -31,6 +32,39 @@ class AIResponseError(RuntimeError):
 
 class AIQuotaError(AIResponseError):
     """Raised when the key's quota for a model is used up (try again later)."""
+
+
+class AIBudgetError(AIConfigError):
+    """The site's own daily cap for this feature is reached, or the feature is
+    switched off. A subclass of AIConfigError so every view answers 503."""
+
+
+# The longest chat message and history turn we send (a long prompt costs as much
+# as a long answer), and how many past turns go with a message.
+MAX_MESSAGE_CHARS = 4000
+MAX_HISTORY_TURNS = 20
+
+
+def metered(feature: str, amount=None):
+    """Count each call against the site-wide daily cap for `feature` (budget.py)
+    before it runs. `amount(*args)` sizes the call; one call otherwise."""
+
+    def wrap(fn):
+        @functools.wraps(fn)
+        def call(*args, **kwargs):
+            from .budget import BudgetExceeded, spend
+
+            try:
+                spend(feature, amount(*args, **kwargs) if amount else 1)
+            except BudgetExceeded as err:
+                raise AIBudgetError(
+                    "This AI feature has reached today's limit. Please try again tomorrow."
+                ) from err
+            return fn(*args, **kwargs)
+
+        return call
+
+    return wrap
 
 
 def _client() -> genai.Client:
@@ -80,6 +114,7 @@ LEVEL_SYSTEM = (
 )
 
 
+@metered("text")
 def determine_level(summary: dict, writing: str) -> dict:
     """Pick a CEFR level from the locally scored `summary` (per-level
     correct/total) and the free-write sample.
@@ -110,17 +145,20 @@ def determine_level(summary: dict, writing: str) -> dict:
     }
 
 
+@metered("text")
 def chat(message: str, history: list[dict] | None = None, system: str = TUTOR_SYSTEM) -> str:
     """`history` is a list of {"role": "user" | "assistant", "content": str}.
     `system` is the learner's tutor prompt (see ai_assistant.context)."""
     contents = []
-    for turn in history or []:
+    # The one-shot panel sends its own history, so never trust its size.
+    for turn in (history or [])[-MAX_HISTORY_TURNS:]:
         role = turn.get("role")
-        text = turn.get("content", "")
+        text = str(turn.get("content", ""))[:MAX_MESSAGE_CHARS]
         if role in ("user", "assistant") and text:
             # Gemini uses 'model' for the assistant role.
             gem_role = "model" if role == "assistant" else "user"
             contents.append(types.Content(role=gem_role, parts=[types.Part.from_text(text=text)]))
+    message = message[:MAX_MESSAGE_CHARS]
     contents.append(types.Content(role="user", parts=[types.Part.from_text(text=message)]))
     return _complete(system, contents)
 
@@ -194,6 +232,7 @@ def _json(raw: str) -> dict:
     return data
 
 
+@metered("text")
 def history_lesson_guide(messages: list[dict]) -> dict:
     """One turn of the topic conversation. `messages` is the whole chat so far
     as {"role": "user" | "assistant", "content": str}, ending with the user."""
@@ -207,6 +246,7 @@ def history_lesson_guide(messages: list[dict]) -> dict:
     return _json(_complete(HISTORY_GUIDE_SYSTEM, contents, response_mime_type="application/json"))
 
 
+@metered("text")
 def write_history_lesson(topic: str, level: str) -> dict:
     style = LEVEL_STYLE.get(level, LEVEL_STYLE["B2"])
     prompt = f"Level: {style}\nTopic requested by the learner: {topic}"
@@ -252,6 +292,7 @@ WRITING_SCHEMA = {
 }
 
 
+@metered("text")
 def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
     """Grade a Schreiben text. Returns {points: [3 grades], comments, language,
     corrected, tips}. The score is computed by the caller's rubric, never here.
@@ -304,6 +345,7 @@ TRANSCRIBE_PROMPT = (
 )
 
 
+@metered("transcribe")
 def transcribe(audio: bytes, mime_type: str) -> str:
     """The text of a short voice message. Raises AIResponseError if Gemini fails."""
     part = types.Part.from_bytes(data=audio, mime_type=mime_type)
@@ -380,6 +422,7 @@ def _azure_speech(script: list, slow: bool) -> bytes:
     return _azure(lines, "raw-24khz-16bit-mono-pcm")
 
 
+@metered("speech", amount=lambda text: len(text))
 def read_aloud(text: str) -> bytes:
     """An MP3 of a chat message. The multilingual voice reads English
     explanations and German examples each in their own language."""
@@ -477,6 +520,7 @@ def talk_instruction(level: str, topics: list[str], opener: str) -> str:
     )
 
 
+@metered("talk")
 def live_token(instruction: str, voice: str = "Kore") -> str:
     """A short-lived token the browser uses to open one Live session. Model, voice,
     instruction and transcription are locked into it; the API key stays here."""
@@ -552,6 +596,7 @@ TALK_REPORT_SCHEMA = {
 }
 
 
+@metered("text")
 def talk_report(level: str, transcript: list[dict]) -> dict:
     """The report after a talk: summary, corrections, useful phrases, new words and
     what to practise. Raises AIResponseError when Gemini fails, AIConfigError
