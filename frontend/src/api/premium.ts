@@ -18,3 +18,11 @@ export async function openPortal(): Promise<string> {
   const { data } = await apiClient.post<{ url: string }>("/billing/portal/")
   return data.url
 }
+
+/** After Checkout: apply the new subscription now rather than waiting for Stripe's webhook. */
+export async function confirmCheckout(sessionId: string): Promise<{ has_premium: boolean }> {
+  const { data } = await apiClient.post<{ has_premium: boolean }>("/billing/confirm/", {
+    session_id: sessionId,
+  })
+  return data
+}

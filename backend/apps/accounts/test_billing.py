@@ -136,3 +136,35 @@ class BillingTests(TestCase):
     def test_other_events_are_ignored(self):
         self.assertEqual(self.hook("invoice.paid", {"id": "in_1"}).status_code, 200)
         self.stripe.v1.subscriptions.retrieve.assert_not_called()
+
+    def test_confirm_turns_premium_on_without_the_webhook(self):
+        session = mock.MagicMock()
+        session.to_dict.return_value = {
+            "client_reference_id": str(self.user.id),
+            "subscription": "sub_1",
+        }
+        self.stripe.v1.checkout.sessions.retrieve.return_value = session
+        sub = mock.MagicMock()
+        sub.to_dict.return_value = subscription(metadata={"user_id": str(self.user.id)})
+        self.stripe.v1.subscriptions.retrieve.return_value = sub
+        res = self.api.post("/api/billing/confirm/", {"session_id": "cs_1"}, format="json")
+        self.assertEqual(res.json(), {"has_premium": True})
+
+        session.to_dict.return_value = {"client_reference_id": "999", "subscription": "sub_1"}
+        res = self.api.post("/api/billing/confirm/", {"session_id": "cs_2"}, format="json")
+        self.assertEqual(res.status_code, 404)  # someone else's checkout
+
+    def test_deleting_the_account_cancels_the_subscription_first(self):
+        self.user.profile.stripe_subscription_id = "sub_1"
+        self.user.profile.save()
+        self.stripe.v1.subscriptions.retrieve.return_value = {"status": "active"}
+        self.stripe.v1.subscriptions.cancel.side_effect = billing.stripe.APIConnectionError("down")
+        res = self.api.post("/api/accounts/delete/", {"password": "pw"}, format="json")
+        self.assertEqual(res.status_code, 502)
+        self.assertTrue(get_user_model().objects.filter(id=self.user.id).exists())
+
+        self.stripe.v1.subscriptions.cancel.side_effect = None
+        res = self.api.post("/api/accounts/delete/", {"password": "pw"}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.stripe.v1.subscriptions.cancel.assert_called_with("sub_1")
+        self.assertFalse(get_user_model().objects.filter(id=self.user.id).exists())

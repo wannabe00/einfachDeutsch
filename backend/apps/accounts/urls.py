@@ -12,6 +12,7 @@ urlpatterns = [
     path("accounts/streak/", views.streak, name="streak"),
     path("accounts/premium/", views.premium_status, name="premium-status"),
     path("billing/checkout/", views.checkout, name="billing-checkout"),
+    path("billing/confirm/", views.confirm, name="billing-confirm"),
     path("billing/portal/", views.portal, name="billing-portal"),
     path("billing/webhook/", views.webhook, name="billing-webhook"),
     path("accounts/profile/", views.update_profile, name="update-profile"),

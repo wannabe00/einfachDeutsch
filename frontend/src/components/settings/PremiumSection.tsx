@@ -1,18 +1,33 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { useAuth } from "@/contexts/AuthContext"
-import { fetchPremiumStatus, openPortal } from "@/api/premium"
+import { confirmCheckout, fetchPremiumStatus, openPortal } from "@/api/premium"
 import { Button } from "@/components/ui/button"
 import { Msg, Section } from "./primitives"
 
 /** The plan, and the Stripe portal to cancel or change it. Stripe sends the user
-    back here after checkout; the webhook may need a moment to turn premium on. */
+    back here after checkout with its session id, which turns premium on at once. */
 export function PremiumSection() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
+  const qc = useQueryClient()
   const [params] = useSearchParams()
   const [msg, setMsg] = useState("")
+  const sessionId = params.get("session_id")
+  const { data: confirmed, isError: confirmFailed } = useQuery({
+    queryKey: ["billing-confirm", sessionId],
+    queryFn: () => confirmCheckout(sessionId!),
+    enabled: !!sessionId,
+    staleTime: Infinity,
+    retry: 2,
+  })
+  useEffect(() => {
+    if (!confirmed) return
+    void refreshUser()
+    qc.invalidateQueries({ queryKey: ["premium-status"] })
+    qc.invalidateQueries({ queryKey: ["energy"] })
+  }, [confirmed, refreshUser, qc])
   const { data: status } = useQuery({
     queryKey: ["premium-status"],
     queryFn: fetchPremiumStatus,
@@ -33,7 +48,9 @@ export function PremiumSection() {
     <Section title="Premium">
       {params.get("billing") === "success" && !user?.has_premium && (
         <p className="-mt-2 mb-3 text-sm text-muted-foreground">
-          Thanks! Premium turns on in a moment. Refresh the page if it doesn’t.
+          {confirmFailed
+            ? "Payment received. Premium turns on within a minute; refresh then."
+            : "Thanks! Turning Premium on…"}
         </p>
       )}
       <p className="text-sm text-muted-foreground">

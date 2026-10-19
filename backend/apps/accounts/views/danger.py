@@ -59,6 +59,13 @@ def delete_account(request):
     error = _password_error(request)
     if error:
         return error
+    from .billing import cancel_subscription
+
+    if not cancel_subscription(request.user.profile):
+        return Response(
+            {"detail": "Couldn't cancel your subscription with Stripe. Try again in a minute."},
+            status=502,
+        )
     audit("account_deleted", request)
     request.user.delete()
     return Response({"detail": "Account deleted."}, status=200)

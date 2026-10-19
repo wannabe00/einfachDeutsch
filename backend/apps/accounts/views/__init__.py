@@ -12,7 +12,7 @@
 Everything is re-exported so `from . import views` keeps working.
 """
 
-from .billing import checkout, portal, webhook
+from .billing import checkout, confirm, portal, webhook
 from .danger import deactivate_account, delete_account, logout_all, reset_progress
 from .diagnostics import client_ip
 from .leveling import placement_test, set_level, streak
@@ -46,6 +46,7 @@ __all__ = [
     "complete_onboarding",
     "premium_status",
     "checkout",
+    "confirm",
     "portal",
     "webhook",
     "deactivate_account",

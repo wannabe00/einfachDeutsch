@@ -81,7 +81,8 @@ def checkout(request):
                 "line_items": [{"price": price, "quantity": 1}],
                 "subscription_data": subscription,
                 "client_reference_id": str(request.user.id),
-                "success_url": f"{settings.FRONTEND_URL}/settings?tab=account&billing=success",
+                "success_url": f"{settings.FRONTEND_URL}/settings?tab=account&billing=success"
+                "&session_id={CHECKOUT_SESSION_ID}",
                 "cancel_url": f"{settings.FRONTEND_URL}/settings?tab=account&billing=cancelled",
             }
         )
@@ -110,6 +111,51 @@ def portal(request):
     except stripe.StripeError:
         return Response({"detail": "Couldn't reach Stripe. Try again."}, status=502)
     return Response({"url": session.url})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def confirm(request):
+    """Right after Checkout: read the session's subscription now instead of
+    waiting for the webhook, so premium is on when the user lands back."""
+    client = _client()
+    if client is None:
+        return _unavailable()
+    try:
+        session = client.v1.checkout.sessions.retrieve(
+            str(request.data.get("session_id", ""))
+        ).to_dict()
+        if session.get("client_reference_id") != str(request.user.id):
+            return Response({"detail": "Not your checkout."}, status=404)
+        if session.get("subscription"):
+            sub = client.v1.subscriptions.retrieve(session["subscription"])
+            apply_subscription(sub.to_dict())
+    except stripe.InvalidRequestError:
+        return Response({"detail": "No such checkout."}, status=404)
+    except stripe.StripeError:
+        return Response({"detail": "Couldn't reach Stripe. Try again."}, status=502)
+    profile = request.user.profile
+    profile.refresh_from_db()  # apply_subscription saved its own copy
+    return Response({"has_premium": profile.has_premium})
+
+
+def cancel_subscription(profile: UserProfile) -> bool:
+    """End the user's subscription at once (account deletion). False if Stripe
+    couldn't be reached, so the caller can stop before the account is gone."""
+    if not profile.stripe_subscription_id:
+        return True
+    client = _client()
+    if client is None:
+        return False
+    try:
+        sub = client.v1.subscriptions.retrieve(profile.stripe_subscription_id)
+        if sub["status"] not in ("canceled", "incomplete_expired"):
+            client.v1.subscriptions.cancel(profile.stripe_subscription_id)
+    except stripe.InvalidRequestError:
+        return True  # Stripe has no such subscription: nothing left to bill
+    except stripe.StripeError:
+        return False
+    return True
 
 
 def _stamp(seconds) -> datetime.datetime | None:
