@@ -16,6 +16,9 @@ updates:
         update-types: ["version-update:semver-major"]
       # The Gemini SDK changes its internals often; upgraded on purpose.
       - dependency-name: google-genai
+      # google-genai 2.8 needs tenacity < 9.2; lift this with the SDK upgrade.
+      - dependency-name: tenacity
+        versions: [">=9.2"]
   - package-ecosystem: npm
     directory: /frontend
     schedule:
