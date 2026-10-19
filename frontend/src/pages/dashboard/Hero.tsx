@@ -28,7 +28,7 @@ export function Hero({
       {imgOk && (
         <img
           src={MUNICH_PHOTO}
-          alt="Munich"
+          alt="Munich's old town at sunset"
           onError={() => setImgOk(false)}
           className="absolute inset-0 size-full object-cover"
         />

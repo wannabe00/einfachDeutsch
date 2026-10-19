@@ -91,7 +91,7 @@ function Hero() {
         <img
           ref={imgRef}
           src={MUNICH_PHOTO}
-          alt="München"
+          alt="Munich's old town at sunset"
           onError={() => setOk(false)}
           className="absolute inset-0 h-[135%] w-full object-cover"
         />
@@ -101,7 +101,7 @@ function Hero() {
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         <Reveal>
           <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.2em] text-white/75">
-            Deutsch lernen · A1
+            Deutsch lernen · A1–A2
           </p>
           <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] sm:text-7xl lg:text-[84px]">
             Learn German,
@@ -109,9 +109,9 @@ function Hero() {
             one short lesson a day.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-white/85 sm:text-xl">
-            A guided A1 course with flashcards that come back just before you forget
-            them, quick drills, and short reads on German history. More levels are
-            being written.
+            A guided A1–A2 German course: flashcards that come back just before you
+            forget them, quick drills, Goethe-style exam practice for Lesen, Schreiben,
+            Hören and Sprechen, and short reads on German history.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/login" className={cn(PRIMARY_LINK, "w-full sm:w-auto")}>
@@ -386,7 +386,7 @@ const FAQS = [
   },
   {
     q: "What level is it for?",
-    a: "Beginners, for now. The A1 course is being added a few lessons at a time, and higher levels come after. If you already know some German, the placement test picks your starting level.",
+    a: "Beginners and early learners: the full A1 and A2 levels are ready, and B1 comes next. If you already know some German, the placement test picks your starting level.",
   },
 ]
 

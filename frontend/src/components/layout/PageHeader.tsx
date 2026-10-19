@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
 
+import { usePageTitle } from "@/lib/usePageTitle"
+
 /* Page title with an optional subtitle and right-aligned actions. */
 export function PageHeader({
   title,
@@ -10,6 +12,7 @@ export function PageHeader({
   subtitle?: ReactNode
   actions?: ReactNode
 }) {
+  usePageTitle(title)
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
