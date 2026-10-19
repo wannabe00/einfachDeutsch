@@ -1,16 +1,19 @@
 """Root URL configuration."""
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
 from apps.accounts import views
 
-from .views import admin_login, api_root
+from .admin_login import admin_login
+from .views import api_root
 
 urlpatterns = [
-    # Before the admin's own URLs, so its login gets the attempt limit.
-    path("admin/login/", admin_login, name="admin-login"),
-    path("admin/", admin.site.urls),
+    # The admin lives at a secret path in production (ADMIN_URL). Its login comes
+    # first so it gets the attempt limit and the authenticator code.
+    path(f"{settings.ADMIN_URL}login/", admin_login, name="admin-login"),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("api/", api_root, name="api-root"),
     # Auth: login (username/password), logout, user, password reset (dj-rest-auth).
     # Accounts are only created through Google or GitHub; see apps.accounts.urls.
