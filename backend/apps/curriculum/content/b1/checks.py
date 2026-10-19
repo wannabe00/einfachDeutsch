@@ -379,6 +379,68 @@ LEKTION_CHECKS = dict(
                 ("I have to contradict you. (Ihnen)", "Ich muss Ihnen widersprechen."),
             ],
         ),
+        _l(
+            19,
+            [
+                ("Je länger ich übe, [desto] sicherer spreche ich.", "the more"),
+                ("Je [älter] ich wurde, desto mehr reiste ich.", "alt"),
+                ("Was ist [denn] passiert?", "particle"),
+                ("Bienen machen [Honig].", "honey"),
+                ("Der Eintritt ist [umsonst].", "free"),
+            ],
+            [
+                ("I'd have one more question about that.", "Ich hätte dazu noch eine Frage."),
+                ("That is interesting!", "Das ist ja interessant!"),
+                (
+                    "The more I learn, the better I understand.",
+                    "Je mehr ich lerne, desto besser verstehe ich.",
+                    "Je mehr ich lerne, umso besser verstehe ich.",
+                ),
+                ("We can't afford a hotel.", "Wir können uns kein Hotel leisten."),
+            ],
+        ),
+        _l(
+            20,
+            [
+                ("Man spart Energie, [indem] man das Licht ausschaltet.", "by"),
+                ("Es schneite, [sodass] wir bleiben mussten.", "so that"),
+                ("Der Weg war [so] steil, dass wir langsam gingen.", "so"),
+                ("Bitte nehmt [Rücksicht] auf die anderen.", "consideration"),
+                ("Die Regeln [gelten] für alle.", "gelten"),
+            ],
+            [
+                ("The others will thank you for it! (dir)", "Die anderen werden es dir danken!"),
+                ("I don't agree with that.", "Damit bin ich nicht einverstanden."),
+                ("The path is very steep.", "Der Weg ist sehr steil."),
+                ("We'll gladly come again.", "Wir kommen gern wieder."),
+            ],
+        ),
+        _l(
+            21,
+            [
+                ("Die Bühne muss [aufgebaut] werden.", "aufbauen"),
+                ("Vorher muss fleißig geübt [werden].", "passive"),
+                ("Wir wandern den Fluss [entlang].", "along"),
+                ("Das Stadion liegt [außerhalb] der Stadt.", "outside"),
+                ("Um den See [herum] gibt es einen Weg.", "around"),
+            ],
+            [
+                (
+                    "The tickets can be bought online.",
+                    "Die Karten können online gekauft werden.",
+                    "Die Tickets können online gekauft werden.",
+                ),
+                (
+                    "The old town is always worth a visit.",
+                    "Die Altstadt ist immer einen Besuch wert.",
+                ),
+                ("The band is rehearsing in the studio.", "Die Band probt im Studio."),
+                (
+                    "Within an hour everything was sold.",
+                    "Innerhalb einer Stunde war alles verkauft.",
+                ),
+            ],
+        ),
     ]
 )
 
@@ -775,6 +837,79 @@ es lohnt sich.
             "Es fällt mir schwer, Nein zu sagen.",
             "Davon halte ich nicht viel.",
             "Ich wähle weder Partei A noch Partei B.",
+        ],
+    ),
+    7: modul_check(
+        LEVEL,
+        21,
+        dialogue=(
+            [
+                "A: Vielen Dank für Ihren Vortrag über die Heide.",
+                "B: Gern. Haben Sie noch Fragen?",
+                "A: ___",
+            ],
+            "Ja, ich hätte dazu noch eine Frage: Wie viele Schafe gibt es dort?",
+            "Die Bühne muss aufgebaut werden.",
+            "Es schneite, sodass wir bleiben mussten.",
+        ),
+        qa=[
+            ("Wie spart man Energie?", "Indem man das Licht ausschaltet."),
+            ("Wo liegt das Stadion?", "Außerhalb der Stadt."),
+            ("Was muss vor dem Konzert passieren?", "Es muss geprobt werden."),
+            (
+                "Warum seid ihr auf der Hütte geblieben?",
+                "Es schneite, sodass wir nicht weiterkonnten.",
+            ),
+            ("Wie war das Konzert?", "Ein einmaliges Erlebnis!"),
+        ],
+        odd=[
+            ("der Lautsprecher", "das Schaf", "die Biene", "die Herde"),
+            ("der Gipfel", "die Probe", "der Auftritt", "die Tournee"),
+            ("steil", "das Hallenbad", "das Parkhaus", "das Stadion"),
+            ("proben", "der Schlafsack", "die Stirnlampe", "der Ohrstöpsel"),
+        ],
+        reading=(
+            """
+Die Band Nordlicht ist im Sommer auf Tournee. Vor jedem Auftritt muss die
+Bühne aufgebaut und die Technik geprüft werden. Je größer die Halle ist, desto
+länger dauert das. In München spielte die Band in einem Stadion außerhalb der
+Stadt. Die Karten waren innerhalb einer Stunde verkauft, sodass viele Fans keine
+mehr bekamen.
+""",
+            [
+                ("Vor dem Konzert muss die Technik geprüft werden.", True),
+                ("In kleinen Hallen dauert der Aufbau länger.", False),
+                ("Das Stadion in München liegt im Zentrum.", False),
+                ("Nicht alle Fans bekamen Karten.", True),
+            ],
+        ),
+        form=[
+            ("Je mehr ich lese, ___ mehr weiß ich.", "desto"),
+            ("Man schützt die Natur, ___ man Müll vermeidet. (by)", "indem"),
+            ("Die Plakate müssen ___ werden. (verteilen)", "verteilt"),
+            ("außerhalb ___ Zentrums (das)", "des"),
+            ("Was ist ___ passiert? (interested question)", "denn"),
+        ],
+        mistake=[
+            (
+                "Je länger ich übe, desto ich *spreche* sicherer.",
+                "Je länger ich übe, desto sicherer spreche ich.",
+            ),
+            (
+                "Man spart Strom, indem man *schaltet* das Licht aus.",
+                "Man spart Strom, indem man das Licht ausschaltet.",
+            ),
+            ("Die Bühne muss aufgebaut *wird*.", "Die Bühne muss aufgebaut werden."),
+            (
+                "Das Stadion liegt außerhalb *dem* Zentrum.",
+                "Das Stadion liegt außerhalb des Zentrums.",
+            ),
+        ],
+        dictation=[
+            "Je älter ich wurde, desto mehr reiste ich.",
+            "Die anderen werden es dir danken!",
+            "Vorher muss natürlich fleißig geübt werden.",
+            "Die Altstadt ist immer einen Besuch wert.",
         ],
     ),
 }
