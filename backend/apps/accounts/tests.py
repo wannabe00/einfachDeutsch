@@ -96,3 +96,21 @@ class TwoFactorLoginTests(TestCase):
         res = self.api.post("/api/accounts/2fa/disable/", {"password": "pw-12345"})
         self.assertEqual(res.status_code, 200)
         self.assertEqual(self.login().status_code, 200)
+
+
+class SocialLoginTests(TestCase):
+    """The Google/GitHub code exchange is wired to allauth's OAuth client (a
+    library upgrade once broke it with a TypeError, i.e. a 500)."""
+
+    def setUp(self):
+        cache.clear()  # login throttle (the code exchange is throttled per IP)
+
+    def test_a_bad_code_is_a_clean_400(self):
+        from unittest import mock
+
+        refused = mock.Mock(status_code=400, ok=False, headers={}, text="{}")
+        refused.json.return_value = {"error": "bad_verification_code"}
+        for provider in ("google", "github"):
+            with mock.patch("requests.Session.request", return_value=refused):
+                res = APIClient().post(f"/api/auth/{provider}/", {"code": "bogus"}, format="json")
+            self.assertEqual(res.status_code, 400, provider)

@@ -11,14 +11,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from backend/.env (git-ignored).
 load_dotenv(BASE_DIR / ".env")
 
-# A safe, obviously-insecure default is used for local dev only.
-# The real key lives in backend/.env and is never committed.
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    "django-insecure-dev-only-key-change-me-via-dotenv",
-)
+# Off unless .env says DEBUG=True, so a missing variable never exposes debug
+# pages in production.
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
+# The real key lives in backend/.env (and the host's env) and is never
+# committed. The insecure fallback only works with DEBUG on: anyone knowing
+# the key could forge password-reset links.
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY or SECRET_KEY.startswith("django-insecure"):
+    if not DEBUG:
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured("Set a long random SECRET_KEY in the environment.")
+    SECRET_KEY = "django-insecure-dev-only-key-change-me-via-dotenv"
 
 # Hosts: localhost for dev, plus any comma-separated hosts from the env
 # (e.g. the Render domain) for production.
@@ -193,7 +199,6 @@ TOKEN_TTL_DAYS = int(os.getenv("TOKEN_TTL_DAYS", "30"))
 ACCOUNT_LOGIN_METHODS = {"username"}
 ACCOUNT_SIGNUP_FIELDS = ["username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_UNIQUE_EMAIL = True
 
 # Social login: trust the provider's email (already verified by Google/GitHub),
