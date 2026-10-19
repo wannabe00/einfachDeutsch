@@ -165,9 +165,6 @@ REST_FRAMEWORK = {
         "apps.accounts.authentication.ExpiringTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
-    ],
     # Anti-abuse: a request ceiling per anonymous IP and per signed-in user.
     # This is the real spam/DDoS guard (the frontend guest cap is just UX).
     # AI endpoints add their own tighter per-user caps (see ai_assistant.throttles).
@@ -176,6 +173,9 @@ REST_FRAMEWORK = {
     # part of the header, which anyone can fake to dodge every limit. 0 locally.
     # Check it with /api/accounts/client-ip/ (staff) after a hosting change.
     "NUM_PROXIES": int(os.getenv("NUM_PROXIES", "0" if DEBUG else "1")),
+    # Fail closed: a view must say AllowAny to be public (books, grammar, words,
+    # stats and the auth endpoints do).
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -375,6 +375,13 @@ CACHES = {
         "LOCATION": "django_cache",
     }
 }
+
+# ---- Admin ----
+# A secret path in production (e.g. "manage-7f3k9q/"), so bots scanning for
+# /admin/ find nothing. Must end with "/".
+ADMIN_URL = os.getenv("ADMIN_URL", "admin/").strip("/") + "/"
+# Staff need two-factor login on to use the admin (off locally with DEBUG).
+ADMIN_REQUIRE_2FA = os.getenv("ADMIN_REQUIRE_2FA", str(not DEBUG)) == "True"
 
 # ---- Cost guards (site-wide, on top of the per-user throttles) ----
 # Daily caps for the whole site, per paid AI service: calls of "text" (Gemini

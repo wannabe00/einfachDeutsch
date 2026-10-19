@@ -169,3 +169,38 @@ class RateLimitTests(TestCase):
         self.user.is_staff = True
         self.user.save()
         self.assertIn("throttle_ip", self.api.get("/api/accounts/client-ip/").json())
+
+
+@override_settings(ADMIN_REQUIRE_2FA=True)
+class AdminLoginTests(TestCase):
+    """Staff need two-factor login for the admin, and the code is asked there."""
+
+    def setUp(self):
+        cache.clear()
+        self.staff = get_user_model().objects.create_user("ada", password="pw-12345", is_staff=True)
+
+    def login(self, **extra):
+        from django.test import Client
+
+        cache.clear()
+        return Client().post("/admin/login/", {"username": "ada", "password": "pw-12345", **extra})
+
+    def test_staff_without_2fa_are_refused(self):
+        res = self.login()
+        self.assertEqual(res.status_code, 200)  # the form again, with the error
+        self.assertContains(res, "Turn on two-factor login")
+
+    def test_the_code_is_checked(self):
+        profile = self.staff.profile
+        profile.totp_secret = totp.new_secret()
+        profile.totp_enabled = True
+        profile.save()
+        self.assertContains(self.login(code="000000"), "current code")
+        code = totp.code_at(profile.totp_secret, int(time.time() // totp.STEP))
+        self.assertEqual(self.login(code=code).status_code, 302)  # into the admin
+
+    def test_public_endpoints_stay_public_and_the_rest_need_a_login(self):
+        guest = APIClient()
+        for url in ("/api/books/", "/api/grammar/rules/", "/api/vocabulary/words/"):
+            self.assertEqual(guest.get(url).status_code, 200, url)
+        self.assertEqual(guest.get("/api/accounts/export/").status_code, 401)

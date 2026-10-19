@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.accounts.levels import level_rank, visible_levels_for
@@ -14,6 +14,7 @@ class GrammarRuleViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = GrammarRule.objects.select_related("chapter").all()
     serializer_class = GrammarRuleSerializer
+    permission_classes = [AllowAny]  # guests see the lowest level's topics
 
     def get_queryset(self):
         qs = super().get_queryset()
