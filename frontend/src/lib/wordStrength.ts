@@ -2,19 +2,25 @@ import type { Word } from "@/types"
 
 export type WordStatus = "new" | "learning" | "known"
 
-/** Where a word stands in your flashcard reviews (SM-2): never reviewed, being
-    learned, or known (next review more than three weeks away). */
+/** Correct reviews in a row that make a word known (keep in sync with the
+    backend's vocabulary KNOWN_AFTER). */
+const KNOWN_AFTER = 2
+
+/** Where a word stands in your flashcard reviews: never reviewed, being
+    learned, or known (answered right twice in a row). A wrong answer drops a
+    known word back to learning, never to new. */
 export function wordStatus(word: Word): WordStatus {
   const p = word.progress
-  if (!p || p.repetitions === 0) return "new"
-  return p.interval > 21 ? "known" : "learning"
+  if (!p || p.times_seen === 0) return "new"
+  return p.repetitions >= KNOWN_AFTER ? "known" : "learning"
 }
 
-/** 0-4 for the strength meter, from the SM-2 interval. */
+/** 0-4 for the strength meter: learning 1-2 by correct answers in a row,
+    known 3, and 4 once the next review is three weeks or more away. */
 export function wordStrength(word: Word): number {
   const status = wordStatus(word)
   if (status === "new") return 0
-  if (status === "known") return 4
-  const interval = word.progress!.interval
-  return interval < 3 ? 1 : interval < 8 ? 2 : 3
+  const p = word.progress!
+  if (status === "learning") return p.repetitions === 0 ? 1 : 2
+  return p.interval >= 21 ? 4 : 3
 }

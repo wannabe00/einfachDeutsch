@@ -5,6 +5,7 @@
 - social.py: Google/GitHub code exchange, throttled login
 - danger.py: logout everywhere, deactivate, delete, reset progress
 - premium.py: premium status and the one-time trial
+- twofactor.py: authenticator-app two-factor login
 
 Everything is re-exported so `from . import views` keeps working.
 """
@@ -20,8 +21,16 @@ from .social import (
     ThrottledPasswordResetConfirmView,
     ThrottledPasswordResetView,
 )
+from .twofactor import backup_codes as two_factor_backup_codes
+from .twofactor import disable as two_factor_disable
+from .twofactor import enable as two_factor_enable
+from .twofactor import setup as two_factor_setup
 
 __all__ = [
+    "two_factor_backup_codes",
+    "two_factor_disable",
+    "two_factor_enable",
+    "two_factor_setup",
     "GitHubLogin",
     "GoogleLogin",
     "ThrottledLoginView",

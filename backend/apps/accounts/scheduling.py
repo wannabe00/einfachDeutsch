@@ -1,45 +1,20 @@
-"""Lesson-unlock schedule + streak/freeze-token engine.
+"""Daily streak + freeze tokens.
 
-New lessons unlock only on scheduled weekdays (default Mon/Wed/Fri); reviews are
-available any day. A streak breaks only when a scheduled day is missed and no
-freeze token is left; otherwise a freeze is used up automatically. The settings
-are LESSON_UNLOCK_WEEKDAYS and STREAK_*.
+Every day you practise (a lesson, a review, an exercise) counts. A missed day
+uses up a freeze token automatically; with none left the streak starts again.
+The settings are STREAK_*.
 """
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 
 from django.conf import settings
 
 
-def unlock_weekdays() -> set[int]:
-    return set(settings.LESSON_UNLOCK_WEEKDAYS)
-
-
-def is_unlock_day(d: date | None = None) -> bool:
-    d = d or date.today()
-    return d.weekday() in unlock_weekdays()
-
-
-def next_unlock_date(d: date | None = None) -> date:
-    d = d or date.today()
-    for i in range(1, 8):
-        nd = d + timedelta(days=i)
-        if nd.weekday() in unlock_weekdays():
-            return nd
-    return d  # unreachable when at least one weekday is scheduled
-
-
-def _missed_scheduled(last_active: date, today: date) -> int:
-    """Scheduled days strictly between last_active and today (i.e. missed)."""
-    count = 0
-    d = last_active + timedelta(days=1)
-    while d < today:
-        if d.weekday() in unlock_weekdays():
-            count += 1
-        d += timedelta(days=1)
-    return count
+def _missed_days(last_active: date, today: date) -> int:
+    """Days strictly between last_active and today (i.e. missed)."""
+    return max(0, (today - last_active).days - 1)
 
 
 def register_activity(user, today: date | None = None):
@@ -59,7 +34,7 @@ def register_activity(user, today: date | None = None):
     if rec.last_active_date is None:
         rec.current_streak = 1
     else:
-        missed = _missed_scheduled(rec.last_active_date, today)
+        missed = _missed_days(rec.last_active_date, today)
         broke = False
         while missed > 0:
             if rec.freeze_tokens_available > 0:
@@ -86,7 +61,6 @@ def streak_status(user) -> dict:
     from .models import StreakRecord
 
     rec = StreakRecord.objects.filter(user=user).first()
-    today = date.today()
     return {
         "current_streak": rec.current_streak if rec else 0,
         "longest_streak": rec.longest_streak if rec else 0,
@@ -96,9 +70,6 @@ def streak_status(user) -> dict:
         "last_active_date": (
             rec.last_active_date.isoformat() if rec and rec.last_active_date else None
         ),
-        "today_is_unlock_day": is_unlock_day(today),
-        "next_unlock_date": next_unlock_date(today).isoformat(),
-        "unlock_weekdays": sorted(unlock_weekdays()),
     }
 
 

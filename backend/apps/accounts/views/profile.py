@@ -23,13 +23,14 @@ USERNAME_COOLDOWN_DAYS = 30
 
 # The only keys allowed in UserProfile.preferences, so it can't hold arbitrary JSON.
 ALLOWED_PREFERENCE_KEYS = {
-    "daily_goal",
-    "reminder_time",
-    "weekdays",
-    "notify_streak",
-    "notify_unlock",
-    "language",
-    "timezone",
+    "daily_goal",  # reviews per day, shown on the dashboard
+    # About the learner (Settings > Profile). Stored for later: personalising
+    # the AI tutor, examples and an exam countdown.
+    "native_language",
+    "learning_reason",
+    "target_exam",
+    "target_date",
+    "location",
 }
 MAX_PREFERENCES_CHARS = 2000
 

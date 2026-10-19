@@ -20,7 +20,7 @@ const STREAK_CHIP_FROM = 3
 
 /*
  * Frosted top bar. Large screens: logo, the nav in a pill track (with
- * Practice / Library / Explore dropdowns), then streak, energy and account.
+ * Practice / Skills / Library dropdowns), then streak, energy and account.
  * Phones and tablets only show the logo, energy and account here; their
  * navigation is the bottom `TabBar`. Guests see login buttons.
  */

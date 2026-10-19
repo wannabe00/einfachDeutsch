@@ -28,14 +28,18 @@ export async function socialLogin(
   return data.key
 }
 
-/** Username + password login (the password is set during onboarding). */
+/** Username + password login (the password is set during onboarding). With
+    two-factor login on, the server answers a `code` error until the
+    authenticator (or backup) code is sent too. */
 export async function loginUser(
   username: string,
   password: string,
+  code?: string,
 ): Promise<string> {
   const { data } = await apiClient.post<TokenResponse>("/auth/login/", {
     username,
     password,
+    ...(code ? { code } : {}),
   })
   if (!data.key) throw new Error("Login did not return a token")
   localStorage.setItem(TOKEN_KEY, data.key)

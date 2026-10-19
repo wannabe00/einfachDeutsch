@@ -50,8 +50,14 @@ export const navGroups: NavGroup[] = [
     label: "Practice",
     items: [
       { to: "/review", label: "Review", icon: GraduationCap },
-      { to: "/exercises", label: "Practice", icon: NotebookPen },
+      { to: "/exercises", label: "Exercises", icon: NotebookPen },
       { to: "/drills", label: "Drills", icon: Swords },
+    ],
+  },
+  {
+    // The four exam-style skills, like the Goethe exam's parts.
+    label: "Skills",
+    items: [
       { to: "/lesen", label: "Lesen", icon: FileText },
       { to: "/schreiben", label: "Schreiben", icon: PenLine },
       { to: "/hoeren", label: "Hören", icon: Headphones },
@@ -64,11 +70,6 @@ export const navGroups: NavGroup[] = [
       { to: "/words", label: "Word Bank", icon: BookMarked },
       { to: "/grammar", label: "Grammar", icon: BookOpen },
       { to: "/books", label: "Books", icon: Library },
-    ],
-  },
-  {
-    label: "Explore",
-    items: [
       { to: "/videos", label: "Videos", icon: Tv },
       { to: "/history", label: "History", icon: Landmark },
     ],

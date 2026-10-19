@@ -1,120 +1,72 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 
 import { useAuth } from "@/contexts/AuthContext"
 import { updateProfile } from "@/api/account"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Field, Msg, Section, Toggle } from "./primitives"
-import { Select } from "@/components/ui/Select"
+import { AITutorForm } from "@/components/ai/AISettingsDialog"
+import { AppearanceSection } from "./AppearanceSection"
+import { Field, Msg, Section } from "./primitives"
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
-/** Learning goal, notifications and localization. One "Save preferences"
-    button stores them together in the `preferences` JSON field. */
+/** Learning (the daily goal), the AI tutor (premium) and the theme. */
 export function PreferencesSection() {
+  const { user } = useAuth()
+  return (
+    <>
+      <LearningCard />
+      <Section title="AI tutor">
+        {user?.has_premium ? (
+          <>
+            <p className="-mt-2 mb-4 text-sm text-muted-foreground">
+              How the AI Assistant talks to you. Your level and learned words are always included.
+            </p>
+            <AITutorForm />
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Reply language, tone, corrections and your interests for the AI tutor are part of Premium.{" "}
+            <Link to="/ai" className="font-semibold text-primary hover:underline">
+              Try it free for 7 days
+            </Link>
+          </p>
+        )}
+      </Section>
+      <AppearanceSection />
+    </>
+  )
+}
+
+/** Reviews per day, shown as a ring on the dashboard. */
+function LearningCard() {
   const { user, refreshUser } = useAuth()
   const prefs = (user?.preferences ?? {}) as Record<string, unknown>
   const [dailyGoal, setDailyGoal] = useState(String(prefs.daily_goal ?? 20))
-  const [reminder, setReminder] = useState(String(prefs.reminder_time ?? ""))
-  const [weekdays, setWeekdays] = useState<number[]>(
-    Array.isArray(prefs.weekdays) ? (prefs.weekdays as number[]) : [0, 2, 4],
-  )
-  const [notifyStreak, setNotifyStreak] = useState(Boolean(prefs.notify_streak))
-  const [notifyUnlock, setNotifyUnlock] = useState(Boolean(prefs.notify_unlock))
-  const [language, setLanguage] = useState(String(prefs.language ?? "en"))
-  const [timezone, setTimezone] = useState(
-    String(prefs.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone),
-  )
   const [msg, setMsg] = useState("")
 
-  function toggleWeekday(i: number) {
-    setWeekdays((w) => (w.includes(i) ? w.filter((d) => d !== i) : [...w, i]))
-  }
-
-  async function savePrefs() {
+  async function save() {
     setMsg("")
     try {
-      await updateProfile({
-        preferences: {
-          daily_goal: Number(dailyGoal) || 0,
-          reminder_time: reminder,
-          weekdays,
-          notify_streak: notifyStreak,
-          notify_unlock: notifyUnlock,
-          language,
-          timezone,
-        },
-      })
+      await updateProfile({ preferences: { daily_goal: Number(dailyGoal) || 20 } })
       await refreshUser()
-      setMsg("Preferences saved.")
+      setMsg("Saved.")
     } catch {
       setMsg("Could not save. Try again.")
     }
   }
 
   return (
-    <>
-      <Section title="Learning">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Daily goal (reviews)">
-            <Input type="number" min={0} value={dailyGoal} onChange={(e) => setDailyGoal(e.target.value)} />
-          </Field>
-          <Field label="Reminder time">
-            <Input type="time" value={reminder} onChange={(e) => setReminder(e.target.value)} />
-          </Field>
-        </div>
-        <p className="mb-2 mt-5 text-sm font-medium text-muted-foreground">Days that count toward your schedule</p>
-        <div className="flex flex-wrap gap-2">
-          {WEEKDAYS.map((d, i) => (
-            <button
-              key={d}
-              onClick={() => toggleWeekday(i)}
-              className={cn(
-                "min-h-[40px] min-w-[52px] rounded-full px-3 text-sm font-semibold transition-colors",
-                weekdays.includes(i) ? "bg-primary text-primary-foreground" : "bg-surface-2 hover:bg-border",
-              )}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Notifications">
-        <Toggle label="Email me when my streak is about to break" checked={notifyStreak} onChange={setNotifyStreak} />
-        <Toggle label="Email me when a new lesson unlocks" checked={notifyUnlock} onChange={setNotifyUnlock} />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Preferences are saved now; email delivery turns on once mail is configured.
-        </p>
-      </Section>
-
-      <Section title="Localization">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Interface language">
-            <Select
-              label="Interface language"
-              value={language}
-              onChange={setLanguage}
-              options={[
-                { value: "en", label: "English" },
-                { value: "de", label: "Deutsch" },
-              ]}
-            />
-          </Field>
-          <Field label="Timezone">
-            <Input value={timezone} onChange={(e) => setTimezone(e.target.value)} />
-          </Field>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Timezone affects when your streak day rolls over.
-        </p>
-      </Section>
-
+    <Section title="Learning">
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label="Daily goal (reviews)">
+          <Input type="number" min={1} value={dailyGoal} onChange={(e) => setDailyGoal(e.target.value)} className="w-32" />
+        </Field>
+        <Button onClick={save}>Save</Button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Your streak counts every day you practise; a missed day uses a freeze.
+      </p>
       {msg && <Msg tone="success">{msg}</Msg>}
-      <Button size="lg" className="self-start" onClick={savePrefs}>
-        Save preferences
-      </Button>
-    </>
+    </Section>
   )
 }

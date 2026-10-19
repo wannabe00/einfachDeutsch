@@ -56,6 +56,27 @@ export async function resetProgress(password: string): Promise<void> {
   await apiClient.post("/accounts/reset-progress/", { password })
 }
 
+// Two-factor login with an authenticator app. Turning it on/off and new
+// backup codes need the password (checked by the server).
+export async function twoFactorSetup(): Promise<{ secret: string; uri: string }> {
+  const { data } = await apiClient.post<{ secret: string; uri: string }>("/accounts/2fa/setup/")
+  return data
+}
+
+export async function twoFactorEnable(code: string, password: string): Promise<string[]> {
+  const { data } = await apiClient.post<{ backup_codes: string[] }>("/accounts/2fa/enable/", { code, password })
+  return data.backup_codes
+}
+
+export async function twoFactorDisable(password: string): Promise<void> {
+  await apiClient.post("/accounts/2fa/disable/", { password })
+}
+
+export async function newBackupCodes(password: string): Promise<string[]> {
+  const { data } = await apiClient.post<{ backup_codes: string[] }>("/accounts/2fa/backup-codes/", { password })
+  return data.backup_codes
+}
+
 export async function exportMyData(): Promise<Record<string, unknown>> {
   const { data } = await apiClient.get<Record<string, unknown>>(
     "/accounts/export/",

@@ -38,9 +38,6 @@ export interface StreakStatus {
   longest_streak: number
   freeze_tokens: number
   last_active_date: string | null
-  today_is_unlock_day: boolean
-  next_unlock_date: string
-  unlock_weekdays: number[]
 }
 
 export interface ShowSuggestion {
@@ -194,6 +191,8 @@ export interface User {
   birthday: string | null
   avatar_url: string
   preferences: Record<string, unknown>
+  /** Two-factor login (authenticator app) is on. */
+  two_factor: boolean
   /** Gate premium UI on this. It combines the paid flag, an active trial and
       the expiry date. */
   has_premium: boolean
@@ -277,6 +276,8 @@ export interface GrammarRule {
   example_sentences: string
   /** From the rule's chapter. Grammar groups by level, then topic. */
   cefr_level: CEFRLevel
+  /** One of the level's main topics, listed together first. */
+  core: boolean
 }
 
 /** Solution-stripped payload shapes the UI receives (varies by type). */

@@ -16,18 +16,25 @@ export default function AuthPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  // Two-factor login: asked for once the password was right.
+  const [needCode, setNeedCode] = useState(false)
+  const [code, setCode] = useState("")
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError("")
     setPending(true)
     try {
-      await login(username, password)
+      await login(username, password, needCode ? code : undefined)
       navigate("/")
     } catch (err) {
       let msg = "Unable to log in. Check your username and password."
       if (isAxiosError(err) && err.response?.data) {
         const data = err.response.data as Record<string, unknown>
+        if ("code" in data && !needCode) {
+          setNeedCode(true) // the password was right; now the code
+          return
+        }
         const first = Object.values(data)[0]
         if (Array.isArray(first)) msg = String(first[0])
         else if (typeof first === "string") msg = first
@@ -84,13 +91,30 @@ export default function AuthPage() {
               autoComplete="current-password"
               required
             />
+            {needCode && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Enter the 6-digit code from your authenticator app, or one of your backup codes.
+                </p>
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="123 456"
+                  aria-label="Two-factor code"
+                  autoComplete="one-time-code"
+                  inputMode="text"
+                  autoFocus
+                  required
+                />
+              </>
+            )}
             {error && (
               <p className="rounded-xl bg-danger-bg px-3.5 py-2.5 text-sm font-medium text-danger" role="alert">
                 {error}
               </p>
             )}
             <Button type="submit" size="lg" disabled={pending}>
-              {pending ? "Please wait…" : "Log in"}
+              {pending ? "Please wait…" : needCode ? "Verify and log in" : "Log in"}
             </Button>
             <Link to="/forgot-password" className="self-center text-sm font-semibold text-primary hover:underline">
               Forgot password?

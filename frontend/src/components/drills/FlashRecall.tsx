@@ -75,19 +75,19 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
 
   return (
     <DrillShell title="Flash Recall" onExit={onExit} progress={(i / rounds.length) * 100} counter={`${i + 1} / ${rounds.length}`}>
-      <div className="mx-auto flex max-w-lg flex-col items-center gap-5 py-10">
+      <div className="mx-auto flex min-h-[320px] w-full max-w-2xl flex-col items-center justify-center gap-6 rounded-[28px] bg-surface p-6 shadow-card sm:p-10">
         {phase === "show" ? (
           <>
             <p className="text-[13px] font-semibold uppercase tracking-[0.04em] text-primary">Memorize…</p>
-            <p className="text-center font-grotesk text-3xl font-extrabold tracking-tight text-foreground">{sentence}</p>
-            <div className="h-2 w-48 overflow-hidden rounded-full bg-surface-2">
+            <p className="text-center font-grotesk text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">{sentence}</p>
+            <div className="h-2 w-64 overflow-hidden rounded-full bg-surface-2">
               <div className="h-2 rounded-full bg-primary" style={{ width: "100%", animation: `drainbar ${FLASH_MS}ms linear forwards` }} />
             </div>
             <style>{`@keyframes drainbar{from{width:100%}to{width:0%}}`}</style>
           </>
         ) : (
-          <form onSubmit={(e) => { e.preventDefault(); submit() }} className="flex w-full flex-col gap-3">
-            <p className="text-center text-sm text-muted-foreground">Type the sentence from memory.</p>
+          <form onSubmit={(e) => { e.preventDefault(); submit() }} className="flex w-full flex-col gap-4">
+            <p className="text-center text-lg font-semibold text-muted-foreground">Type the sentence from memory.</p>
             <Input
               ref={inputRef}
               value={value}
@@ -97,14 +97,14 @@ export function FlashRecall({ onExit }: { onExit: () => void }) {
               placeholder="Rebuild it…"
               aria-label="Type the sentence"
               className={cn(
-                "h-14 text-center text-lg",
+                "h-16 text-center text-xl",
                 verdict === "right" && "border-[hsl(var(--success))]",
                 verdict === "wrong" && "border-[hsl(var(--danger))]",
               )}
             />
             {!verdict && <UmlautBar inputRef={inputRef} value={value} onChange={setValue} />}
             {verdict && (
-              <p className={cn("text-center text-base font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
+              <p className={cn("text-center text-lg font-semibold", verdict === "right" ? "text-[hsl(var(--success))]" : "text-[hsl(var(--danger))]")}>
                 {verdict === "right" ? "Correct" : `Answer: ${sentence}`}
               </p>
             )}

@@ -1,22 +1,12 @@
 import { useState, type ComponentType } from "react"
-import {
-  User,
-  Shield,
-  SlidersHorizontal,
-  Palette,
-  Download,
-  TriangleAlert,
-  type LucideIcon,
-} from "lucide-react"
+import { User, Shield, SlidersHorizontal, UserCog, type LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { ProfileHeader } from "@/components/profile/ProfileHeader"
 import { ProfileSection } from "@/components/settings/ProfileSection"
 import { SecuritySection } from "@/components/settings/SecuritySection"
 import { PreferencesSection } from "@/components/settings/PreferencesSection"
-import { AppearanceSection } from "@/components/settings/AppearanceSection"
-import { DataSection } from "@/components/settings/DataSection"
-import { DangerZoneSection } from "@/components/settings/DangerZoneSection"
+import { AccountSection } from "@/components/settings/AccountSection"
 
 /*
  * Settings: a tab list (vertical on desktop, a scrolling strip on mobile) and
@@ -34,9 +24,7 @@ const TABS: Tab[] = [
   { id: "profile", label: "Profile", icon: User, Component: ProfileSection },
   { id: "security", label: "Security", icon: Shield, Component: SecuritySection },
   { id: "preferences", label: "Preferences", icon: SlidersHorizontal, Component: PreferencesSection },
-  { id: "appearance", label: "Appearance", icon: Palette, Component: AppearanceSection },
-  { id: "data", label: "Data", icon: Download, Component: DataSection },
-  { id: "danger", label: "Danger zone", icon: TriangleAlert, Component: DangerZoneSection },
+  { id: "account", label: "Account", icon: UserCog, Component: AccountSection },
 ]
 
 export default function SettingsPage() {
@@ -56,7 +44,6 @@ export default function SettingsPage() {
         >
           {TABS.map((tab) => {
             const isActive = tab.id === active
-            const danger = tab.id === "danger"
             return (
               <button
                 key={tab.id}
@@ -65,13 +52,8 @@ export default function SettingsPage() {
                 className={cn(
                   "flex min-h-[44px] shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[15px] font-medium transition-colors md:w-full",
                   isActive
-                    ? danger
-                      ? "bg-[hsl(var(--danger))]/15 text-[hsl(var(--danger))]"
-                      : "bg-surface text-foreground shadow-card"
-                    : cn(
-                        "text-muted-foreground hover:bg-surface hover:text-foreground",
-                        danger && "hover:text-[hsl(var(--danger))]",
-                      ),
+                    ? "bg-surface text-foreground shadow-card"
+                    : "text-muted-foreground hover:bg-surface hover:text-foreground",
                 )}
               >
                 <tab.icon className="size-4 shrink-0" aria-hidden="true" />
