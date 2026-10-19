@@ -204,3 +204,10 @@ class AdminLoginTests(TestCase):
         for url in ("/api/books/", "/api/grammar/rules/", "/api/vocabulary/words/"):
             self.assertEqual(guest.get(url).status_code, 200, url)
         self.assertEqual(guest.get("/api/accounts/export/").status_code, 401)
+
+
+class HealthCheckTests(TestCase):
+    def test_healthz_never_touches_the_database(self):
+        with self.assertNumQueries(0):
+            res = self.client.get("/healthz")
+        self.assertEqual((res.status_code, res.content), (200, b"ok"))
