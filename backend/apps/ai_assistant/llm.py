@@ -463,7 +463,10 @@ def _azure(voices: str, output_format: str) -> bytes:
 # ---- Talk to AI (live voice conversation) ------------------------------------
 
 LIVE_MODEL = "gemini-3.8-live"
-LIVE_MINUTES = 10  # the talk ends after this; the token lives a little longer
+# The talk ends after this; the token lives a little longer. Live re-bills the whole
+# conversation on every reply, so short talks are much cheaper per minute (measured
+# 2026-10-20: 5 min ≈ $0.39, 10 min ≈ $1.21; context trimming isn't honoured).
+LIVE_MINUTES = 5
 # How the AI speaks at each level (the learner's own level, from their profile):
 # the language and the pace.
 TALK_LEVEL = {

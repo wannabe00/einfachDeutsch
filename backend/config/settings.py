@@ -328,8 +328,9 @@ STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))
 # ---- Talk to AI cost control ----
 # Talk to AI: live voice conversations per premium user per day.
 TALK_DAILY_CAP = int(os.getenv("TALK_DAILY_CAP", "5"))
-# Talk to AI minutes per premium user per calendar month (priced into $2.99/mo).
-TALK_MONTHLY_MINUTES = int(os.getenv("TALK_MONTHLY_MINUTES", "60"))
+# Talks (each LIVE_MINUTES = 5 min) per premium user per calendar month: 25 minutes,
+# what $2.99/mo breaks even on for a heavy user.
+TALK_MONTHLY_CAP = int(os.getenv("TALK_MONTHLY_CAP", "5"))
 
 # ---- AI-written history lessons (premium) ----
 # Most lessons one user may have the AI write per day.

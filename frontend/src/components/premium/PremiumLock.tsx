@@ -51,7 +51,7 @@ export function PremiumLock() {
             "Unlimited energy on the path",
             "The AI Assistant and AI explanations",
             "Lesen, Hören and Schreiben exam practice, with AI feedback on your texts",
-            "Talk to AI: 60 minutes a month with an AI partner, then a report",
+            "Talk to AI: 5 five-minute talks a month with an AI partner, then a report",
           ].map((perk) => (
             <li key={perk} className="flex items-start gap-2.5">
               <Check className="mt-0.5 size-[18px] shrink-0 text-success" aria-hidden="true" />

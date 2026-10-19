@@ -1,11 +1,11 @@
 """Premium gating.
 
-The premium matrix (owner, 2026-10-19; $2.99/mo or $24.99/yr):
+The premium matrix (owner, 2026-10-20; $2.99/mo or $29.99/yr):
 
   Free:    the path (energy-limited), level exams, Review, Exercises, Drills,
            Word Bank, Grammar, Books, Videos, History lessons
   Premium: unlimited energy; the four skills — Lesen, Hören, Schreiben (incl. AI
-           grading) and Sprechen / Talk to AI (TALK_MONTHLY_MINUTES, 60/month);
+           grading) and Sprechen / Talk to AI (TALK_MONTHLY_CAP: 5 talks of 5 min a month);
            AI Assistant (chat, mic, read-aloud); AI explanations; AI history lessons
 
 Until payments exist, premium is a flag set in the admin. Always check
