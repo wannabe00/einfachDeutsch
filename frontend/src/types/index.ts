@@ -209,6 +209,7 @@ export interface PremiumStatus {
   trial_started_at: string | null
   trial_available: boolean
   trial_days: number
+  has_subscription: boolean
 }
 
 export interface Book {

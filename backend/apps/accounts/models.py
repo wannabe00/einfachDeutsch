@@ -45,12 +45,15 @@ class UserProfile(models.Model):
     # Prefs as JSON (only daily_goal is used now; older keys may linger), so new
     # settings don't need migrations.
     preferences = models.JSONField(default=dict, blank=True)
-    # Premium. Until payments exist, `is_premium` is set by hand in the admin.
-    # `premium_until` covers the 7-day trial and, later, the end of a paid
-    # subscription. `trial_started_at` records that the trial was used.
+    # Premium. A Stripe subscription (accounts/views/billing.py) sets
+    # `premium_until` to the end of the paid or trial period; `is_premium` with no
+    # `premium_until` is the manual admin flag. `trial_started_at` records that
+    # the one trial was used.
     is_premium = models.BooleanField(default=False)
     premium_until = models.DateTimeField(null=True, blank=True)
     trial_started_at = models.DateTimeField(null=True, blank=True)
+    stripe_customer_id = models.CharField(max_length=64, blank=True, db_index=True)
+    stripe_subscription_id = models.CharField(max_length=64, blank=True)
     # Two-factor login with an authenticator app (accounts/totp.py). The secret
     # is set during setup and only counts once `totp_enabled`; backup codes are
     # stored hashed; `totp_last_step` stops a code being used twice.
