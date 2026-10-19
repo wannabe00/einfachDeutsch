@@ -1,0 +1,5 @@
+# Local tools only (not installed in production).
+-r requirements.txt
+ruff==0.15.18
+vulture==2.16
+pip-audit==2.10.1
