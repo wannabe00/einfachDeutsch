@@ -211,3 +211,22 @@ class HealthCheckTests(TestCase):
         with self.assertNumQueries(0):
             res = self.client.get("/healthz")
         self.assertEqual((res.status_code, res.content), (200, b"ok"))
+
+
+class SecurityHeaderTests(TestCase):
+    def test_api_answers_carry_a_csp_and_signed_in_ones_are_not_stored(self):
+        from rest_framework.authtoken.models import Token
+
+        user = get_user_model().objects.create_user("eve", password="pw")
+        token, _ = Token.objects.get_or_create(user=user)
+        res = APIClient().get("/api/auth/user/", HTTP_AUTHORIZATION=f"Token {token.key}")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(
+            res["Content-Security-Policy"], "default-src 'none'; frame-ancestors 'none'"
+        )
+        self.assertEqual(res["Cache-Control"], "no-store")
+        self.assertNotIn("Cache-Control", APIClient().get("/api/books/"))  # public, cacheable
+        self.assertNotIn(
+            "Content-Security-Policy", self.client.get("/admin/login/")
+        )  # admin's own HTML
+        self.assertEqual(self.client.get("/api/books/")["X-Content-Type-Options"], "nosniff")
