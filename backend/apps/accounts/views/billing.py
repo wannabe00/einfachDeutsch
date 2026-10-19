@@ -81,8 +81,8 @@ def checkout(request):
                 "line_items": [{"price": price, "quantity": 1}],
                 "subscription_data": subscription,
                 "client_reference_id": str(request.user.id),
-                "success_url": f"{settings.FRONTEND_URL}/settings?billing=success",
-                "cancel_url": f"{settings.FRONTEND_URL}/settings?billing=cancelled",
+                "success_url": f"{settings.FRONTEND_URL}/settings?tab=account&billing=success",
+                "cancel_url": f"{settings.FRONTEND_URL}/settings?tab=account&billing=cancelled",
             }
         )
     except stripe.StripeError:
@@ -104,7 +104,7 @@ def portal(request):
         session = client.v1.billing_portal.sessions.create(
             params={
                 "customer": profile.stripe_customer_id,
-                "return_url": f"{settings.FRONTEND_URL}/settings",
+                "return_url": f"{settings.FRONTEND_URL}/settings?tab=account",
             }
         )
     except stripe.StripeError:

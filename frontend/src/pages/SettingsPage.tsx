@@ -1,4 +1,5 @@
 import { useState, type ComponentType } from "react"
+import { useSearchParams } from "react-router-dom"
 import { User, Shield, SlidersHorizontal, UserCog, type LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -28,7 +29,11 @@ const TABS: Tab[] = [
 ]
 
 export default function SettingsPage() {
-  const [active, setActive] = useState(TABS[0].id)
+  // ?tab=account opens a tab directly (Stripe sends users back there).
+  const [params] = useSearchParams()
+  const [active, setActive] = useState(
+    TABS.find((t) => t.id === params.get("tab"))?.id ?? TABS[0].id,
+  )
   const current = TABS.find((t) => t.id === active) ?? TABS[0]
   const Panel = current.Component
 

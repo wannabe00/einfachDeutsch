@@ -8,6 +8,7 @@ import { deactivateAccount, deleteAccount, exportMyData, resetProgress } from "@
 import { Button } from "@/components/ui/button"
 import { Msg, Section } from "./primitives"
 import { PasswordDialog } from "./PasswordDialog"
+import { PremiumSection } from "./PremiumSection"
 
 type Action = "reset" | "deactivate" | "delete"
 
@@ -71,6 +72,7 @@ export function AccountSection() {
 
   return (
     <>
+      <PremiumSection />
       <Section title="Your data">
         <p className="mb-3 text-sm text-muted-foreground">
           Download everything we store about you as a JSON file.
