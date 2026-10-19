@@ -30,8 +30,9 @@ class Command(BaseCommand):
                     "body_de": lesson["body_de"].strip(),
                     "body_en": lesson["body_en"].strip(),
                     "quiz": lesson["quiz"],
-                    "image_url": f"/history/{lesson['image']}.jpg",
-                    "image_credit": lesson["image_credit"],
+                    # No picture yet: the UI draws the era tile.
+                    "image_url": f"/history/{lesson['image']}.jpg" if lesson.get("image") else "",
+                    "image_credit": lesson.get("image_credit", ""),
                 },
             )
         orders = [lesson["order"] for lesson in LESSONS]
