@@ -200,6 +200,64 @@ LEKTION_CHECKS = dict(
                 ("We want to reduce stress.", "Wir wollen den Stress reduzieren."),
             ],
         ),
+        _l(
+            10,
+            [
+                ("[Hätte] ich doch den Schirm mitgenommen!", "haben"),
+                ("[Wäre] ich bloß früher losgegangen!", "sein"),
+                ("Ich habe den Schlüssel stecken [lassen].", "lassen"),
+                ("Leider ist alles [schiefgegangen].", "schiefgehen"),
+                ("Oh je, das ist dumm [gelaufen].", "laufen"),
+            ],
+            [
+                ("That's my fault.", "Das ist meine Schuld."),
+                ("There's nothing you can do.", "Da kann man nichts machen."),
+                (
+                    "If only I had done that differently!",
+                    "Hätte ich das bloß anders gemacht!",
+                    "Hätte ich das doch anders gemacht!",
+                ),
+                ("I got lost.", "Ich habe mich verlaufen."),
+            ],
+        ),
+        _l(
+            11,
+            [
+                ("Als ich kam, [hatte] der Film schon begonnen.", "haben"),
+                ("Sie [war] schon nach Hause gegangen.", "sein"),
+                ("[Nachdem] ich gegessen hatte, ging ich spazieren.", "after"),
+                ("Die Fans haben laut [gejubelt].", "jubeln"),
+                ("Wir haben den Urlaub sehr [genossen].", "genießen"),
+            ],
+            [
+                ("I was overjoyed!", "Ich war überglücklich!"),
+                ("The train had already left.", "Der Zug war schon abgefahren."),
+                (
+                    "We cheered after we had won.",
+                    "Wir jubelten, nachdem wir gewonnen hatten.",
+                ),
+                ("We never gave up hope.", "Wir haben die Hoffnung nie aufgegeben."),
+            ],
+        ),
+        _l(
+            12,
+            [
+                ("Das ist der Ausflug [des] Jahres.", "article"),
+                ("Das Büro [der] Chefin ist oben.", "article"),
+                ("[Trotz] des Regens fahren wir los.", "despite"),
+                ("Trotz des [schlechten] Wetters war es schön.", "schlecht"),
+                ("Vielen Dank im [Voraus]!", "in advance"),
+            ],
+            [
+                ("That is the party of the year.", "Das ist die Feier des Jahres."),
+                ("Thank you for the invitation.", "Vielen Dank für die Einladung."),
+                (
+                    "Unfortunately I can't come.",
+                    "Leider kann ich nicht kommen.",
+                ),
+                ("That is my brother's car.", "Das ist das Auto meines Bruders."),
+            ],
+        ),
     ]
 )
 
@@ -396,6 +454,75 @@ beitragen. Viele Mitarbeiter sind zufrieden, aber einige Raucher ärgern sich.
             "Während andere lange nachdenken, entscheidet sie sofort.",
             "Sport trägt zu einem größeren Wohlbefinden bei.",
             "Vielen Dank für Ihre Aufmerksamkeit.",
+        ],
+    ),
+    4: modul_check(
+        LEVEL,
+        12,
+        dialogue=(
+            [
+                "A: Stell dir vor, ich habe den Zug verpasst!",
+                "B: ___",
+                "A: Ja, wäre ich doch bloß früher losgegangen.",
+            ],
+            "Oh je, das ist wirklich ärgerlich.",
+            "Herzlichen Glückwunsch!",
+            "Hiermit lade ich dich zum Sommerfest ein.",
+        ),
+        qa=[
+            ("Kommst du zur Weihnachtsfeier?", "Leider nicht, ich bin verreist."),
+            ("Was war dein schönster Glücksmoment?", "Als ich die Festanstellung bekam."),
+            ("Was ist passiert?", "Ich habe meine Brieftasche liegen lassen."),
+            ("Wann beginnt die Sitzung des Betriebsrats?", "Um zehn Uhr."),
+            ("Findet der Ausflug statt?", "Ja, trotz des Regens."),
+        ],
+        odd=[
+            ("die Tagesordnung", "der Glücksmoment", "die Freude", "die Erleichterung"),
+            ("jubeln", "der Lottoschein", "die Batterie", "das Portemonnaie"),
+            ("das Turnier", "die Zusage", "die Absage", "die Einladung"),
+            ("plaudern", "zornig", "ärgerlich", "blöd"),
+        ],
+        reading=(
+            """
+Lieber Herr Peters,
+vielen Dank für die Einladung zum Jubiläum der Firma. Ich habe mich sehr gefreut.
+Leider kann ich am Freitag nicht kommen, weil ich an diesem Tag beruflich in
+Hamburg bin. Das tut mir wirklich leid. Ich wünsche Ihnen und allen Kollegen eine
+schöne Feier. Vielleicht können wir uns nächste Woche zum Mittagessen treffen?
+Mit freundlichen Grüßen
+Sabine Roth
+""",
+            [
+                ("Frau Roth kommt zum Jubiläum.", False),
+                ("Sie ist am Freitag in Hamburg.", True),
+                ("Sie hat sich über die Einladung geärgert.", False),
+                ("Sie schlägt ein Treffen vor.", True),
+            ],
+        ),
+        form=[
+            ("___ ich doch nur aufgepasst! (haben)", "Hätte"),
+            ("Nachdem er angekommen ___, rief er an. (sein)", "war"),
+            ("Das ist die Tasche ___ Mutter. (meine)", "meiner"),
+            ("Trotz des ___ Wetters fahren wir. (kalt)", "kalten"),
+            ("Er hatte die Arbeit schon ___. (abgeben)", "abgegeben"),
+        ],
+        mistake=[
+            ("*Hatte* ich doch den Bus genommen!", "Hätte ich doch den Bus genommen!"),
+            (
+                "Nachdem ich gegessen *habe*, ging ich spazieren.",
+                "Nachdem ich gegessen hatte, ging ich spazieren.",
+            ),
+            ("Das ist der Ausflug *dem* Jahres.", "Das ist der Ausflug des Jahres."),
+            (
+                "Trotz des schlechten *Wetter* fahren wir.",
+                "Trotz des schlechten Wetters fahren wir.",
+            ),
+        ],
+        dictation=[
+            "Hätte ich das bloß anders gemacht!",
+            "Nachdem wir jahrelang Pech gehabt hatten, gewannen wir.",
+            "Das ist der Ausflug des Jahres.",
+            "Vielen Dank für Ihre Einladung.",
         ],
     ),
 }
