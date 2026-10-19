@@ -17,3 +17,6 @@ export const LEGAL_PAGES = [
   { to: "/refunds", label: "Refunds" },
   { to: "/cookies", label: "Cookies" },
 ]
+
+/** Premium prices as Stripe charges them (the price IDs live in the backend env). */
+export const PRICES = { monthly: "$2.99", annual: "$29.99" }

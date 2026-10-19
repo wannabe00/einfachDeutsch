@@ -1,21 +1,21 @@
 import { useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { Check, Crown } from "lucide-react"
 
-import { fetchPremiumStatus, startTrial } from "@/api/premium"
+import { fetchPremiumStatus, startCheckout } from "@/api/premium"
 import { useAuth } from "@/contexts/AuthContext"
+import { PRICES } from "@/lib/site"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
 /**
  * Shown in place of a premium-only page (the four skills, AI Assistant) for free users.
- * The API returns 403 for these anyway; this just explains why and offers the
- * trial.
+ * The API returns 403 for these anyway; this just explains why and sends the
+ * user to Stripe Checkout (with the one free trial if it's unused).
  */
 export function PremiumLock() {
-  const { user, refreshUser } = useAuth()
-  const qc = useQueryClient()
-  const [busy, setBusy] = useState(false)
+  const { user } = useAuth()
+  const [busy, setBusy] = useState<"monthly" | "annual" | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const { data: status } = useQuery({
@@ -24,18 +24,14 @@ export function PremiumLock() {
     enabled: !!user,
   })
 
-  async function handleTrial() {
-    setBusy(true)
+  async function subscribe(plan: "monthly" | "annual") {
+    setBusy(plan)
     setError(null)
     try {
-      await startTrial()
-      await refreshUser()
-      qc.invalidateQueries({ queryKey: ["premium-status"] })
-      qc.invalidateQueries({ queryKey: ["energy"] })
+      window.location.assign(await startCheckout(plan))
     } catch {
-      setError("Couldn’t start your trial. It may already have been used.")
-    } finally {
-      setBusy(false)
+      setError("Couldn’t open checkout. Please try again.")
+      setBusy(null)
     }
   }
 
@@ -60,20 +56,25 @@ export function PremiumLock() {
           ))}
         </ul>
 
-        {status?.trial_available ? (
-          <>
-            <Button size="lg" className="mt-6 w-full" disabled={busy} onClick={handleTrial}>
-              {busy ? "Starting…" : `Start ${status.trial_days}-day free trial`}
-            </Button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              No card needed. Payments aren’t live yet.
-            </p>
-          </>
-        ) : (
-          <p className="mt-6 text-sm text-muted-foreground">
-            Paid plans aren’t live yet. Premium is granted manually for now.
-          </p>
-        )}
+        <div className="mt-6 flex flex-col gap-2.5">
+          <Button size="lg" className="w-full" disabled={!!busy} onClick={() => subscribe("annual")}>
+            {busy === "annual" ? "Opening…" : `Yearly · ${PRICES.annual}`}
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full"
+            disabled={!!busy}
+            onClick={() => subscribe("monthly")}
+          >
+            {busy === "monthly" ? "Opening…" : `Monthly · ${PRICES.monthly}`}
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {status?.trial_available
+            ? `${status.trial_days} days free, then billed. Cancel any time before.`
+            : "Cancel any time."}
+        </p>
 
         {error && <p className="mt-3 text-sm font-medium text-danger">{error}</p>}
       </Card>

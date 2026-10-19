@@ -350,6 +350,14 @@ ENERGY_REFILL_HOURS = int(os.getenv("ENERGY_REFILL_HOURS", "4"))
 # Length of the premium free trial, in days.
 PREMIUM_TRIAL_DAYS = int(os.getenv("PREMIUM_TRIAL_DAYS", "7"))
 
+# ---- Stripe (accounts/views/billing.py) ----
+# Test-mode values locally, live ones on the server. Without the secret key the
+# billing endpoints answer 503.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_MONTHLY = os.getenv("STRIPE_PRICE_MONTHLY", "")
+STRIPE_PRICE_ANNUAL = os.getenv("STRIPE_PRICE_ANNUAL", "")
+
 # ---- Level checkpoint exam ----
 # Share of a level's lessons that must be completed before the exam unlocks,
 # the score needed to pass (and be promoted), and how many questions it samples.
