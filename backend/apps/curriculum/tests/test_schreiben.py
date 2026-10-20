@@ -127,7 +127,9 @@ class SchreibenFlowTests(TestCase):
             self.assertEqual(self.api.get(f"/api/curriculum/{skill}/").status_code, 403)
 
     def test_sets_are_seeded_and_locked_like_lesen(self):
-        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 48)  # 16 per level
+        self.assertEqual(
+            Exercise.objects.filter(source__contains="-schreiben-m").count(), 48
+        )  # 16 per level
         sets = self.api.get(f"{BASE}/").json()
         self.assertEqual([s["locked"] for s in sets], [False] + [True] * 7)
         self.assertEqual(self.api.get(f"{BASE}/A1/2/").status_code, 403)
