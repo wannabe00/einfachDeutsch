@@ -258,6 +258,73 @@ LEKTION_CHECKS = dict(
                 ("That is my brother's car.", "Das ist das Auto meines Bruders."),
             ],
         ),
+        _l(
+            13,
+            [
+                ("Es war laut. [Deshalb] verstand ich nichts.", "therefore"),
+                ("[Wegen] des Lärms konnte ich nicht schlafen.", "because of"),
+                ("Aus diesem [Grund] gab es ein Missverständnis.", "reason"),
+                ("Ich habe noch einmal [nachgefragt].", "nachfragen"),
+                ("Das war so [peinlich]!", "embarrassing"),
+            ],
+            [
+                (
+                    "What does this word mean?",
+                    "Was bedeutet dieses Wort?",
+                    "Was bedeutet das Wort?",
+                ),
+                (
+                    "Could you say that more slowly? (Sie)",
+                    "Könnten Sie das bitte langsamer sagen?",
+                    "Könnten Sie das langsamer sagen?",
+                ),
+                (
+                    "Because of the dialect I didn't understand her.",
+                    "Wegen des Dialekts habe ich sie nicht verstanden.",
+                    "Wegen des Dialekts verstand ich sie nicht.",
+                ),
+                ("I misunderstood you. (dich)", "Ich habe dich missverstanden."),
+            ],
+        ),
+        _l(
+            14,
+            [
+                ("Das ist ein [faszinierender] Kurs.", "faszinieren"),
+                ("Eine [ausgebildete] Expertin leitet den Kurs.", "ausbilden"),
+                ("Vorsicht, [kochendes] Wasser!", "kochen"),
+                ("Die [Teilnahme] ist auf eigene Gefahr.", "participation"),
+                ("[Vorkenntnisse] sind nicht nötig.", "previous knowledge"),
+            ],
+            [
+                ("The course is fully booked.", "Der Kurs ist ausgebucht."),
+                ("I'd like to sign up for the course.", "Ich möchte mich für den Kurs anmelden."),
+                ("We are repeating the learned words.", "Wir wiederholen die gelernten Wörter."),
+                ("She has a beautiful voice.", "Sie hat eine schöne Stimme."),
+            ],
+        ),
+        _l(
+            15,
+            [
+                ("Ich spreche [sowohl] Deutsch als auch Englisch.", "both"),
+                ("Er ist nicht nur nett, [sondern] auch klug.", "but"),
+                ("[Hiermit] bewerbe ich mich um die Stelle.", "hereby"),
+                ("Sie ist sehr [belastbar].", "resilient"),
+                ("Die Firma will neue Mitarbeiter [einstellen].", "hire"),
+            ],
+            [
+                ("Nice that you're here. (Sie)", "Schön, dass Sie da sind."),
+                ("Thank you for the conversation.", "Vielen Dank für das Gespräch."),
+                (
+                    "She speaks both Italian and French.",
+                    "Sie spricht sowohl Italienisch als auch Französisch.",
+                ),
+                (
+                    "Tell me something about yourself. (Sie)",
+                    "Erzählen Sie etwas über sich.",
+                    "Erzählen Sie bitte etwas über sich.",
+                ),
+            ],
+        ),
     ]
 )
 
@@ -523,6 +590,76 @@ Sabine Roth
             "Nachdem wir jahrelang Pech gehabt hatten, gewannen wir.",
             "Das ist der Ausflug des Jahres.",
             "Vielen Dank für Ihre Einladung.",
+        ],
+    ),
+    5: modul_check(
+        LEVEL,
+        15,
+        dialogue=(
+            [
+                "A: Schön, dass Sie da sind. Erzählen Sie bitte etwas über sich.",
+                "B: ___",
+                "A: Und warum möchten Sie bei uns arbeiten?",
+            ],
+            "Ich habe meine Ausbildung 2020 abgeschlossen und spreche sowohl Englisch als auch Spanisch.",
+            "Wegen des Lärms konnte ich nichts hören.",
+            "Vorsicht, kochendes Wasser!",
+        ),
+        qa=[
+            ("Warum bist du zu spät?", "Wegen eines Staus."),
+            ("Braucht man Vorkenntnisse?", "Nein, der Kurs ist für Anfänger."),
+            ("Welche Sprachen sprechen Sie?", "Sowohl Deutsch als auch Polnisch."),
+            ("Was bedeutet das Wort?", "Es hat zwei Bedeutungen."),
+            ("Gibt es noch freie Plätze?", "Nein, der Kurs ist ausgebucht."),
+        ],
+        odd=[
+            ("die Gebühr", "der Hahn", "die Schlange", "der Schalter"),
+            ("die Durchsage", "der Bewerber", "die Stellenanzeige", "das Bewerbungsschreiben"),
+            ("peinlich", "die Zielgruppe", "die Anmeldung", "die Teilnahme"),
+            ("einstellen", "deshalb", "deswegen", "darum"),
+        ],
+        reading=(
+            """
+Marta hat im Frühling einen Kletterkurs an der Volkshochschule gemacht. Für den
+Kurs brauchte sie keine Vorkenntnisse, aber die Teilnahme war auf eigene Gefahr.
+Der Kursleiter war ein ausgebildeter Bergführer. Wegen des schlechten Wetters
+fiel ein Termin aus. Trotzdem hat Marta viel gelernt, und deshalb macht sie im
+Herbst den Kurs für Fortgeschrittene.
+""",
+            [
+                ("Marta brauchte für den Kurs Vorkenntnisse.", False),
+                ("Der Kursleiter hatte eine Ausbildung.", True),
+                ("Alle Termine haben stattgefunden.", False),
+                ("Marta macht im Herbst noch einen Kurs.", True),
+            ],
+        ),
+        form=[
+            ("___ des Regens blieben wir zu Hause. (because of)", "Wegen"),
+            ("ein ___ Kind (lachen, Partizip I)", "lachendes"),
+            ("die ___ Fotos (machen, Partizip II)", "gemachten"),
+            ("Ich spreche ___ Deutsch als auch Englisch.", "sowohl"),
+            ("Er ist nicht nur klug, ___ auch fleißig.", "sondern"),
+        ],
+        mistake=[
+            (
+                "Es war laut. Deshalb ich *konnte* nichts hören.",
+                "Es war laut. Deshalb konnte ich nichts hören.",
+            ),
+            (
+                "Wegen *dem* Lärms konnte ich nicht schlafen.",
+                "Wegen des Lärms konnte ich nicht schlafen.",
+            ),
+            ("Das ist ein *faszinierte* Kurs.", "Das ist ein faszinierender Kurs."),
+            (
+                "Er ist nicht nur nett, *aber* auch klug.",
+                "Er ist nicht nur nett, sondern auch klug.",
+            ),
+        ],
+        dictation=[
+            "Aus diesem Grund gab es ein Missverständnis.",
+            "Die Teilnahme ist auf eigene Gefahr.",
+            "Schön, dass Sie da sind.",
+            "Ich spreche sowohl Deutsch als auch Englisch.",
         ],
     ),
 }
