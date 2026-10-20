@@ -79,6 +79,70 @@ LEKTION_CHECKS = dict(
                 ),
             ],
         ),
+        _l(
+            4,
+            [
+                ("[Obwohl] ich angerufen habe, kam keine Antwort.", "although"),
+                ("Es regnet. [Trotzdem] gehen wir spazieren.", "nevertheless"),
+                ("Ich habe das Heft nicht [erhalten].", "erhalten"),
+                ("Könnten Sie mich bitte [verbinden]?", "put through"),
+                ("Bitte halten Sie Ihre Nummer [bereit].", "ready"),
+            ],
+            [
+                (
+                    "I'm not satisfied with your service.",
+                    "Ich bin mit Ihrem Service nicht zufrieden.",
+                ),
+                ("I'm calling about a complaint.", "Ich rufe wegen einer Reklamation an."),
+                (
+                    "She went to work although she was ill.",
+                    "Sie ging zur Arbeit, obwohl sie krank war.",
+                    "Sie ist zur Arbeit gegangen, obwohl sie krank war.",
+                ),
+                ("Shall I pass on a message?", "Soll ich etwas ausrichten?"),
+            ],
+        ),
+        _l(
+            5,
+            [
+                ("Bald [wird] jeder einen Roboter haben.", "werden"),
+                ("Ich [werde] ab morgen mehr Sport machen.", "werden"),
+                ("Hast du die Datei [gespeichert]?", "speichern"),
+                ("Er ist nicht da. Er wird [wohl] krank sein.", "probably"),
+                ("Die Technik macht große [Fortschritte].", "progress"),
+            ],
+            [
+                (
+                    "I believe that robots will help us.",
+                    "Ich glaube, dass Roboter uns helfen werden.",
+                ),
+                ("I promise you that.", "Das verspreche ich dir.", "Ich verspreche dir das."),
+                ("Who invented the telephone?", "Wer hat das Telefon erfunden?"),
+                ("You will tidy your room now!", "Du wirst jetzt dein Zimmer aufräumen!"),
+            ],
+        ),
+        _l(
+            6,
+            [
+                ("[Falls] du Zeit hast, komm vorbei.", "in case"),
+                ("Fühlen Sie sich wie zu [Hause].", "home"),
+                ("Danke! Gern [geschehen].", "geschehen"),
+                ("Ich bin [allergisch] gegen Nüsse.", "allergic"),
+                ("Ich [bedanke] mich für die Einladung.", "bedanken"),
+            ],
+            [
+                ("Make yourself at home. (Sie)", "Fühlen Sie sich wie zu Hause."),
+                (
+                    "In case it rains, we'll eat inside.",
+                    "Falls es regnet, essen wir drinnen.",
+                ),
+                (
+                    "Thank you, that tasted excellent.",
+                    "Danke, das hat ausgezeichnet geschmeckt.",
+                ),
+                ("I have to decline the invitation.", "Ich muss die Einladung ablehnen."),
+            ],
+        ),
     ]
 )
 
@@ -147,6 +211,73 @@ Dachwohnung mit Terrasse. Heute macht Jonas eine Ausbildung als Immobilienkaufma
             "Er erledigte seine Aufgaben zuverlässig.",
             "Mein Beruf ist meine Leidenschaft.",
             "Die Hälfte von uns wohnt zur Miete.",
+        ],
+    ),
+    2: modul_check(
+        LEVEL,
+        6,
+        dialogue=(
+            [
+                "A: Firma Lexa, was kann ich für Sie tun?",
+                "B: ___",
+                "A: Einen Moment bitte, ich verbinde Sie.",
+            ],
+            "Könnten Sie mich bitte mit dem Kundendienst verbinden?",
+            "Das hat ausgezeichnet geschmeckt.",
+            "Falls es regnet, essen wir drinnen.",
+        ),
+        qa=[
+            ("Ist Frau Kühn da?", "Nein, sie ist heute außer Haus."),
+            ("Wie wird das Leben in 50 Jahren sein?", "Roboter werden viel Arbeit machen."),
+            ("Möchten Sie noch etwas Nachtisch?", "Nein danke, ich bin schon satt."),
+            ("Warum schreiben Sie uns?", "Ich habe meine Zeitschrift nicht erhalten."),
+            ("Kann sie mich zurückrufen?", "Ja, wie ist Ihre Nummer?"),
+        ],
+        odd=[
+            ("der Nachtisch", "die Festplatte", "der Monitor", "das Laufwerk"),
+            ("der Roboter", "der Aperitif", "der Sekt", "der Nachtisch"),
+            ("speichern", "die Durchwahl", "die Warteschleife", "der Anrufbeantworter"),
+            ("falls", "die Reklamation", "die Bestellung", "die Bestätigung"),
+        ],
+        reading=(
+            """
+Herr Brandt hat vor zwei Monaten eine Kaffeemaschine bestellt. Obwohl er schon
+bezahlt hat, ist die Maschine noch nicht gekommen. Er hat dreimal beim
+Kundendienst angerufen, aber er war immer lange in der Warteschleife. Jetzt
+schreibt er eine Reklamation. Falls die Firma nicht bis Freitag antwortet, will
+er sein Geld zurück.
+""",
+            [
+                ("Herr Brandt hat die Maschine noch nicht bezahlt.", False),
+                ("Er hat mehrmals angerufen.", True),
+                ("Am Telefon kam er sofort zur richtigen Person.", False),
+                ("Er möchte bis Freitag eine Antwort.", True),
+            ],
+        ),
+        form=[
+            ("___ ich gewartet habe, kam niemand. (although)", "Obwohl"),
+            ("Morgen ___ es regnen. (werden)", "wird"),
+            ("Ihr ___ das schaffen. (werden)", "werdet"),
+            ("___ Sie Fragen haben, rufen Sie an. (in case)", "Falls"),
+            ("Sie hat die Einladung ___. (annehmen)", "angenommen"),
+        ],
+        mistake=[
+            (
+                "Obwohl ich *habe* angerufen, kam niemand.",
+                "Obwohl ich angerufen habe, kam niemand.",
+            ),
+            ("Er war krank. *Obwohl* ist er gekommen.", "Er war krank. Trotzdem ist er gekommen."),
+            (
+                "Ich glaube, dass es morgen *wird* regnen.",
+                "Ich glaube, dass es morgen regnen wird.",
+            ),
+            ("Ich *werden* dir morgen helfen.", "Ich werde dir morgen helfen."),
+        ],
+        dictation=[
+            "Obwohl ich Ihnen das erklärt habe, ist nichts passiert.",
+            "Bald wird in fast jedem Haushalt ein PC stehen.",
+            "Fühlen Sie sich wie zu Hause.",
+            "Falls Sie später kommen, rufen Sie bitte an.",
         ],
     ),
 }
