@@ -1,20 +1,23 @@
-"""B1 Lesen sets: one per Modul, in the same four-Teil shape as A2 (Teil 1 a
-newspaper text, Teil 2 an information board, Teil 3 an e-mail, Teil 4 people
-and adverts; 20 questions), with longer B1 texts: subordinate clauses, the
-Präteritum and more detail.
+"""B1 Lesen sets, shaped like the Goethe-Zertifikat B1 reading paper: one set per
+Modul, 30 questions. Teil 1: a blog post, 6 richtig/falsch. Teil 2: two
+newspaper texts, 3 questions each (a/b/c). Teil 3: 7 situations and 10 adverts
+(one situation has no advert: 0). Teil 4: 7 readers' comments, is the person for
+it? (ja/nein). Teil 5: rules or instructions, 4 questions (a/b/c).
 
 All texts are original (places and people are made up), on the Modul's topics.
 """
 
-from ..dsl import lesen_directory, lesen_people, lesen_text
+from ..dsl import NO_AD, lesen_ads, lesen_opinions, lesen_rf, lesen_text
 
 
-def _set(article, board, email, people) -> list:
+def _set(blog, article_a, article_b, ads, opinions, rules) -> list:
     return [
-        lesen_text("newspaper article", *article, teil=1),
-        lesen_directory(*board, teil=2),
-        lesen_text("e-mail", *email, teil=3),
-        lesen_people(*people, teil=4),
+        lesen_rf("blog post", *blog, teil=1),
+        lesen_text("newspaper article", *article_a, teil=2),
+        lesen_text("newspaper article", *article_b, teil=2),
+        lesen_ads(*ads, teil=3),
+        lesen_opinions(*opinions, teil=4),
+        lesen_text(*rules, teil=5),  # (what, text, rows)
     ]
 
 
@@ -23,17 +26,37 @@ LESEN = {
     1: _set(
         (
             """
+            Mein Jahr in Hamburg
+
+            Vor einem Jahr bin ich für ein Praktikum nach Hamburg gezogen. Am Anfang kannte
+            ich niemanden, und mein Zimmer in der WG war so klein, dass nur ein Bett und ein
+            Schreibtisch hineinpassten. Meine Mitbewohnerin Ronja hat mir aber sofort die
+            Stadt gezeigt. Sie ist die Hilfsbereiteste, die ich kenne! Das Praktikum bei
+            einer Zeitung war anstrengend, weil ich oft bis spät abends arbeiten musste.
+            Trotzdem habe ich viel gelernt, und mein Chef hat mir am Ende ein sehr gutes
+            Zeugnis geschrieben. Jetzt habe ich eine feste Stelle in derselben Redaktion.
+            Nächsten Monat ziehe ich in eine eigene Wohnung mit Balkon, aber Ronja und ich
+            treffen uns natürlich weiter jeden Sonntag zum Frühstück.
+            """,
+            [
+                ("Am Anfang hatte die Autorin in Hamburg keine Bekannten.", True),
+                ("Ihr Zimmer in der WG war sehr groß.", False),
+                ("Ronja hat ihr die Stadt gezeigt.", True),
+                ("Im Praktikum musste sie nie lange arbeiten.", False),
+                ("Sie arbeitet jetzt bei einer anderen Zeitung.", False),
+                ("Sie möchte Ronja auch nach dem Umzug weiter treffen.", True),
+            ],
+        ),
+        (
+            """
             Ein Hausmeister mit Herz
 
             Bremen. Seit 22 Jahren ist Georg Brandt (61) Hausmeister in einer großen
-            Wohnanlage im Stadtteil Findorff. Er repariert Heizungen, wechselt Lampen
-            und kümmert sich um den Innenhof. Doch für viele Bewohner ist er viel mehr:
-            „Herr Brandt ist der Mensch, dem ich meinen Schlüssel gebe, wenn ich verreise“,
-            sagt eine ältere Mieterin. Als im letzten Winter eine Familie aus Syrien
-            einzog, half er ihr bei den Formularen und zeigte den Kindern den Weg zur
-            Schule. Im Sommer organisiert er jedes Jahr ein Hoffest, zu dem fast alle
-            kommen. Nächstes Jahr geht er in Rente. „Am meisten werde ich die Gespräche
-            vermissen“, sagt er. Die Bewohner suchen schon jetzt ein Geschenk für ihn.
+            Wohnanlage. Er repariert Heizungen und kümmert sich um den Innenhof. Für viele
+            Bewohner ist er aber viel mehr: „Herr Brandt ist der Mensch, dem ich meinen
+            Schlüssel gebe, wenn ich verreise“, sagt eine Mieterin. Als im letzten Winter eine
+            Familie aus Syrien einzog, half er ihr bei den Formularen. Nächstes Jahr geht er in
+            Rente. „Am meisten werde ich die Gespräche vermissen“, sagt er.
             """,
             [
                 (
@@ -49,18 +72,6 @@ LESEN = {
                     "wenn die Heizung kaputt ist.",
                 ),
                 (
-                    "Der syrischen Familie …",
-                    "half er bei den Formularen.",
-                    "suchte er eine Wohnung.",
-                    "gab er Deutschunterricht.",
-                ),
-                (
-                    "Das Hoffest …",
-                    "organisiert er jeden Sommer.",
-                    "findet im Winter statt.",
-                    "besuchen nur wenige Bewohner.",
-                ),
-                (
                     "Nach der Rente wird Herr Brandt vor allem …",
                     "die Gespräche vermissen.",
                     "die Reparaturen vermissen.",
@@ -70,103 +81,135 @@ LESEN = {
         ),
         (
             """
-            Volkshochschule Seestadt · Haus der Bildung
-            Erdgeschoss: Anmeldung · Information · Café
-            1. Stock: Sprachen (Deutsch, Englisch, Spanisch) · Berufsberatung
-            2. Stock: Computer und Medien · Bewerbungstraining
-            3. Stock: Kunst: Malerei, Fotografie · Kreatives Schreiben
-            Untergeschoss: Bewegung: Yoga, Tanz · Umkleideräume
+            Immer mehr Menschen leben allein
+
+            Wiesbaden. Fast jeder zweite Haushalt in deutschen Großstädten ist ein
+            Single-Haushalt. Das zeigt eine neue Statistik. Besonders viele ältere Menschen
+            wohnen allein, weil ihre Kinder ausgezogen sind oder ihr Partner gestorben ist.
+            Junge Leute ziehen dagegen oft in eine WG, weil die Mieten in den Innenstädten so
+            hoch sind. Experten erwarten, dass in Zukunft mehr Wohnungen gebaut werden, in
+            denen Menschen zwar allein wohnen, aber eine Küche und einen Garten teilen.
             """,
             [
                 (
-                    "Sie möchten Hilfe bei Ihrem Lebenslauf und Bewerbungsschreiben.",
-                    "2. Stock",
-                    "1. Stock",
-                    "Erdgeschoss",
+                    "Laut der Statistik ist in Großstädten …",
+                    "fast jeder zweite Haushalt ein Single-Haushalt.",
+                    "jeder zehnte Haushalt eine WG.",
+                    "die Hälfte der Wohnungen leer.",
                 ),
                 (
-                    "Sie wollen sich für einen Kurs anmelden.",
-                    "Erdgeschoss",
-                    "3. Stock",
-                    "Untergeschoss",
+                    "Junge Leute ziehen oft in eine WG, weil …",
+                    "die Mieten hoch sind.",
+                    "sie nicht allein sein wollen.",
+                    "es keine Wohnungen gibt.",
                 ),
                 (
-                    "Sie möchten wissen, welcher Beruf zu Ihnen passt.",
-                    "1. Stock",
-                    "2. Stock",
-                    "3. Stock",
-                ),
-                ("Sie suchen einen Fotokurs.", "3. Stock", "2. Stock", "Untergeschoss"),
-                (
-                    "Vor dem Yogakurs möchten Sie sich umziehen.",
-                    "Untergeschoss",
-                    "Erdgeschoss",
-                    "1. Stock",
-                ),
-            ],
-        ),
-        (
-            """
-            Liebe Hanna,
-            jetzt bin ich schon drei Wochen in Leipzig! Mein Praktikum bei der Zeitung
-            gefällt mir sehr gut, obwohl die Tage lang sind. Am ersten Tag war ich
-            ziemlich nervös, aber die Kollegen sind wirklich nett, und wir duzen uns
-            alle. Gestern durfte ich sogar einen kurzen Artikel über ein Konzert
-            schreiben. Das Problem ist die Wohnung: Ich wohne in einem kleinen Zimmer
-            in einer WG am Stadtrand und brauche fast eine Stunde bis ins Büro. Ab
-            nächstem Monat kann ich aber das Zimmer einer Kollegin übernehmen, die im
-            Zentrum wohnt. Besuchst du mich im Mai? Dann zeige ich dir die Stadt.
-            Liebe Grüße
-            Tim
-            """,
-            [
-                (
-                    "Tim ist in Leipzig, …",
-                    "weil er ein Praktikum macht.",
-                    "weil er dort studiert.",
-                    "weil er Urlaub macht.",
-                ),
-                ("Am ersten Tag war Tim …", "nervös.", "krank.", "allein im Büro."),
-                (
-                    "Gestern hat Tim …",
-                    "einen Artikel geschrieben.",
-                    "ein Konzert gegeben.",
-                    "eine Wohnung besichtigt.",
-                ),
-                (
-                    "Seine Wohnung jetzt …",
-                    "ist weit vom Büro entfernt.",
-                    "liegt im Zentrum.",
-                    "gehört einer Kollegin.",
-                ),
-                (
-                    "Im Mai möchte Tim …",
-                    "Hanna die Stadt zeigen.",
-                    "nach Hause fahren.",
-                    "das Praktikum beenden.",
+                    "Experten erwarten mehr Wohnungen, …",
+                    "in denen man manche Räume teilt.",
+                    "die sehr groß sind.",
+                    "die am Stadtrand liegen.",
                 ),
             ],
         ),
         (
             {
-                "a": "Möbliertes Zimmer auf Zeit: 18 m², nahe Uni, 3–12 Monate, ideal für Praktikanten. Tel. 0176 445 21",
+                "a": "Möbliertes Zimmer auf Zeit: 18 m², nahe Uni, 3–12 Monate, ideal für Praktikanten.",
                 "b": "Wer hilft mir im Garten? Rentner (80) sucht freundliche Person für zwei Stunden pro Woche.",
                 "c": "Kindergarten Sonnenschein sucht Praktikantin oder Praktikanten für vier Wochen im Sommer.",
                 "d": "Eigentumswohnung zu verkaufen: 4 Zimmer, Dachterrasse, beste Lage in der Innenstadt.",
-                "e": "Alte Freunde wiederfinden: Klassentreffen der Goethe-Schule, Abschluss 2005. Bitte melden!",
+                "e": "Klassentreffen der Goethe-Schule, Abschluss 2005. Bitte meldet euch!",
                 "f": "Reihenhaus im Vorort zu vermieten, mit Garten, ab 1. Juni, für Familien mit Kindern.",
+                "g": "Umzugshelfer gesucht: Wir tragen Möbel und Kartons, auch am Wochenende. Günstige Preise.",
+                "h": "Malkurs für Senioren: jeden Mittwoch im Gemeindehaus, Material wird gestellt.",
+                "i": "Hausmeisterservice Klar: Reparaturen, Gartenpflege und Winterdienst für Wohnanlagen.",
+                "j": "WG-Zimmer frei: nette Dreier-WG sucht Mitbewohnerin, Nichtraucherin, ab sofort.",
             },
             [
                 ("Lara studiert Pädagogik und möchte im Sommer mit Kindern arbeiten.", "c"),
-                (
-                    "Herr Kovač macht ein halbes Jahr ein Praktikum in der Stadt und braucht ein Zimmer.",
-                    "a",
-                ),
+                ("Herr Kovač macht ein halbes Jahr ein Praktikum und braucht ein Zimmer.", "a"),
                 ("Familie Weber mit drei Kindern sucht ein Haus mit Garten zur Miete.", "f"),
                 ("Sabine hat 2005 Abitur gemacht und sucht ihre alten Mitschüler.", "e"),
+                ("Murat hat Zeit und möchte einem älteren Menschen helfen.", "b"),
+                ("Frau Lorenz zieht nächste Woche um und hat viele schwere Möbel.", "g"),
+                ("Ben sucht einen Job als Fotograf in einer Werbeagentur.", NO_AD),
+            ],
+        ),
+        (
+            "Ist es eine gute Idee, mit Freunden zusammenzuwohnen?",
+            [
                 (
-                    "Murat hat am Wochenende Zeit und möchte gern einem älteren Menschen helfen.",
-                    "b",
+                    "Lisa (24)",
+                    "Mit meiner besten Freundin wohne ich seit drei Jahren zusammen. Wir kochen zusammen, wir teilen die Kosten, und ich bin nie allein. Für mich gibt es nichts Besseres.",
+                    True,
+                ),
+                (
+                    "Jonas (31)",
+                    "Ich habe es versucht, und unsere Freundschaft ist kaputtgegangen. Wer den ganzen Tag zusammen ist, streitet irgendwann über das schmutzige Geschirr. Nie wieder!",
+                    False,
+                ),
+                (
+                    "Ayşe (19)",
+                    "Ich ziehe bald mit zwei Freundinnen in eine WG. Ich freue mich sehr darauf, weil wir uns schon seit der Schule kennen und gut verstehen.",
+                    True,
+                ),
+                (
+                    "Herr Pohl (58)",
+                    "In meinem Alter brauche ich meine Ruhe. Freunde besuche ich gern, aber wohnen möchte ich allein. Jeder sollte seine eigenen vier Wände haben.",
+                    False,
+                ),
+                (
+                    "Mira (27)",
+                    "Es kommt darauf an. Mit ordentlichen Freunden ja, mit chaotischen nein. Meine WG funktioniert super, weil wir klare Regeln haben.",
+                    True,
+                ),
+                (
+                    "Tobias (22)",
+                    "Freunde sind Freunde, Mitbewohner sind etwas anderes. Ich wohne lieber mit Leuten zusammen, die ich vorher nicht kannte. Dann ist es einfacher, ehrlich zu sein.",
+                    False,
+                ),
+                (
+                    "Frau Haas (45)",
+                    "Meine Tochter wohnt mit ihrer Schulfreundin zusammen, und die beiden sind sehr glücklich. Ich finde, man lernt dabei viel, zum Beispiel Kompromisse zu machen.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "house rules",
+            """
+            Hausordnung der Wohnanlage Findorff
+
+            Ruhezeiten: Von 22 bis 7 Uhr und sonntags ist Ruhe. Bitte keine laute Musik.
+            Müll: Der Müll wird in die Container im Innenhof geworfen. Glas bitte nur
+            werktags zwischen 8 und 20 Uhr.
+            Fahrräder: Fahrräder gehören in den Fahrradkeller, nicht in den Hausflur.
+            Reparaturen: Melden Sie Schäden bitte sofort dem Hausmeister, Telefon 0421 55 81.
+            Feiern: Wer eine Party plant, informiert seine Nachbarn bitte eine Woche vorher.
+            """,
+            [
+                (
+                    "Am Sonntag …",
+                    "soll es im Haus ruhig sein.",
+                    "darf man laut Musik hören.",
+                    "wird der Müll abgeholt.",
+                ),
+                (
+                    "Glas darf man wegwerfen …",
+                    "an Werktagen von 8 bis 20 Uhr.",
+                    "jeden Tag rund um die Uhr.",
+                    "nur am Sonntag.",
+                ),
+                (
+                    "Fahrräder …",
+                    "stellt man in den Keller.",
+                    "darf man in den Flur stellen.",
+                    "sind im Haus verboten.",
+                ),
+                (
+                    "Vor einer Party …",
+                    "soll man die Nachbarn informieren.",
+                    "muss man den Hausmeister fragen.",
+                    "muss man eine Gebühr bezahlen.",
                 ),
             ],
         ),
@@ -175,17 +218,35 @@ LESEN = {
     2: _set(
         (
             """
+            Ärger mit der neuen Waschmaschine
+
+            Vor sechs Wochen habe ich online eine Waschmaschine bestellt. Sie kam zwar
+            pünktlich, aber schon nach drei Tagen lief Wasser in die Küche. Ich habe sofort
+            beim Kundenservice angerufen und war eine halbe Stunde in der Warteschleife. Die
+            Mitarbeiterin war freundlich und hat versprochen, dass ein Techniker kommt.
+            Obwohl ich zwei Tage zu Hause gewartet habe, kam niemand. Erst nachdem ich eine
+            schriftliche Reklamation geschickt hatte, bekam ich eine Antwort: Die Firma hat
+            mir eine neue Maschine geliefert und mir sogar einen Gutschein geschenkt. Jetzt
+            bin ich zufrieden, aber ich werde nächstes Mal im Geschäft kaufen.
+            """,
+            [
+                ("Die Waschmaschine kam zu spät.", False),
+                ("Nach drei Tagen hatte die Maschine ein Problem.", True),
+                ("Der Autor musste am Telefon lange warten.", True),
+                ("Der Techniker hat die Maschine repariert.", False),
+                ("Nach der schriftlichen Reklamation bekam er eine neue Maschine.", True),
+                ("Er will die nächste Maschine wieder online kaufen.", False),
+            ],
+        ),
+        (
+            """
             Wenn der Roboter den Rasen mäht
 
-            Hannover. In immer mehr Gärten fahren kleine Roboter über den Rasen. Laut
-            einer Umfrage hat schon jeder zehnte Haushalt mit Garten einen Mähroboter.
-            „Früher habe ich jeden Samstag zwei Stunden gemäht“, erzählt Klaus Petersen
-            (58). „Jetzt habe ich Zeit für meine Enkel.“ Doch nicht alle sind begeistert.
-            Naturschützer warnen, dass die Geräte kleinen Tieren gefährlich werden
-            können, besonders in der Nacht. Sie raten deshalb, die Roboter nur tagsüber
-            fahren zu lassen. Experten vermuten, dass es in zehn Jahren auch Roboter
-            geben wird, die Fenster putzen und Unkraut entfernen. Ob die Menschen das
-            wirklich wollen, ist eine andere Frage.
+            Hannover. In immer mehr Gärten fahren kleine Roboter über den Rasen. Schon jeder
+            zehnte Haushalt mit Garten hat einen. „Jetzt habe ich Zeit für meine Enkel“, sagt
+            Klaus Petersen (58). Naturschützer warnen aber, dass die Geräte kleinen Tieren wie
+            Igeln gefährlich werden, besonders in der Nacht. Sie raten deshalb, die Roboter nur
+            tagsüber fahren zu lassen.
             """,
             [
                 (
@@ -193,12 +254,6 @@ LESEN = {
                     "in jedem zehnten Haushalt mit Garten.",
                     "in fast allen Gärten.",
                     "nur in Hannover.",
-                ),
-                (
-                    "Klaus Petersen hat jetzt mehr Zeit …",
-                    "für seine Enkel.",
-                    "für seinen Garten.",
-                    "für die Arbeit.",
                 ),
                 (
                     "Naturschützer sagen, dass die Roboter …",
@@ -212,92 +267,137 @@ LESEN = {
                     "nur in der Nacht fahren lassen.",
                     "nicht mehr kaufen.",
                 ),
-                (
-                    "Experten glauben, dass Roboter in Zukunft …",
-                    "auch Fenster putzen werden.",
-                    "verboten werden.",
-                    "keine Arbeit mehr machen.",
-                ),
             ],
         ),
         (
             """
-            Kundenservice Medienhaus Nordwind · Telefon 0800 123 456
-            Taste 1: Neues Abonnement bestellen
-            Taste 2: Abonnement kündigen oder ändern
-            Taste 3: Lieferung fehlt oder kommt zu spät
-            Taste 4: Rechnungen und Zahlungen
-            Taste 5: Technische Hilfe für die App
-            Taste 0: Persönliche Beratung
+            Gäste aus aller Welt
+
+            Leipzig. Was bringt man mit, wenn man eingeladen ist? Die Volkshochschule bietet
+            seit Kurzem einen Kurs über Gastfreundschaft in verschiedenen Ländern an. „Viele
+            Teilnehmer haben schon peinliche Situationen erlebt“, erzählt die Kursleiterin. In
+            Deutschland bringt man oft Blumen oder Wein mit, in anderen Ländern ist ein
+            Geschenk beim ersten Besuch unhöflich. Im Kurs kochen die Teilnehmer außerdem
+            zusammen und probieren Gerichte aus vielen Ländern.
             """,
             [
-                ("Ihre Zeitung ist heute nicht gekommen.", "Taste 3", "Taste 1", "Taste 4"),
+                ("Der Kurs an der VHS ist …", "neu.", "schon sehr alt.", "nur für Köche."),
                 (
-                    "Sie ziehen um und möchten Ihre neue Adresse für das Abo angeben.",
-                    "Taste 2",
-                    "Taste 3",
-                    "Taste 0",
+                    "Viele Teilnehmer …",
+                    "haben schon peinliche Situationen erlebt.",
+                    "laden nie Gäste ein.",
+                    "kommen aus Leipzig.",
                 ),
-                ("Die App startet auf Ihrem Handy nicht.", "Taste 5", "Taste 4", "Taste 1"),
-                ("Sie haben eine Rechnung zweimal bezahlt.", "Taste 4", "Taste 2", "Taste 5"),
                 (
-                    "Sie möchten die Zeitschrift für Ihre Mutter abonnieren.",
-                    "Taste 1",
-                    "Taste 2",
-                    "Taste 3",
-                ),
-            ],
-        ),
-        (
-            """
-            Liebe Frau Albers,
-            vielen Dank für die Einladung zu Ihrem Geburtstag am Samstag! Ich komme sehr
-            gern. Mein Mann kann leider nicht mitkommen, weil er an diesem Wochenende
-            beruflich in Zürich ist. Er lässt Sie herzlich grüßen. Darf ich etwas zum
-            Essen mitbringen? Ich könnte zum Beispiel einen Kuchen backen. Ich muss
-            Ihnen außerdem sagen, dass ich seit Kurzem allergisch gegen Nüsse bin. Falls
-            es also Nüsse im Essen gibt, ist das kein Problem: Ich esse dann einfach
-            etwas anderes. Ich freue mich schon sehr auf den Abend und darauf, Ihre
-            Familie kennenzulernen.
-            Herzliche Grüße
-            Petra Lindner
-            """,
-            [
-                ("Frau Lindner …", "kommt zum Geburtstag.", "kann nicht kommen.", "kommt später."),
-                ("Ihr Mann …", "ist am Wochenende in Zürich.", "ist krank.", "kommt auch mit."),
-                (
-                    "Frau Lindner möchte …",
-                    "vielleicht einen Kuchen mitbringen.",
-                    "einen Salat machen.",
-                    "Blumen kaufen.",
-                ),
-                ("Frau Lindner kann keine …", "Nüsse essen.", "Kuchen essen.", "Milch trinken."),
-                (
-                    "Frau Lindner kennt die Familie von Frau Albers …",
-                    "noch nicht.",
-                    "schon lange.",
-                    "aus Zürich.",
+                    "Im Kurs …",
+                    "kochen die Teilnehmer zusammen.",
+                    "kauft man Geschenke.",
+                    "lernt man nur Deutsch.",
                 ),
             ],
         ),
         (
             {
                 "a": "Computerhilfe zu Hause: Wir installieren Programme und retten verlorene Dateien. Auch abends.",
-                "b": "Kochkurs „Gäste verwöhnen“: Menüs mit Vorspeise, Hauptspeise und Nachtisch für Ihre Einladung.",
+                "b": "Kochkurs „Gäste verwöhnen“: Menüs mit Vorspeise, Hauptspeise und Nachtisch.",
                 "c": "Partyservice Lecker: Buffets für Feste mit 20 bis 200 Gästen, auch vegetarisch.",
                 "d": "Kurs „Gut telefonieren“: Professionell mit Kunden sprechen und Reklamationen lösen.",
-                "e": "Gebrauchte Laptops und Monitore günstig: mit Garantie, Lieferung frei Haus.",
-                "f": "Knigge-Seminar: richtig verhalten beim Geschäftsessen. Tischmanieren, Small Talk, Pünktlichkeit.",
+                "e": "Gebrauchte Laptops und Monitore günstig, mit Garantie und Lieferung frei Haus.",
+                "f": "Knigge-Seminar: richtig verhalten beim Geschäftsessen. Tischmanieren und Small Talk.",
+                "g": "Verbraucherberatung: Hilfe bei Problemen mit Verträgen, Abos und Kündigungen.",
+                "h": "Blumen Rosi: Blumensträuße für jeden Anlass, Lieferung am selben Tag.",
+                "i": "Handyreparatur in 30 Minuten: neue Batterie, neuer Bildschirm, faire Preise.",
+                "j": "Restaurant Seeblick: Räume für Geburtstage und Hochzeiten bis 80 Personen.",
             },
             [
                 (
-                    "Frau Yilmaz feiert ihre Hochzeit mit 80 Gästen und will nicht selbst kochen.",
+                    "Frau Yilmaz feiert ihre Hochzeit mit 120 Gästen und will nicht selbst kochen.",
                     "c",
                 ),
                 ("Herr Roth hat aus Versehen wichtige Dateien gelöscht.", "a"),
                 ("Jan beginnt im Kundenservice und hat Angst vor schwierigen Anrufen.", "d"),
-                ("Lena hat bald ein wichtiges Essen mit Geschäftspartnern und ist unsicher.", "f"),
-                ("Tom möchte für seine Freunde ein Menü mit drei Gängen kochen lernen.", "b"),
+                ("Lena hat bald ein wichtiges Essen mit Geschäftspartnern.", "f"),
+                ("Ihr Handy geht nicht mehr, weil der Bildschirm kaputt ist.", "i"),
+                ("Herr Krüger möchte ein Abo kündigen, aber die Firma reagiert nicht.", "g"),
+                ("Tim sucht einen neuen Fernseher mit großem Bildschirm.", NO_AD),
+            ],
+        ),
+        (
+            "Sollte man Kinder schon früh mit Computern und Tablets lernen lassen?",
+            [
+                (
+                    "Petra (42)",
+                    "Meine Kinder lernen in der Schule mit Tablets, und sie sind begeistert. Die Welt wird immer digitaler, also müssen sie das früh lernen.",
+                    True,
+                ),
+                (
+                    "Herr Lang (66)",
+                    "Kinder sollten draußen spielen und Bücher lesen. Bildschirme machen sie unruhig. Ich halte davon gar nichts.",
+                    False,
+                ),
+                (
+                    "Selma (35)",
+                    "Eine Stunde am Tag finde ich in Ordnung. Es gibt sehr gute Lernprogramme, mit denen meine Tochter Mathematik übt.",
+                    True,
+                ),
+                (
+                    "Kai (29)",
+                    "Ich arbeite als Programmierer und kann Ihnen sagen: Die Grundlagen lernt man auch mit zwölf noch schnell genug. Kleine Kinder brauchen keine Tablets.",
+                    False,
+                ),
+                (
+                    "Frau Becker (51)",
+                    "Als Lehrerin sehe ich jeden Tag, wie Kinder mit Tablets schneller lesen lernen. Natürlich nur zusammen mit einem Erwachsenen.",
+                    True,
+                ),
+                (
+                    "Anton (17)",
+                    "Ich habe mit vier mein erstes Tablet bekommen und war danach süchtig. Ich würde meinen Kindern lieber noch keins geben.",
+                    False,
+                ),
+                (
+                    "Nina (38)",
+                    "Verbieten bringt nichts. Ich finde es besser, wenn Kinder früh lernen, vernünftig mit Technik umzugehen.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "instructions",
+            """
+            Rückgabe und Reklamation bei Technikwelt
+
+            Sie können jedes Gerät innerhalb von 14 Tagen ohne Grund zurückgeben. Bitte
+            bringen Sie dafür die Rechnung mit. Ist ein Gerät kaputt, haben Sie zwei Jahre
+            Garantie. Rufen Sie in diesem Fall zuerst unseren Kundendienst an (Taste 3).
+            Online gekaufte Geräte können Sie kostenlos per Post zurückschicken. Bei
+            geöffneten Computerprogrammen ist eine Rückgabe leider nicht möglich.
+            """,
+            [
+                (
+                    "Innerhalb von 14 Tagen kann man ein Gerät …",
+                    "ohne Grund zurückgeben.",
+                    "nur mit Grund zurückgeben.",
+                    "nicht zurückgeben.",
+                ),
+                (
+                    "Für die Rückgabe braucht man …",
+                    "die Rechnung.",
+                    "die Garantie.",
+                    "einen Termin.",
+                ),
+                (
+                    "Wenn ein Gerät kaputt ist, soll man zuerst …",
+                    "den Kundendienst anrufen.",
+                    "das Gerät zurückschicken.",
+                    "ins Geschäft kommen.",
+                ),
+                (
+                    "Geöffnete Computerprogramme …",
+                    "kann man nicht zurückgeben.",
+                    "kann man immer zurückgeben.",
+                    "kosten weniger.",
+                ),
             ],
         ),
     ),
@@ -305,20 +405,36 @@ LESEN = {
     3: _set(
         (
             """
-            Ein Büro für Hunde
+            Wie Bello mein Leben verändert hat
 
-            Köln. In der Werbeagentur „Blickfang“ arbeiten 14 Menschen und fünf Hunde.
-            Seit zwei Jahren dürfen die Mitarbeiter ihre Hunde mit ins Büro bringen.
-            „Am Anfang hatten einige Kollegen Angst“, erzählt die Chefin Mira Sanders.
-            „Deshalb haben wir klare Regeln gemacht: Die Hunde dürfen nicht in die
-            Küche, und wer allergisch ist, bekommt ein Büro ohne Tiere.“ Inzwischen
-            sind alle zufrieden. Eine Studie zeigt, dass Hunde im Büro den Stress
-            reduzieren können, weil die Mitarbeiter öfter Pausen machen und spazieren
-            gehen. Frau Sanders sagt, dass die Atmosphäre viel besser geworden ist.
-            Neue Bewerber fragen inzwischen oft zuerst nach den Hunden.
+            Lange habe ich überlegt, ob ich mir einen Hund anschaffen soll. Ich arbeite viel
+            und wohne in einer kleinen Wohnung. Dann habe ich im Tierheim Bello kennengelernt,
+            einen alten, sehr ruhigen Hund. Zum Glück darf ich ihn mit ins Büro bringen. Jetzt
+            gehe ich jeden Mittag mit ihm spazieren, statt am Schreibtisch zu essen. Seitdem
+            habe ich viel weniger Rückenschmerzen. Ein Problem gibt es aber: Bello frisst
+            alles, was er findet, und der Tierarzt war schon dreimal teuer. Trotzdem bereue ich
+            meine Entscheidung keinen einzigen Tag.
             """,
             [
-                ("In der Agentur arbeiten …", "14 Menschen.", "fünf Menschen.", "zwei Menschen."),
+                ("Die Autorin hat sich schnell für einen Hund entschieden.", False),
+                ("Bello kommt aus dem Tierheim.", True),
+                ("Bello darf mit ins Büro.", True),
+                ("Mittags isst die Autorin am Schreibtisch.", False),
+                ("Seit sie den Hund hat, hat sie weniger Rückenschmerzen.", True),
+                ("Der Tierarzt war noch nie nötig.", False),
+            ],
+        ),
+        (
+            """
+            Ein Büro für Hunde
+
+            Köln. In der Agentur „Blickfang“ arbeiten 14 Menschen und fünf Hunde. „Am Anfang
+            hatten einige Kollegen Angst“, erzählt die Chefin. „Deshalb haben wir Regeln
+            gemacht: Die Hunde dürfen nicht in die Küche, und wer allergisch ist, bekommt ein
+            Büro ohne Tiere.“ Eine Studie zeigt, dass Hunde im Büro den Stress reduzieren, weil
+            die Mitarbeiter öfter Pausen machen.
+            """,
+            [
                 (
                     "Am Anfang …",
                     "hatten einige Kollegen Angst.",
@@ -332,104 +448,142 @@ LESEN = {
                     "darf keinen Hund haben.",
                 ),
                 (
-                    "Hunde im Büro reduzieren den Stress, weil …",
+                    "Hunde reduzieren den Stress, weil …",
                     "die Mitarbeiter öfter Pausen machen.",
                     "sie leise sind.",
                     "die Mitarbeiter weniger arbeiten.",
                 ),
-                (
-                    "Neue Bewerber …",
-                    "fragen oft nach den Hunden.",
-                    "dürfen keinen Hund mitbringen.",
-                    "sind meistens allergisch.",
-                ),
             ],
         ),
         (
             """
-            Gesundheitstag bei der Firma Lindtec · Programm
-            Halle A: Rückentraining und Gymnastik (9–12 Uhr)
-            Halle B: Gesunde Ernährung: Vortrag und Kochvorführung (10 Uhr)
-            Raum 101: Nichtraucher werden: Beratung (ganztags)
-            Raum 102: Stress im Beruf: Entspannungsübungen (14 Uhr)
-            Kantine: Obst- und Salatbuffet (12–14 Uhr)
-            Foyer: Blutdruck messen · Informationen der Krankenkasse
-            """,
-            [
-                ("Sie haben oft Rückenschmerzen.", "Halle A", "Raum 102", "Foyer"),
-                ("Sie möchten mit dem Rauchen aufhören.", "Raum 101", "Halle B", "Kantine"),
-                ("Sie wollen lernen, wie man gesund kocht.", "Halle B", "Halle A", "Raum 101"),
-                ("Sie möchten Ihren Blutdruck prüfen lassen.", "Foyer", "Raum 102", "Halle A"),
-                (
-                    "Sie sind oft gestresst und möchten sich besser entspannen.",
-                    "Raum 102",
-                    "Raum 101",
-                    "Kantine",
-                ),
-            ],
-        ),
-        (
-            """
-            Hallo Jakob,
-            stell dir vor: Ich habe letzte Woche einen Berufstest gemacht! Bevor ich mich
-            für eine Ausbildung bewerbe, wollte ich wissen, was wirklich zu mir passt.
-            Das Ergebnis hat mich überrascht: Der Test sagt, dass ich ein sozialer Typ
-            bin. Ich dachte immer, dass ich eher technisch begabt bin, weil ich gern
-            Computer repariere. Meine Berufsberaterin meint aber, dass ich beides
-            verbinden kann, zum Beispiel als Lehrerin für Informatik. Das kann ich mir
-            gut vorstellen! Während ich die Ergebnisse gelesen habe, habe ich an dich
-            gedacht: Du wolltest doch auch so einen Test machen. Ich schicke dir den Link.
-            Viele Grüße
-            Selin
+            Der Test, der den Beruf verrät?
+
+            Berlin. Jedes Jahr machen Tausende Schüler einen Berufstest im Internet. Die Tests
+            fragen zum Beispiel, ob man lieber mit Menschen oder mit Maschinen arbeitet.
+            Berufsberater finden die Tests nützlich, warnen aber: „Ein Test kann nur einen
+            ersten Hinweis geben.“ Wichtiger sei ein Praktikum, weil man dort den Alltag in
+            einem Beruf wirklich kennenlernt. Viele Schüler sind vom Ergebnis überrascht.
             """,
             [
                 (
-                    "Selin hat den Test gemacht, …",
-                    "bevor sie sich bewirbt.",
-                    "nachdem sie eine Stelle hatte.",
-                    "weil ihre Mutter es wollte.",
+                    "Die Tests fragen zum Beispiel, …",
+                    "ob man lieber mit Menschen oder Maschinen arbeitet.",
+                    "wie viel man verdienen möchte.",
+                    "welche Noten man hat.",
                 ),
                 (
-                    "Das Ergebnis war für Selin …",
-                    "eine Überraschung.",
-                    "genau wie erwartet.",
-                    "langweilig.",
+                    "Berufsberater meinen, dass ein Test …",
+                    "nur ein erster Hinweis ist.",
+                    "immer richtig ist.",
+                    "unnötig ist.",
                 ),
                 (
-                    "Selin dachte, dass sie …",
-                    "technisch begabt ist.",
-                    "sozial begabt ist.",
-                    "künstlerisch begabt ist.",
+                    "Wichtiger als ein Test ist laut Beratern …",
+                    "ein Praktikum.",
+                    "ein Gespräch mit den Eltern.",
+                    "ein gutes Zeugnis.",
                 ),
-                (
-                    "Die Berufsberaterin schlägt vor, …",
-                    "beides zu verbinden.",
-                    "Krankenschwester zu werden.",
-                    "noch einen Test zu machen.",
-                ),
-                ("Selin schickt Jakob …", "den Link zum Test.", "ihr Ergebnis.", "eine Bewerbung."),
             ],
         ),
         (
             {
-                "a": "Tierheim Pfötchen sucht Gassigeher: Gehen Sie am Wochenende mit unseren Hunden spazieren!",
-                "b": "Meerschweinchen abzugeben: zwei junge Tiere mit Käfig, sehr zutraulich, ideal für Kinder.",
-                "c": "Berufsberatung für Erwachsene: Wir helfen Ihnen, einen neuen Beruf zu finden. Kostenlos.",
-                "d": "Fitnessstudio Aktiv: Rückenkurse für Menschen, die viel am Schreibtisch sitzen.",
-                "e": "Tierarztpraxis Dr. Behr: auch samstags geöffnet, Notdienst rund um die Uhr.",
-                "f": "Präsentieren lernen: Halten Sie Vorträge sicher und überzeugend. Abendkurs, 4 Termine.",
+                "a": "Tierheim Pfötchen sucht Gassigeher für das Wochenende.",
+                "b": "Meerschweinchen abzugeben: zwei junge Tiere mit Käfig, sehr zutraulich.",
+                "c": "Berufsberatung für Erwachsene: Wir helfen Ihnen, einen neuen Beruf zu finden.",
+                "d": "Fitnessstudio Aktiv: Rückenkurse für Menschen, die viel sitzen.",
+                "e": "Tierarztpraxis Dr. Behr: Notdienst rund um die Uhr.",
+                "f": "Präsentieren lernen: Halten Sie Vorträge sicher. Abendkurs, 4 Termine.",
+                "g": "Nichtraucher in 6 Wochen: Kurs der Krankenkasse, kostenlos für Mitglieder.",
+                "h": "Hundeschule Fuchs: Ihr Hund lernt hören, auch für ältere Hunde.",
+                "i": "Yoga in der Mittagspause: 30 Minuten Entspannung direkt neben Ihrem Büro.",
+                "j": "Ausbildungsmesse am Samstag: über 80 Firmen stellen Berufe vor.",
             },
             [
-                (
-                    "Herr Lange ist 45 und möchte nach 20 Jahren im Büro etwas ganz anderes machen.",
-                    "c",
-                ),
+                ("Herr Lange ist 45 und möchte etwas ganz anderes machen.", "c"),
                 ("Familie Becker sucht ein Haustier für ihre Tochter, aber keinen Hund.", "b"),
                 ("Frau Wolf liebt Hunde, darf aber in ihrer Wohnung keine Tiere haben.", "a"),
                 ("Ihre Katze ist am Sonntagabend plötzlich krank.", "e"),
+                ("Milan muss seiner Firma bald ein Projekt vorstellen und ist nervös.", "f"),
+                ("Sandra raucht seit zehn Jahren und möchte aufhören.", "g"),
+                ("Herr Ott sucht einen Kurs, in dem er Kochen für Diabetiker lernt.", NO_AD),
+            ],
+        ),
+        (
+            "Sollte jeder Arbeitgeber seinen Mitarbeitern Sport anbieten?",
+            [
                 (
-                    "Milan muss nächsten Monat seiner Firma ein Projekt vorstellen und ist nervös.",
-                    "f",
+                    "Clara (34)",
+                    "In meiner Firma gibt es zweimal pro Woche Yoga. Seitdem fühle ich mich viel besser und bin seltener krank. Das sollte es überall geben.",
+                    True,
+                ),
+                (
+                    "Herr Brinkmann (59)",
+                    "Sport ist Privatsache. Die Firma soll gute Gehälter zahlen, dann kann jeder selbst entscheiden, was er in seiner Freizeit macht.",
+                    False,
+                ),
+                (
+                    "Deniz (27)",
+                    "Ich finde das super, weil ich nach der Arbeit keine Zeit mehr habe. So bewege ich mich wenigstens ein bisschen.",
+                    True,
+                ),
+                (
+                    "Frau Ullrich (48)",
+                    "Ich arbeite in einem kleinen Betrieb mit fünf Leuten. Für uns ist so etwas viel zu teuer. Man kann das nicht von jeder Firma verlangen.",
+                    False,
+                ),
+                (
+                    "Paul (41)",
+                    "Gesunde Mitarbeiter arbeiten besser. Am Ende spart die Firma also Geld. Ich bin klar dafür.",
+                    True,
+                ),
+                (
+                    "Lea (23)",
+                    "Ich möchte nicht mit meinem Chef Gymnastik machen, das wäre mir peinlich. Ich gehe lieber allein ins Fitnessstudio.",
+                    False,
+                ),
+                (
+                    "Herr Kaya (52)",
+                    "Seit wir eine Betriebssportgruppe haben, ist die Atmosphäre im Team viel besser. Ich kann es jeder Firma empfehlen.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "instructions",
+            """
+            Hinweise für Mitarbeiter: Gesundheitstag am 14. Mai
+
+            Der Gesundheitstag findet von 9 bis 15 Uhr in der Kantine und in Halle A statt.
+            Die Teilnahme ist freiwillig und zählt als Arbeitszeit. Für die Kurse am Vormittag
+            melden Sie sich bitte bis zum 10. Mai bei Frau Hartmann an. Bringen Sie bequeme
+            Kleidung mit. Das Mittagessen ist an diesem Tag kostenlos. Wer nicht kommen kann,
+            findet alle Informationen danach im Intranet.
+            """,
+            [
+                (
+                    "Die Teilnahme am Gesundheitstag …",
+                    "ist freiwillig.",
+                    "ist Pflicht.",
+                    "kostet Geld.",
+                ),
+                (
+                    "Für die Kurse am Vormittag muss man sich …",
+                    "bis zum 10. Mai anmelden.",
+                    "nicht anmelden.",
+                    "am 14. Mai anmelden.",
+                ),
+                (
+                    "Man soll mitbringen: …",
+                    "bequeme Kleidung.",
+                    "ein Mittagessen.",
+                    "einen Laptop.",
+                ),
+                (
+                    "Wer nicht teilnimmt, …",
+                    "findet die Informationen im Intranet.",
+                    "muss einen Bericht schreiben.",
+                    "bekommt kein Mittagessen.",
                 ),
             ],
         ),
@@ -438,16 +592,33 @@ LESEN = {
     4: _set(
         (
             """
+            Der schlimmste und der schönste Tag
+
+            Letzten Freitag ist bei mir alles schiefgegangen. Zuerst habe ich verschlafen,
+            dann habe ich meinen Schlüssel in der Wohnung vergessen. Weil ich zu spät kam, habe
+            ich den Zug zum Vorstellungsgespräch verpasst. Hätte ich doch nur den Wecker
+            gestellt! Am Bahnhof habe ich mich furchtbar geärgert, bis eine Frau mich ansprach:
+            Sie hatte denselben Zug verpasst und musste zum selben Termin. Wir haben zusammen
+            ein Taxi genommen und sind gerade noch pünktlich angekommen. Jetzt sind wir beide
+            Kolleginnen, und ich habe eine neue Freundin gefunden.
+            """,
+            [
+                ("Die Autorin ist am Freitag zu spät aufgestanden.", True),
+                ("Sie hat ihr Handy zu Hause vergessen.", False),
+                ("Sie hat den Zug noch bekommen.", False),
+                ("Die Frau am Bahnhof hatte das gleiche Problem.", True),
+                ("Die beiden kamen zu spät zum Termin.", False),
+                ("Heute arbeiten die beiden in derselben Firma.", True),
+            ],
+        ),
+        (
+            """
             Der verlorene Lottoschein
 
-            Graz. Was für ein Pech – und dann doch noch Glück! Weil sie ihren Lottoschein
-            im Bus liegen gelassen hatte, dachte Rentnerin Hilde M. (72) wochenlang, dass
-            ihr Gewinn verloren war. „Ich habe mich so geärgert. Hätte ich ihn doch nur in
-            die Tasche gesteckt!“, sagt sie. Der Busfahrer Daniel K. hatte den Schein
-            jedoch gefunden und im Fundbüro abgegeben. Nachdem eine Zeitung über die
-            Geschichte berichtet hatte, meldete sich Frau M. dort – und bekam den Schein
-            zurück. Sie hatte 4.200 Euro gewonnen. Einen Teil des Geldes schenkte sie dem
-            Busfahrer. „Ohne ihn wäre das Geld weg gewesen“, sagt sie.
+            Graz. Weil sie ihren Lottoschein im Bus liegen gelassen hatte, dachte Hilde M. (72)
+            wochenlang, dass ihr Gewinn verloren war. Der Busfahrer hatte den Schein jedoch im
+            Fundbüro abgegeben. Nachdem eine Zeitung darüber berichtet hatte, meldete sich Frau
+            M. dort und bekam 4.200 Euro. Einen Teil schenkte sie dem Busfahrer.
             """,
             [
                 (
@@ -457,21 +628,9 @@ LESEN = {
                     "nie gekauft.",
                 ),
                 (
-                    "Sie dachte wochenlang, dass …",
-                    "der Gewinn verloren war.",
-                    "sie nichts gewonnen hatte.",
-                    "der Busfahrer den Schein hatte.",
-                ),
-                (
-                    "Der Busfahrer …",
-                    "brachte den Schein ins Fundbüro.",
-                    "behielt den Schein.",
-                    "rief Frau M. an.",
-                ),
-                (
-                    "Frau M. meldete sich, nachdem …",
+                    "Frau M. meldete sich im Fundbüro, nachdem …",
                     "eine Zeitung berichtet hatte.",
-                    "der Busfahrer sie besucht hatte.",
+                    "der Busfahrer sie angerufen hatte.",
                     "sie den Bus gefunden hatte.",
                 ),
                 (
@@ -484,86 +643,129 @@ LESEN = {
         ),
         (
             """
-            Sommerfest der Papierfabrik Weber · Programm am Samstag
-            14 Uhr: Begrüßung durch die Geschäftsführung (Festzelt)
-            14.30 Uhr: Kinderprogramm mit Zauberer (Wiese)
-            15 Uhr: Führung durch die neue Halle (Treffpunkt: Eingang)
-            16 Uhr: Fußballturnier der Abteilungen (Sportplatz)
-            18 Uhr: Buffet und Ehrung der Jubilare (Festzelt)
-            20 Uhr: Musik und Tanz mit der Band „Papierflieger“ (Festzelt)
+            Wenn Kollegen feiern
+
+            München. Fast jede zweite Firma in Deutschland organisiert jedes Jahr eine
+            Weihnachtsfeier. Für viele Mitarbeiter ist das eine gute Gelegenheit, Kollegen aus
+            anderen Abteilungen kennenzulernen. Experten raten aber, bei der Feier nicht zu viel
+            Alkohol zu trinken und keine Witze über den Chef zu machen. Beliebte Themen für den
+            Small Talk sind Urlaub, Sport und Essen.
             """,
             [
-                ("Ihre Kinder möchten einen Zauberer sehen.", "Wiese", "Festzelt", "Sportplatz"),
                 (
-                    "Sie wollen die neue Halle besichtigen. Wo treffen Sie sich?",
-                    "Eingang",
-                    "Wiese",
-                    "Festzelt",
+                    "Eine Weihnachtsfeier organisiert …",
+                    "fast jede zweite Firma.",
+                    "jede Firma.",
+                    "nur jede zehnte Firma.",
                 ),
                 (
-                    "Ihr Kollege arbeitet seit 25 Jahren in der Firma und wird geehrt.",
-                    "Festzelt",
-                    "Sportplatz",
-                    "Eingang",
-                ),
-                ("Ihre Abteilung spielt Fußball.", "Sportplatz", "Wiese", "Eingang"),
-                ("Sie möchten am Abend tanzen.", "Festzelt", "Sportplatz", "Wiese"),
-            ],
-        ),
-        (
-            """
-            Liebe Kolleginnen und Kollegen,
-            nach 31 Jahren bei Weber gehe ich Ende Juni in Rente. Ich möchte mich
-            deshalb bei euch verabschieden und lade euch herzlich zu meinem Ausstand ein:
-            am Freitag, dem 27. Juni, ab 15 Uhr in der Kantine. Für Essen und Getränke
-            ist gesorgt. Trotz der vielen Arbeit in den letzten Wochen hoffe ich, dass
-            möglichst viele von euch kommen können. Bitte sagt mir bis Mittwoch Bescheid,
-            damit ich genug Kuchen bestellen kann. Wer an diesem Tag Urlaub hat, ist
-            natürlich auch herzlich willkommen. Ich freue mich auf einen schönen
-            Nachmittag mit euch!
-            Eure Renate
-            """,
-            [
-                ("Renate …", "geht in Rente.", "wechselt die Firma.", "hat Geburtstag."),
-                ("Der Ausstand ist …", "in der Kantine.", "im Restaurant.", "bei Renate zu Hause."),
-                (
-                    "Das Essen …",
-                    "organisiert Renate.",
-                    "müssen die Kollegen mitbringen.",
-                    "gibt es nicht.",
+                    "Auf der Feier lernt man oft …",
+                    "Kollegen aus anderen Abteilungen kennen.",
+                    "neue Kunden kennen.",
+                    "den neuen Chef kennen.",
                 ),
                 (
-                    "Bis Mittwoch sollen die Kollegen …",
-                    "Bescheid sagen.",
-                    "Kuchen backen.",
-                    "Urlaub nehmen.",
-                ),
-                (
-                    "Kollegen im Urlaub …",
-                    "dürfen auch kommen.",
-                    "sollen nicht kommen.",
-                    "bekommen eine E-Mail.",
+                    "Experten raten, …",
+                    "nicht zu viel Alkohol zu trinken.",
+                    "über den Chef zu sprechen.",
+                    "früh nach Hause zu gehen.",
                 ),
             ],
         ),
         (
             {
                 "a": "Schlüsseldienst Notfall: Tür zugefallen? Wir sind in 30 Minuten da, Tag und Nacht.",
-                "b": "Glücksbringer aus Holz: handgemachte Geschenke für Hochzeiten, Geburten und Prüfungen.",
+                "b": "Glücksbringer aus Holz: Geschenke für Hochzeiten, Geburten und Prüfungen.",
                 "c": "Biergarten am See: Platz für Betriebsausflüge bis 150 Personen, mit Bootsfahrt.",
                 "d": "Abschleppdienst Krause: Panne auf der Autobahn? Wir helfen schnell.",
                 "e": "Fundbüro der Stadt: Haben Sie etwas verloren? Montag bis Freitag 8–16 Uhr.",
-                "f": "Rednerkurs: Halten Sie die perfekte Rede auf Ihrer Feier oder Ihrem Jubiläum.",
+                "f": "Rednerkurs: die perfekte Rede für Ihre Feier oder Ihr Jubiläum.",
+                "g": "Fotostudio Moment: Fotos für Hochzeiten, Jubiläen und Firmenfeiern.",
+                "h": "Partyzelt-Verleih: Zelte, Tische und Bänke für Sommerfeste.",
+                "i": "Reinigung Blitz: Flecken auf Ihrem Anzug? Morgen ist er wie neu.",
+                "j": "Tanzschule Schwung: Tanzkurse für Paare vor der Hochzeit.",
             },
             [
-                (
-                    "Herr Sommer hat seinen Schlüssel in der Wohnung vergessen und kommt nicht hinein.",
-                    "a",
-                ),
+                ("Herr Sommer kommt nicht in seine Wohnung, weil der Schlüssel drinnen ist.", "a"),
                 ("Frau Kaya organisiert einen Ausflug für 90 Kollegen.", "c"),
                 ("Lukas hat seine Brieftasche in der Straßenbahn verloren.", "e"),
                 ("Anna sucht ein Geschenk für ihre Schwester, die ein Baby bekommen hat.", "b"),
-                ("Herr Wolf soll beim Firmenjubiläum sprechen und weiß nicht, wie.", "f"),
+                ("Herr Wolf soll beim Firmenjubiläum sprechen.", "f"),
+                ("Auf Pauls Hemd ist ein Rotweinfleck, und morgen ist eine Feier.", "i"),
+                ("Familie Neumann sucht einen Koch für ein Fest zu Hause.", NO_AD),
+            ],
+        ),
+        (
+            "Sind Betriebsfeiern eine gute Idee?",
+            [
+                (
+                    "Svenja (29)",
+                    "Ich freue mich jedes Jahr auf unser Sommerfest. Man lernt die Kollegen ganz anders kennen, und das hilft später bei der Arbeit.",
+                    True,
+                ),
+                (
+                    "Herr Graf (55)",
+                    "Nach acht Stunden im Büro möchte ich nach Hause zu meiner Familie, nicht noch mit Kollegen feiern. Darauf kann ich verzichten.",
+                    False,
+                ),
+                (
+                    "Mehmet (36)",
+                    "Als ich neu in der Firma war, habe ich auf der Weihnachtsfeier meine besten Kollegen kennengelernt. Ohne die Feier wäre das nie passiert.",
+                    True,
+                ),
+                (
+                    "Julia (42)",
+                    "Bei uns trinken immer einige zu viel, und am nächsten Tag ist die Stimmung schlecht. Ich gehe nicht mehr hin.",
+                    False,
+                ),
+                (
+                    "Frau Lenz (61)",
+                    "Ein Betriebsausflug im Jahr ist eine schöne Tradition. Ich finde, eine Firma sollte das unbedingt weitermachen.",
+                    True,
+                ),
+                (
+                    "Tom (25)",
+                    "Mich stört, dass man fast hingehen muss. Wer nicht kommt, gilt schnell als unfreundlich. Das ist keine echte Feier.",
+                    False,
+                ),
+                (
+                    "Herr Ahmadi (47)",
+                    "Feiern ist gut für das Team. Wichtig ist nur, dass die Feier während der Arbeitszeit stattfindet. Dann kommen auch alle gern.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "rules",
+            """
+            Fundbüro der Stadt Seeburg: Informationen
+
+            Gefundene Sachen können Sie in jedem Bürgerbüro abgeben. Wir bewahren sie sechs
+            Monate auf. Wenn Sie etwas verloren haben, können Sie auch online suchen. Für die
+            Abholung brauchen Sie Ihren Ausweis. Bei Sachen mit einem Wert über 50 Euro
+            bezahlen Sie eine kleine Gebühr. Fundsachen aus Bussen und Bahnen sind die ersten
+            drei Tage noch bei den Verkehrsbetrieben.
+            """,
+            [
+                (
+                    "Gefundene Sachen bleiben im Fundbüro …",
+                    "sechs Monate.",
+                    "drei Tage.",
+                    "ein Jahr.",
+                ),
+                ("Zum Abholen braucht man …", "seinen Ausweis.", "eine Rechnung.", "einen Termin."),
+                (
+                    "Eine Gebühr bezahlt man, …",
+                    "wenn die Sache mehr als 50 Euro wert ist.",
+                    "immer.",
+                    "nie.",
+                ),
+                (
+                    "Wer etwas im Bus verloren hat, …",
+                    "fragt zuerst bei den Verkehrsbetrieben.",
+                    "muss sechs Monate warten.",
+                    "bekommt es nicht zurück.",
+                ),
             ],
         ),
     ),
@@ -571,17 +773,34 @@ LESEN = {
     5: _set(
         (
             """
+            Mein Vorstellungsgespräch auf Deutsch
+
+            Gestern hatte ich mein erstes Vorstellungsgespräch auf Deutsch. Ich hatte mich
+            gut vorbereitet und sogar einen Kurs an der Volkshochschule gemacht. Trotzdem war
+            ich sehr nervös. Als die Personalleiterin fragte, wo meine Stärken liegen, habe
+            ich die Frage falsch verstanden und über meinen Wohnort erzählt! Sie hat gelacht,
+            und ich habe noch einmal nachgefragt. Danach lief das Gespräch richtig gut. Ich
+            konnte zeigen, dass ich sowohl Erfahrung im Verkauf als auch gute
+            Computerkenntnisse habe. Heute Morgen kam die Zusage: Ich fange am ersten März an!
+            """,
+            [
+                ("Die Autorin hatte sich auf das Gespräch vorbereitet.", True),
+                ("Sie war im Gespräch ganz ruhig.", False),
+                ("Sie hat eine Frage falsch verstanden.", True),
+                ("Die Personalleiterin war unfreundlich.", False),
+                ("Sie hat Erfahrung im Verkauf.", True),
+                ("Sie hat die Stelle nicht bekommen.", False),
+            ],
+        ),
+        (
+            """
             Teekesselchen im Supermarkt
 
-            Mainz. Missverständnisse wegen der Sprache sind oft lustig. Die Spanierin
-            Lucía Gómez (29) lebt seit einem Jahr in Mainz und erzählt: „Im Supermarkt
-            habe ich nach ‚Birnen‘ gefragt, weil ich Glühbirnen für meine Lampe brauchte.
-            Der Verkäufer hat mir Obst gezeigt!“ Wörter mit zwei Bedeutungen heißen im
-            Deutschen „Teekesselchen“. Deshalb rät eine Lehrerin der Volkshochschule, in
-            solchen Situationen einfach nachzufragen: „Könnten Sie das bitte anders
-            erklären?“ Lucía lacht heute über die Geschichte. Sie besucht jetzt einen
-            Kurs, in dem die Teilnehmer jede Woche ein neues Teekesselchen lernen.
-            Wegen ihrer Erfahrung hat sie sogar ein kleines Buch darüber geschrieben.
+            Mainz. Die Spanierin Lucía Gómez (29) fragte im Supermarkt nach „Birnen“, weil sie
+            Glühbirnen brauchte, und der Verkäufer zeigte ihr Obst. Wörter mit zwei Bedeutungen
+            heißen im Deutschen „Teekesselchen“. Eine Lehrerin rät, in solchen Situationen
+            einfach nachzufragen. Lucía hat über ihre Erfahrungen sogar ein kleines Buch
+            geschrieben.
             """,
             [
                 (
@@ -591,16 +810,10 @@ LESEN = {
                     "eine Lampe kaufen.",
                 ),
                 (
-                    "Der Verkäufer …",
-                    "zeigte ihr Obst.",
-                    "verstand sie sofort.",
-                    "schickte sie weg.",
-                ),
-                (
                     "Ein Teekesselchen ist …",
                     "ein Wort mit zwei Bedeutungen.",
                     "ein Getränk.",
-                    "ein Kurs an der VHS.",
+                    "ein Kurs.",
                 ),
                 (
                     "Die Lehrerin rät, …",
@@ -608,114 +821,136 @@ LESEN = {
                     "nichts zu sagen.",
                     "ein Wörterbuch zu kaufen.",
                 ),
-                (
-                    "Wegen ihrer Erfahrung hat Lucía …",
-                    "ein Buch geschrieben.",
-                    "den Supermarkt gewechselt.",
-                    "Mainz verlassen.",
-                ),
             ],
         ),
         (
             """
-            Stellenmarkt Online · Kategorien
-            Büro und Verwaltung: Sachbearbeitung, Sekretariat, Empfang
-            Gastronomie und Hotel: Küche, Service, Rezeption
-            Handwerk: Elektriker, Schreiner, Mechaniker
-            Gesundheit und Soziales: Pflege, Erziehung, Beratung
-            Medien: Journalismus, Fotografie, Grafik
-            Ausbildungsplätze für Schulabgänger
+            Lernen ein Leben lang
+
+            Bonn. Die Volkshochschulen haben so viele Teilnehmer wie nie zuvor. Besonders
+            beliebt sind Sprachkurse und Kurse für den Beruf, zum Beispiel Bewerbungstraining.
+            Auch immer mehr Senioren melden sich an, viele für Computerkurse. „Vorkenntnisse
+            braucht man bei uns nicht“, sagt eine Sprecherin. Die Kurse sind günstig, weil sie
+            vom Staat unterstützt werden.
             """,
             [
                 (
-                    "Sie haben gerade die Schule beendet und suchen eine Ausbildung.",
-                    "Ausbildungsplätze für Schulabgänger",
-                    "Büro und Verwaltung",
-                    "Handwerk",
+                    "Die Volkshochschulen haben …",
+                    "mehr Teilnehmer als je zuvor.",
+                    "weniger Teilnehmer als früher.",
+                    "keine Sprachkurse mehr.",
                 ),
                 (
-                    "Sie sind Krankenpflegerin und suchen eine neue Stelle.",
-                    "Gesundheit und Soziales",
-                    "Gastronomie und Hotel",
-                    "Medien",
-                ),
-                ("Sie möchten als Reporter arbeiten.", "Medien", "Büro und Verwaltung", "Handwerk"),
-                (
-                    "Sie suchen eine Stelle an der Rezeption eines Hotels.",
-                    "Gastronomie und Hotel",
-                    "Büro und Verwaltung",
-                    "Medien",
-                ),
-                ("Sie reparieren gern Autos.", "Handwerk", "Medien", "Gesundheit und Soziales"),
-            ],
-        ),
-        (
-            """
-            Sehr geehrte Frau Doktor Kern,
-            vielen Dank für das freundliche Gespräch am Dienstag. Ich habe mich sehr
-            gefreut, Ihr Team kennenzulernen. Wie besprochen schicke ich Ihnen meine
-            Zeugnisse noch einmal als Datei, weil die Kopien in meiner Bewerbung leider
-            schlecht zu lesen waren. Ich möchte außerdem eine Frage klären: Im Gespräch
-            habe ich verstanden, dass die Stelle ab 1. September frei ist. Meine
-            Kollegin hat mir aber gesagt, dass es der 1. Oktober sein könnte. Könnten
-            Sie mir das bitte bestätigen? Ich bin sowohl im September als auch im
-            Oktober flexibel. Über eine positive Antwort würde ich mich sehr freuen.
-            Mit freundlichen Grüßen
-            Ana Petrović
-            """,
-            [
-                (
-                    "Frau Petrović hatte …",
-                    "ein Vorstellungsgespräch.",
-                    "einen Unfall.",
-                    "einen Kurs bei Frau Kern.",
+                    "Viele Senioren besuchen …",
+                    "Computerkurse.",
+                    "Bewerbungstraining.",
+                    "Sportkurse.",
                 ),
                 (
-                    "Sie schickt die Zeugnisse noch einmal, weil …",
-                    "die Kopien schlecht zu lesen waren.",
-                    "sie sie vergessen hatte.",
-                    "Frau Kern sie verloren hat.",
-                ),
-                (
-                    "Frau Petrović ist nicht sicher, …",
-                    "wann die Stelle beginnt.",
-                    "wie viel sie verdient.",
-                    "wo das Büro ist.",
-                ),
-                (
-                    "Sie kann anfangen …",
-                    "im September oder im Oktober.",
-                    "nur im September.",
-                    "erst im nächsten Jahr.",
-                ),
-                (
-                    "Der Ton der E-Mail ist …",
-                    "höflich und formell.",
-                    "unfreundlich.",
-                    "sehr persönlich.",
+                    "Die Kurse sind günstig, weil …",
+                    "der Staat sie unterstützt.",
+                    "die Lehrer kein Geld bekommen.",
+                    "sie online sind.",
                 ),
             ],
         ),
         (
             {
-                "a": "Bewerbungsfotos im Studio: professionell, schnell, mit Beratung zur Kleidung.",
+                "a": "Bewerbungsfotos im Studio: professionell und schnell.",
                 "b": "Klettern für Anfänger: Keine Vorkenntnisse nötig. Teilnahme auf eigene Gefahr.",
                 "c": "Deutsch für den Beruf (B1/B2): Telefonieren, E-Mails, Besprechungen.",
-                "d": "Übersetzungsbüro Klar: Wir übersetzen Zeugnisse und Dokumente in 30 Sprachen.",
-                "e": "Nähkurs am Abend: Lernen Sie, Ihre Kleidung selbst zu nähen und zu reparieren.",
+                "d": "Übersetzungsbüro Klar: Zeugnisse und Dokumente in 30 Sprachen.",
+                "e": "Nähkurs am Abend: Kleidung selbst nähen und reparieren.",
                 "f": "Training Vorstellungsgespräch: Üben Sie mit echten Personalleitern.",
+                "g": "Stellenbörse Gastronomie: Jobs in Küche und Service, auch Teilzeit.",
+                "h": "Lebenslauf-Check: Wir prüfen Ihre Bewerbung, bevor Sie sie abschicken.",
+                "i": "Fotokurs für Senioren: Grundlagen der Fotografie mit dem Handy.",
+                "j": "Sprachcafé: Deutsch sprechen mit Muttersprachlern, jeden Donnerstag.",
             },
             [
                 ("Herr Ali hat seine Zeugnisse auf Arabisch und braucht sie auf Deutsch.", "d"),
-                ("Frau Novak spricht gut Deutsch, hat aber im Büro Probleme am Telefon.", "c"),
-                (
-                    "Ben hat nächste Woche sein erstes Vorstellungsgespräch und ist sehr nervös.",
-                    "f",
-                ),
+                ("Frau Novak hat im Büro Probleme am Telefon.", "c"),
+                ("Ben hat nächste Woche sein erstes Vorstellungsgespräch.", "f"),
                 ("Julia braucht für ihre Bewerbung ein gutes Foto.", "a"),
+                ("Paul möchte einen neuen, etwas gefährlichen Sport ausprobieren.", "b"),
+                ("Herr Fischer (70) möchte lernen, mit seinem Handy schöne Bilder zu machen.", "i"),
+                ("Mia sucht einen Kurs, in dem sie Gitarre spielen lernt.", NO_AD),
+            ],
+        ),
+        (
+            "Sollte jeder Arbeitnehmer regelmäßig eine Weiterbildung machen müssen?",
+            [
                 (
-                    "Paul möchte einen neuen Sport ausprobieren, auch wenn es ein bisschen gefährlich ist.",
-                    "b",
+                    "Herr Stein (44)",
+                    "In meinem Beruf ändert sich alles sehr schnell. Ohne Weiterbildung wäre ich nach ein paar Jahren nicht mehr gut. Ich finde das richtig.",
+                    True,
+                ),
+                (
+                    "Olga (38)",
+                    "Ich lerne gern, aber ein Muss finde ich falsch. Jeder sollte selbst entscheiden, wann er einen Kurs macht.",
+                    False,
+                ),
+                (
+                    "Benni (26)",
+                    "Weiterbildungen sind die beste Chance, mehr Geld zu verdienen. Ich wäre für eine Pflicht, wenn die Firma sie bezahlt.",
+                    True,
+                ),
+                (
+                    "Frau Möller (60)",
+                    "Ich gehe in zwei Jahren in Rente. Warum sollte ich jetzt noch einen Kurs machen? Für ältere Leute ist das sinnlos.",
+                    False,
+                ),
+                (
+                    "Ali (33)",
+                    "Wer sich weiterbildet, ist sicherer, wenn die Firma Personal abbaut. Deshalb sollten alle mitmachen.",
+                    True,
+                ),
+                (
+                    "Herr Wendt (51)",
+                    "Viele Kurse sind langweilig und bringen nichts für die Praxis. Lieber lerne ich direkt bei der Arbeit.",
+                    False,
+                ),
+                (
+                    "Carla (29)",
+                    "Bei uns gibt es eine Weiterbildung pro Jahr für alle, und die Stimmung im Team ist dadurch besser geworden. Ich bin dafür.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "rules",
+            """
+            Anmeldebedingungen der Volkshochschule
+
+            Sie können sich online, per Post oder persönlich anmelden. Die Kursgebühr müssen
+            Sie vor dem ersten Termin bezahlen. Wenn Sie sich bis zwei Wochen vor Kursbeginn
+            abmelden, bekommen Sie das Geld zurück. Bei Kletter- und Sportkursen ist die
+            Teilnahme auf eigene Gefahr. Fällt ein Kurs aus, informieren wir Sie per E-Mail.
+            """,
+            [
+                (
+                    "Die Kursgebühr bezahlt man …",
+                    "vor dem ersten Termin.",
+                    "nach dem Kurs.",
+                    "am letzten Tag.",
+                ),
+                (
+                    "Das Geld bekommt man zurück, wenn man sich …",
+                    "zwei Wochen vor Kursbeginn abmeldet.",
+                    "nach dem ersten Termin abmeldet.",
+                    "nie abmeldet.",
+                ),
+                (
+                    "Bei Sportkursen …",
+                    "ist man selbst verantwortlich.",
+                    "zahlt die VHS bei einem Unfall.",
+                    "braucht man einen Arzttermin.",
+                ),
+                (
+                    "Wenn ein Kurs ausfällt, …",
+                    "bekommt man eine E-Mail.",
+                    "ruft die VHS an.",
+                    "steht es in der Zeitung.",
                 ),
             ],
         ),
@@ -724,17 +959,34 @@ LESEN = {
     6: _set(
         (
             """
+            Das Tagebuch meiner Großmutter
+
+            Beim Aufräumen habe ich auf dem Dachboden das alte Tagebuch meiner Großmutter
+            gefunden. Sie hat es mit 15 Jahren geschrieben, kurz nach dem Krieg. Damals
+            brauchte sie nicht in die Schule zu gehen, wenn auf dem Feld viel Arbeit war.
+            Taschengeld bekam sie nie, aber sie schreibt, dass sie trotzdem sehr glücklich
+            war. Besonders gern hat sie gemalt, am liebsten Hügel und Blumen. Es fällt mir
+            schwer, mir ihr Leben damals vorzustellen. Ich habe das Tagebuch meiner Mutter
+            gezeigt, und wir wollen es jetzt zusammen abschreiben, damit es nicht verloren geht.
+            """,
+            [
+                ("Das Tagebuch lag auf dem Dachboden.", True),
+                ("Die Großmutter schrieb es als Erwachsene.", False),
+                ("Wenn es viel Arbeit gab, musste sie nicht zur Schule.", True),
+                ("Sie bekam jede Woche Taschengeld.", False),
+                ("Die Großmutter malte gern.", True),
+                ("Die Autorin will das Tagebuch verkaufen.", False),
+            ],
+        ),
+        (
+            """
             Eine Malerin kehrt zurück
 
-            Murnau. Das Schlossmuseum zeigt ab Samstag eine Ausstellung über die
-            Malerin Elsa Hoff (1890–1962). Hoff wuchs in einer armen Familie auf und
-            durfte als Frau zuerst nicht an der Kunstakademie studieren. Deshalb nahm
-            sie privaten Unterricht. Ihre farbigen Bilder von Hügeln und kleinen Dörfern
-            wurden in den Zwanzigerjahren bekannt. Im Krieg wurden viele ihrer Werke
-            zerstört. Jahrzehntelang fand man ihre Bilder nur in wenigen Galerien. Erst
-            als ihr Enkel vor drei Jahren 40 Gemälde auf einem Dachboden entdeckte,
-            begann man, sich wieder für sie zu interessieren. „Es lohnt sich, sie neu
-            zu entdecken“, sagt die Museumsleiterin.
+            Murnau. Das Schlossmuseum zeigt eine Ausstellung über die Malerin Elsa Hoff
+            (1890–1962). Als Frau durfte sie zuerst nicht an der Kunstakademie studieren und
+            nahm deshalb privaten Unterricht. Im Krieg wurden viele ihrer Werke zerstört. Erst
+            als ihr Enkel vor drei Jahren 40 Gemälde auf einem Dachboden entdeckte, interessierte
+            man sich wieder für sie.
             """,
             [
                 (
@@ -744,16 +996,10 @@ LESEN = {
                     "sie krank war.",
                 ),
                 (
-                    "Ihre Bilder zeigen oft …",
-                    "Hügel und Dörfer.",
-                    "große Städte.",
-                    "Menschen im Krieg.",
-                ),
-                (
                     "Im Krieg …",
                     "wurden viele Bilder zerstört.",
-                    "malte sie besonders viel.",
                     "wurde sie berühmt.",
+                    "malte sie besonders viel.",
                 ),
                 (
                     "Ihr Enkel …",
@@ -761,106 +1007,132 @@ LESEN = {
                     "ist auch Maler.",
                     "leitet das Museum.",
                 ),
-                (
-                    "Die Museumsleiterin findet, dass …",
-                    "man Elsa Hoff neu entdecken sollte.",
-                    "die Bilder zu teuer sind.",
-                    "die Ausstellung zu klein ist.",
-                ),
             ],
         ),
         (
             """
-            Rathaus Altenburg · Wegweiser
-            Erdgeschoss: Bürgerbüro (Pass, Personalausweis, Anmeldung) · Information
-            1. Stock: Standesamt (Hochzeiten, Geburten) · Ratssaal
-            2. Stock: Bauamt · Umweltamt (Bürgerinitiativen, Klimaschutz)
-            3. Stock: Amt für Familie und Senioren · Kinderbetreuung
-            Untergeschoss: Wahlbüro (Briefwahl) · Archiv
+            Junge Leute und die Politik
+
+            Berlin. Jugendliche interessieren sich zwar wenig für Parteien, aber sehr für
+            Themen wie Klimaschutz und Gerechtigkeit. Das zeigt eine neue Studie. Viele
+            engagieren sich ehrenamtlich oder gehen auf Demonstrationen. Weder Zeitungen noch
+            Fernsehen sind für sie wichtige Informationsquellen; sie informieren sich vor allem
+            online. Fast zwei Drittel möchten schon mit 16 wählen dürfen.
             """,
             [
                 (
-                    "Sie möchten vor der Wahl per Brief wählen.",
-                    "Untergeschoss",
-                    "Erdgeschoss",
-                    "2. Stock",
-                ),
-                ("Sie möchten heiraten.", "1. Stock", "3. Stock", "Erdgeschoss"),
-                (
-                    "Ihre Bürgerinitiative möchte einen Park retten.",
-                    "2. Stock",
-                    "1. Stock",
-                    "Untergeschoss",
-                ),
-                ("Sie brauchen einen neuen Pass.", "Erdgeschoss", "2. Stock", "3. Stock"),
-                (
-                    "Sie suchen einen Platz in einem Kindergarten.",
-                    "3. Stock",
-                    "1. Stock",
-                    "Untergeschoss",
-                ),
-            ],
-        ),
-        (
-            """
-            Lieber Opa,
-            für mein Schulprojekt „Früher und heute“ möchte ich dich interviewen. Meine
-            Lehrerin hat gesagt, dass wir jemanden aus einer anderen Generation fragen
-            sollen. Ich möchte wissen, wie deine Jugend war: Musstest du zu Hause viel
-            helfen? Was durftest du nicht? Mama hat erzählt, dass du nie Taschengeld
-            bekommen hast und schon mit 14 Jahren arbeiten musstest. Stimmt das? Du
-            brauchst dich nicht vorzubereiten, wir reden einfach. Es dauert ungefähr
-            eine Stunde. Passt dir Sonntagnachmittag? Ich bringe Kuchen mit!
-            Dein Felix
-            """,
-            [
-                (
-                    "Felix schreibt, weil …",
-                    "er ein Interview für die Schule machen will.",
-                    "er Geld braucht.",
-                    "sein Opa Geburtstag hat.",
+                    "Jugendliche interessieren sich besonders für …",
+                    "Themen wie Klimaschutz.",
+                    "Parteien.",
+                    "das Fernsehen.",
                 ),
                 (
-                    "Die Lehrerin möchte, dass die Schüler …",
-                    "jemanden aus einer anderen Generation fragen.",
-                    "einen Aufsatz über sich schreiben.",
-                    "ein Museum besuchen.",
+                    "Informationen bekommen sie vor allem …",
+                    "online.",
+                    "aus der Zeitung.",
+                    "im Fernsehen.",
                 ),
                 (
-                    "Laut Mama hat der Opa …",
-                    "nie Taschengeld bekommen.",
-                    "viel Taschengeld bekommen.",
-                    "nie gearbeitet.",
-                ),
-                (
-                    "Der Opa muss sich …",
-                    "nicht vorbereiten.",
-                    "gut vorbereiten.",
-                    "Fragen aufschreiben.",
-                ),
-                (
-                    "Felix möchte den Opa …",
-                    "am Sonntagnachmittag besuchen.",
-                    "am Samstagabend anrufen.",
-                    "in der Schule treffen.",
+                    "Fast zwei Drittel der Jugendlichen …",
+                    "möchten mit 16 wählen.",
+                    "sind in einer Partei.",
+                    "gehen nie wählen.",
                 ),
             ],
         ),
         (
             {
-                "a": "Erzählcafé: Senioren erzählen Jugendlichen von früher. Jeden ersten Dienstag im Monat.",
+                "a": "Erzählcafé: Senioren erzählen Jugendlichen von früher. Jeden ersten Dienstag.",
                 "b": "Malkurs für Erwachsene: Landschaften in Öl, mit Pinsel und Spachtel.",
-                "c": "Wahl-Info-Abend: Alle Parteien stellen ihre Programme vor. Diskutieren Sie mit!",
-                "d": "Ehrenamt gesucht: Die Tafel braucht Helfer, die Lebensmittel an Bedürftige verteilen.",
-                "e": "Kunstreise nach Wien: Museen und Galerien in vier Tagen, mit Führung.",
-                "f": "Familienberatung: Hilfe bei Streit und Konflikten zwischen Eltern und Kindern.",
+                "c": "Wahl-Info-Abend: Alle Parteien stellen ihre Programme vor.",
+                "d": "Die Tafel sucht Helfer, die Lebensmittel an Bedürftige verteilen.",
+                "e": "Kunstreise nach Wien: Museen und Galerien in vier Tagen.",
+                "f": "Familienberatung: Hilfe bei Streit zwischen Eltern und Kindern.",
+                "g": "Ahnenforschung: Wir helfen Ihnen, Ihre Familiengeschichte zu finden.",
+                "h": "Bürgerinitiative „Grüner Park“ sucht Unterstützer gegen das neue Parkhaus.",
+                "i": "Galerie am Markt: Ausstellung junger Künstler, Eintritt frei.",
+                "j": "Klavierunterricht für Kinder und Erwachsene, auch zu Hause.",
             },
             [
-                ("Frau Berger ist Rentnerin und möchte etwas Sinnvolles für andere tun.", "d"),
+                ("Frau Berger ist Rentnerin und möchte Menschen in Not helfen.", "d"),
                 ("Herr Kim weiß noch nicht, welche Partei er wählen soll.", "c"),
-                ("Familie Roth streitet oft mit ihrer Tochter und braucht Rat.", "f"),
+                ("Familie Roth streitet oft mit ihrer Tochter.", "f"),
                 ("Mia möchte lernen, Berge und Seen zu malen.", "b"),
-                ("Herr Lang ist 85 und erzählt gern von seiner Kindheit.", "a"),
+                ("Herr Lang möchte wissen, woher seine Urgroßeltern kamen.", "g"),
+                ("Tim will gegen den Bau eines Parkhauses in seinem Stadtteil kämpfen.", "h"),
+                ("Sara möchte am Wochenende einen Theaterkurs besuchen.", NO_AD),
+            ],
+        ),
+        (
+            "Sollten Jugendliche schon mit 16 wählen dürfen?",
+            [
+                (
+                    "Leonie (16)",
+                    "Wir müssen mit den Entscheidungen von heute am längsten leben. Deshalb sollten wir auch mitbestimmen dürfen.",
+                    True,
+                ),
+                (
+                    "Herr Schulze (63)",
+                    "Mit 16 weiß man noch zu wenig über Politik. Ich finde 18 genau richtig.",
+                    False,
+                ),
+                (
+                    "Aylin (19)",
+                    "Ich hätte mit 16 sehr gern gewählt. Viele in meiner Klasse haben sich damals für Politik interessiert.",
+                    True,
+                ),
+                (
+                    "Frau Hofer (47)",
+                    "Jugendliche lassen sich zu leicht von Eltern oder vom Internet beeinflussen. Davon halte ich nicht viel.",
+                    False,
+                ),
+                (
+                    "Max (17)",
+                    "Ich darf mit 17 Auto fahren lernen, aber nicht wählen? Das kann ich nicht nachvollziehen. Ich bin dafür.",
+                    True,
+                ),
+                (
+                    "Herr Brandt (52)",
+                    "Ich bin Lehrer und sehe, dass die meisten Schüler sich weder für Parteien noch für Wahlen interessieren. Das bringt nichts.",
+                    False,
+                ),
+                (
+                    "Nora (35)",
+                    "In einigen Bundesländern dürfen 16-Jährige schon bei Kommunalwahlen wählen, und das funktioniert gut. Warum nicht überall?",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "rules",
+            """
+            Museumsordnung des Schlossmuseums
+
+            Bitte geben Sie Taschen und Rucksäcke an der Garderobe ab. Fotografieren ist
+            erlaubt, aber ohne Blitz. Essen und Trinken sind nur im Café erlaubt. Kinder unter
+            12 Jahren dürfen das Museum nur mit Erwachsenen besuchen. Der Eintritt ist für
+            Schüler und Studenten frei.
+            """,
+            [
+                (
+                    "Taschen und Rucksäcke …",
+                    "gibt man an der Garderobe ab.",
+                    "darf man mitnehmen.",
+                    "sind im Museum verboten.",
+                ),
+                ("Fotos darf man machen, …", "aber ohne Blitz.", "nur mit Blitz.", "gar nicht."),
+                (
+                    "Kinder unter 12 Jahren …",
+                    "brauchen eine erwachsene Begleitung.",
+                    "dürfen nicht ins Museum.",
+                    "zahlen keinen Eintritt.",
+                ),
+                (
+                    "Studenten …",
+                    "zahlen keinen Eintritt.",
+                    "zahlen den halben Preis.",
+                    "dürfen nur am Sonntag kommen.",
+                ),
             ],
         ),
     ),
@@ -868,26 +1140,37 @@ LESEN = {
     7: _set(
         (
             """
+            Drei Tage in den Bergen
+
+            Letztes Wochenende war ich mit zwei Freundinnen auf der Berghütte Edelweiß. Der Weg
+            zum Gipfel war so steil, dass wir oft Pausen machen mussten. Oben war die Aussicht
+            aber einmalig. In der Hütte haben wir im Lager mit zwanzig anderen Wanderern
+            geschlafen, sodass es nachts ziemlich laut war. Zum Glück hatte ich Ohrstöpsel
+            dabei. Der Hüttenwirt war streng: Jeder musste seinen Müll wieder mit ins Tal nehmen.
+            Je länger ich darüber nachdenke, desto sinnvoller finde ich diese Regel. Nächstes
+            Jahr wollen wir wiederkommen, dann aber im Herbst.
+            """,
+            [
+                ("Die Autorin war allein auf der Hütte.", False),
+                ("Der Weg zum Gipfel war anstrengend.", True),
+                ("Sie hatte ein Einzelzimmer.", False),
+                ("In der Nacht war es laut.", True),
+                ("Den Müll konnte man in der Hütte lassen.", False),
+                ("Sie möchte im nächsten Jahr wieder auf die Hütte.", True),
+            ],
+        ),
+        (
+            """
             Je mehr Gäste, desto weniger Ruhe?
 
-            Lüneburger Heide. Im August blüht die Heide lila, und dann kommen die meisten
-            Touristen. Für die Region ist das gut, denn viele Hotels und Gaststätten leben
-            vom Tourismus. Doch je mehr Menschen kommen, desto größer werden die
-            Probleme: Manche Besucher verlassen die Wege, sodass Pflanzen und Tiere
-            gestört werden. Der Naturschutzverein hat deshalb neue Regeln eingeführt. Man
-            darf nur noch auf markierten Wegen wandern, und Hunde müssen an die Leine.
-            Außerdem schützt man die Heide, indem man Schafe dort fressen lässt. Ein
-            Schäfer erklärt: „Ohne die Schafe würde die Heide verschwinden.“
+            Lüneburger Heide. Im August blüht die Heide, und dann kommen die meisten
+            Touristen. Je mehr Menschen kommen, desto größer werden die Probleme: Manche
+            Besucher verlassen die Wege, sodass Tiere gestört werden. Man darf deshalb nur noch
+            auf markierten Wegen wandern, und Hunde müssen an die Leine. Außerdem schützt man
+            die Heide, indem man Schafe dort fressen lässt.
             """,
             [
                 ("Die meisten Touristen kommen …", "im August.", "im Winter.", "im Frühling."),
-                ("Der Tourismus ist für die Region …", "wichtig.", "unwichtig.", "verboten."),
-                (
-                    "Manche Besucher …",
-                    "verlassen die Wege.",
-                    "fahren mit dem Auto in die Heide.",
-                    "füttern die Schafe.",
-                ),
                 (
                     "Hunde …",
                     "müssen an die Leine.",
@@ -904,77 +1187,127 @@ LESEN = {
         ),
         (
             """
-            Stadthalle Kiel · Veranstaltungen im Mai
-            Saal 1: Rockkonzert „Wonnetöne“ (Fr., 20 Uhr)
-            Saal 2: Kindertheater „Die kleine Hexe“ (Sa., 15 Uhr)
-            Studio: Jazzabend mit Lesung (Do., 19.30 Uhr)
-            Foyer: Fotoausstellung „Leben an der Küste“ (täglich 10–18 Uhr)
-            Kasse: Karten und Information · Garderobe im Untergeschoss
+            Konzertkarten in Minuten weg
+
+            Hamburg. Innerhalb von nur 20 Minuten waren alle 40.000 Karten für das Konzert der
+            Band Wonnetöne verkauft. Viele Fans sind enttäuscht. Der Veranstalter plant
+            deshalb ein zweites Konzert außerhalb der Stadt. Die Karten dafür sollen nur online
+            verkauft werden, und jeder darf höchstens zwei Karten kaufen.
             """,
             [
                 (
-                    "Sie möchten mit Ihrer Tochter (6) ins Theater gehen.",
-                    "Saal 2",
-                    "Saal 1",
-                    "Studio",
-                ),
-                ("Sie mögen Jazz und Literatur.", "Studio", "Saal 1", "Foyer"),
-                ("Sie möchten am Nachmittag Fotos anschauen.", "Foyer", "Studio", "Saal 2"),
-                ("Sie wollen Karten kaufen.", "Kasse", "Foyer", "Saal 1"),
-                ("Sie möchten am Freitagabend laute Musik hören.", "Saal 1", "Studio", "Saal 2"),
-            ],
-        ),
-        (
-            """
-            Hallo Mareike,
-            wir sind zurück von der Hütte, und ich muss dir unbedingt erzählen, wie es
-            war! Der Weg zum Gipfel war so steil, dass ich zweimal eine Pause machen
-            musste. Oben war die Aussicht aber einmalig. Die Hütte war voll, sodass wir
-            im Lager mit zwanzig anderen Leuten schlafen mussten. Zum Glück hatte ich
-            Ohrstöpsel dabei! Der Hüttenwirt war sehr streng: Ab 22 Uhr war Nachtruhe,
-            und jeder musste seinen Müll wieder mit ins Tal nehmen. Am Anfang fand ich
-            das übertrieben, aber eigentlich sind die Regeln sinnvoll. Nächstes Jahr
-            musst du mitkommen!
-            Bis bald, Ina
-            """,
-            [
-                ("Der Weg zum Gipfel war …", "sehr steil.", "ganz flach.", "zu kurz."),
-                (
-                    "Ina und ihre Freunde schliefen …",
-                    "im Lager.",
-                    "in einem Einzelzimmer.",
-                    "im Zelt.",
+                    "Die Karten waren …",
+                    "in 20 Minuten verkauft.",
+                    "nach 20 Tagen verkauft.",
+                    "noch nicht im Verkauf.",
                 ),
                 (
-                    "Ina hatte Glück, weil sie …",
-                    "Ohrstöpsel dabeihatte.",
-                    "ein eigenes Zimmer hatte.",
-                    "früh schlafen konnte.",
+                    "Das zweite Konzert findet …",
+                    "außerhalb der Stadt statt.",
+                    "im Zentrum statt.",
+                    "im Ausland statt.",
                 ),
                 (
-                    "Den Müll musste man …",
-                    "wieder mitnehmen.",
-                    "in der Hütte lassen.",
-                    "verbrennen.",
+                    "Für das zweite Konzert darf man …",
+                    "höchstens zwei Karten kaufen.",
+                    "beliebig viele Karten kaufen.",
+                    "Karten nur an der Kasse kaufen.",
                 ),
-                ("Heute findet Ina die Regeln …", "sinnvoll.", "übertrieben.", "lustig."),
             ],
         ),
         (
             {
                 "a": "Stadtführung „Geheime Ecken“: zwei Stunden durch die Altstadt, auch für Kinder.",
-                "b": "Berghütte Edelweiß: Übernachtung im Lager, Halbpension, Reservierung nötig.",
-                "c": "Fahrradtour am Fluss entlang: 40 km, Leihräder vorhanden, mit Picknick.",
-                "d": "Musikschule: Gitarre und Schlagzeug für Anfänger und Fortgeschrittene.",
-                "e": "Heidetour mit dem Schäfer: Erleben Sie die Schafe und lernen Sie alles über Honig.",
+                "b": "Berghütte Edelweiß: Übernachtung im Lager, Reservierung nötig.",
+                "c": "Fahrradtour am Fluss entlang: 40 km, Leihräder vorhanden.",
+                "d": "Musikschule: Gitarre und Schlagzeug für Anfänger.",
+                "e": "Heidetour mit dem Schäfer: Schafe erleben und alles über Honig lernen.",
                 "f": "Ticketservice: Karten für Konzerte, Theater und Sport in ganz Deutschland.",
+                "g": "Bergschule Alpin: Kletterkurse mit Bergführern, Ausrüstung inklusive.",
+                "h": "Hotel am Hafen: Zimmer mit Blick aufs Meer, Frühstück inklusive.",
+                "i": "Museumsnacht: Alle Museen der Stadt sind bis Mitternacht geöffnet.",
+                "j": "Busreisen Weber: Tagesfahrten zu Weihnachtsmärkten.",
             },
             [
-                ("Familie Kaiser möchte am Wochenende die Stadt mit ihren Kindern entdecken.", "a"),
-                ("Herr Ott sucht Karten für das Konzert seiner Lieblingsband in Berlin.", "f"),
+                ("Familie Kaiser möchte die Stadt mit ihren Kindern entdecken.", "a"),
+                ("Herr Ott sucht Karten für das Konzert seiner Lieblingsband.", "f"),
                 ("Lea und Nils wollen in den Bergen übernachten.", "b"),
                 ("Tim möchte in einer Band spielen, kann aber noch kein Instrument.", "d"),
                 ("Frau Brandt fährt gern Rad, hat aber kein eigenes Fahrrad.", "c"),
+                ("Jonas will das Klettern lernen, hat aber keine Ausrüstung.", "g"),
+                ("Herr Yilmaz sucht einen Campingplatz am See.", NO_AD),
+            ],
+        ),
+        (
+            "Sollten Berghütten strenge Regeln haben?",
+            [
+                (
+                    "Bernd (58)",
+                    "Ohne Regeln würde auf den Hütten Chaos herrschen. Wenn 30 Leute in einem Raum schlafen, braucht man eine Nachtruhe.",
+                    True,
+                ),
+                (
+                    "Kim (24)",
+                    "Ich gehe in die Berge, um frei zu sein. Wenn mir jemand sagt, wann ich schlafen muss, ist das nicht mehr Urlaub.",
+                    False,
+                ),
+                (
+                    "Frau Maier (44)",
+                    "Ich finde es richtig, dass man seinen Müll wieder mitnehmen muss. Die Natur dankt es uns.",
+                    True,
+                ),
+                (
+                    "Lukas (31)",
+                    "Manche Hüttenwirte übertreiben. Bei uns durfte man nicht einmal leise reden. Das ist zu viel.",
+                    False,
+                ),
+                (
+                    "Anja (36)",
+                    "Mit Kindern bin ich froh über klare Regeln. So können alle gut schlafen und am nächsten Morgen früh losgehen.",
+                    True,
+                ),
+                (
+                    "Herr Wenger (67)",
+                    "Früher gab es fast keine Regeln, und es hat trotzdem funktioniert. Die Leute haben einfach Rücksicht genommen.",
+                    False,
+                ),
+                (
+                    "Jana (28)",
+                    "Regeln sind sinnvoll, weil heute viel mehr Menschen in die Berge kommen als früher. Ich bin dafür.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "rules",
+            """
+            Hüttenordnung der Berghütte Edelweiß
+
+            Die Nachtruhe beginnt um 22 Uhr. Im Lager benutzen Sie bitte einen eigenen
+            Schlafsack. Bergschuhe bleiben im Schuhraum. Müll nehmen Sie bitte wieder mit ins
+            Tal. Duschen ist wegen Wassermangels nur drei Minuten erlaubt. Bezahlen können Sie
+            nur bar.
+            """,
+            [
+                (
+                    "Ab 22 Uhr …",
+                    "soll es ruhig sein.",
+                    "gibt es Abendessen.",
+                    "schließt die Hütte.",
+                ),
+                (
+                    "Im Lager braucht man …",
+                    "einen eigenen Schlafsack.",
+                    "eine eigene Matratze.",
+                    "keine Decke.",
+                ),
+                (
+                    "Die Duschzeit ist kurz, weil …",
+                    "es wenig Wasser gibt.",
+                    "viele Gäste da sind.",
+                    "das Wasser teuer ist.",
+                ),
+                ("Bezahlen kann man …", "nur mit Bargeld.", "nur mit Karte.", "erst im Tal."),
             ],
         ),
     ),
@@ -982,17 +1315,34 @@ LESEN = {
     8: _set(
         (
             """
+            Ein Jahr ohne Auto
+
+            Vor einem Jahr haben mein Mann und ich unser Auto verkauft. Statt mit dem Auto zu
+            fahren, nehmen wir jetzt das Fahrrad oder den Bus. Am Anfang war das schwierig,
+            besonders beim Einkaufen. Inzwischen haben wir ein Lastenrad, mit dem wir sogar die
+            Getränkekisten transportieren können. Wir sparen viel Geld und sind fitter als
+            früher. Nur im Winter, wenn es schneit, vermissen wir das Auto manchmal. Für lange
+            Reisen nehmen wir den Zug, und unsere Nachbarn leihen uns ihr Auto, wenn wir es
+            wirklich brauchen. Damit sind wir sehr zufrieden.
+            """,
+            [
+                ("Die Familie hat ihr Auto verkauft.", True),
+                ("Das Einkaufen war am Anfang leicht.", False),
+                ("Mit dem Lastenrad können sie schwere Sachen transportieren.", True),
+                ("Seit sie kein Auto haben, geben sie mehr Geld aus.", False),
+                ("Im Winter fehlt ihnen das Auto manchmal.", True),
+                ("Für lange Reisen mieten sie ein Auto.", False),
+            ],
+        ),
+        (
+            """
             Ein Dorf für alle Generationen
 
             Bei Kassel. Vor fünf Jahren haben sich zwölf Familien und acht Rentner
-            zusammengeschlossen, um gemeinsam auf einem alten Bauernhof zu wohnen. Jede
-            Familie hat eine eigene Wohnung, aber Küche, Garten und Werkstatt teilen
-            sich alle. Die Älteren kümmern sich um die Kinder, damit die Eltern arbeiten
-            können. Die Jüngeren kaufen ein und helfen im Haushalt. Statt jeder ein
-            eigenes Auto zu haben, nutzen alle drei gemeinsame Autos und viele Fahrräder.
-            Anfangs gab es oft Streit, zum Beispiel über die Hausarbeit. Allmählich hat
-            die Gruppe aber Kompromisse gefunden. „Es ist, als ob wir eine große Familie
-            wären“, sagt eine Bewohnerin.
+            zusammengeschlossen, um auf einem alten Bauernhof zu wohnen. Die Älteren kümmern
+            sich um die Kinder, damit die Eltern arbeiten können. Anfangs gab es oft Streit,
+            aber allmählich hat die Gruppe Kompromisse gefunden. „Es ist, als ob wir eine große
+            Familie wären“, sagt eine Bewohnerin.
             """,
             [
                 (
@@ -1001,18 +1351,11 @@ LESEN = {
                     "nur Rentner.",
                     "nur Studenten.",
                 ),
-                ("Die Küche …", "teilen sich alle.", "hat jede Familie selbst.", "gibt es nicht."),
                 (
                     "Die Älteren kümmern sich um die Kinder, …",
                     "damit die Eltern arbeiten können.",
                     "weil sie Geld brauchen.",
                     "obwohl sie keine Zeit haben.",
-                ),
-                (
-                    "Statt eigener Autos …",
-                    "gibt es drei gemeinsame Autos.",
-                    "fahren alle mit dem Bus.",
-                    "hat niemand ein Auto.",
                 ),
                 (
                     "Am Anfang …",
@@ -1024,103 +1367,126 @@ LESEN = {
         ),
         (
             """
-            Haus der Geschichte · Ausstellung „Deutschland nach 1945“
-            Raum 1: Kriegsende und Besatzungszonen
-            Raum 2: Die Luftbrücke nach Berlin (1948/49)
-            Raum 3: Gründung von BRD und DDR (1949)
-            Raum 4: Der Bau der Mauer (1961) und das Leben in der geteilten Stadt
-            Raum 5: Die friedliche Revolution und die Maueröffnung (1989)
-            Raum 6: Wiedervereinigung und Europa (ab 1990)
+            Zeitzeugen erzählen
+
+            Berlin. Im Haus der Geschichte erzählen jeden Monat Menschen, wie sie den Fall der
+            Mauer 1989 erlebt haben. Die Veranstaltung ist besonders bei Schulklassen beliebt.
+            „Viele Jugendliche wissen kaum etwas über die DDR“, sagt die Organisatorin. Die
+            Gespräche werden aufgenommen und später im Internet veröffentlicht.
             """,
             [
                 (
-                    "Sie möchten mehr über die Flugzeuge wissen, die Berlin versorgten.",
-                    "Raum 2",
-                    "Raum 1",
-                    "Raum 4",
-                ),
-                ("Sie interessieren sich für den 9. November 1989.", "Raum 5", "Raum 4", "Raum 6"),
-                (
-                    "Sie möchten sehen, wie 1949 zwei deutsche Staaten entstanden.",
-                    "Raum 3",
-                    "Raum 2",
-                    "Raum 6",
+                    "Die Zeitzeugen erzählen vom …",
+                    "Fall der Mauer.",
+                    "Bau der Mauer.",
+                    "Ende des Krieges.",
                 ),
                 (
-                    "Sie wollen wissen, wie die Menschen mit der Mauer lebten.",
-                    "Raum 4",
-                    "Raum 5",
-                    "Raum 1",
-                ),
-                ("Sie interessieren sich für die Zeit nach 1990.", "Raum 6", "Raum 3", "Raum 5"),
-            ],
-        ),
-        (
-            """
-            Liebe Nachbarinnen und Nachbarn,
-            unsere Stadt plant, die Hauptstraße im nächsten Jahr für Autos zu sperren
-            und dort einen breiten Radweg zu bauen. Viele von uns finden das gut, weil
-            die Luft besser und die Straße ruhiger wird. Andere haben Sorgen: Wie kommen
-            ältere Menschen ohne Auto zum Arzt? Wo sollen die Lieferwagen der Geschäfte
-            parken? Damit alle ihre Meinung sagen können, laden wir zu einem
-            Informationsabend ein: am Donnerstag um 19 Uhr in der Grundschule. Auch
-            Vertreter der Stadt kommen. Bitte kommt zahlreich – je mehr Leute da sind,
-            desto besser!
-            Eure Bürgerinitiative „Saubere Luft“
-            """,
-            [
-                (
-                    "Die Stadt will …",
-                    "die Hauptstraße für Autos sperren.",
-                    "eine neue Autobahn bauen.",
-                    "mehr Parkplätze bauen.",
+                    "Die Veranstaltung besuchen besonders oft …",
+                    "Schulklassen.",
+                    "Touristen.",
+                    "Politiker.",
                 ),
                 (
-                    "Viele Nachbarn finden den Plan gut, weil …",
-                    "die Luft besser wird.",
-                    "sie kein Fahrrad haben.",
-                    "es billiger ist.",
-                ),
-                (
-                    "Manche haben Sorgen um …",
-                    "ältere Menschen ohne Auto.",
-                    "die Schulkinder.",
-                    "die Touristen.",
-                ),
-                (
-                    "Der Informationsabend ist …",
-                    "in der Grundschule.",
-                    "im Rathaus.",
-                    "auf der Hauptstraße.",
-                ),
-                (
-                    "Die Bürgerinitiative wünscht sich, dass …",
-                    "viele Leute kommen.",
-                    "nur Vertreter der Stadt kommen.",
-                    "niemand diskutiert.",
+                    "Die Gespräche …",
+                    "kann man später im Internet sehen.",
+                    "sind geheim.",
+                    "werden nicht aufgenommen.",
                 ),
             ],
         ),
         (
             {
-                "a": "Repair-Café: Wir reparieren Fahrräder, Lampen und Kleidung, statt sie wegzuwerfen.",
-                "b": "Zeitzeugen gesucht: Haben Sie den Mauerfall erlebt? Das Museum möchte Ihre Geschichte hören.",
-                "c": "Mehrgenerationenhaus: Wohnungen frei für Familien, die mit Älteren zusammenleben möchten.",
+                "a": "Repair-Café: Wir reparieren Fahrräder, Lampen und Kleidung.",
+                "b": "Zeitzeugen gesucht: Haben Sie den Mauerfall erlebt?",
+                "c": "Mehrgenerationenhaus: Wohnungen frei für Familien, die mit Älteren leben möchten.",
                 "d": "Lastenräder zu mieten: Transportieren Sie Ihren Einkauf ohne Auto.",
-                "e": "Sprachcafé: Menschen aus aller Welt treffen sich, um Deutsch zu sprechen.",
-                "f": "Kleidertausch: Bringen Sie Kleidung mit, die Sie nicht mehr tragen, und nehmen Sie andere mit.",
+                "e": "Sprachcafé: Menschen aus aller Welt sprechen Deutsch zusammen.",
+                "f": "Kleidertausch: Bringen Sie Kleidung mit und nehmen Sie andere mit.",
+                "g": "Stadtführung „Geteiltes Berlin“: auf den Spuren der Mauer.",
+                "h": "Solarberatung: Strom vom eigenen Dach. Kostenlose Erstberatung.",
+                "i": "Carsharing Grün: Autos in Ihrer Nähe, nur bezahlen, wenn Sie fahren.",
+                "j": "Gemeinschaftsgarten sucht Mitglieder: Gemüse anbauen mit Nachbarn.",
             },
             [
-                ("Herr Schulz (70) hat 1989 in Berlin gewohnt und erzählt gern davon.", "b"),
-                (
-                    "Familie Yilmaz möchte gern mit anderen Generationen unter einem Dach wohnen.",
-                    "c",
-                ),
+                ("Herr Schulz hat 1989 in Berlin gewohnt und erzählt gern davon.", "b"),
+                ("Familie Yilmaz möchte mit anderen Generationen unter einem Dach wohnen.", "c"),
                 ("Lisas Fahrrad ist kaputt, aber sie will kein neues kaufen.", "a"),
                 ("Frau Berg hat kein Auto und muss einen großen Einkauf nach Hause bringen.", "d"),
+                ("Herr Weiß möchte auf seinem Haus Energie aus der Sonne produzieren.", "h"),
+                ("Mara möchte gern mit anderen zusammen Tomaten und Salat anbauen.", "j"),
+                ("Herr Koch sucht einen günstigen Flug nach Spanien.", NO_AD),
+            ],
+        ),
+        (
+            "Sollte die Innenstadt autofrei werden?",
+            [
                 (
-                    "Omar ist neu in der Stadt und möchte sein Deutsch üben und Leute kennenlernen.",
-                    "e",
+                    "Sophie (31)",
+                    "Endlich könnten Kinder sicher auf der Straße spielen, und die Luft wäre sauberer. Ich bin sofort dafür.",
+                    True,
+                ),
+                (
+                    "Herr Koch (64)",
+                    "Ich kann nicht mehr gut laufen und brauche mein Auto. Für ältere Menschen wäre das eine Katastrophe.",
+                    False,
+                ),
+                (
+                    "Emre (27)",
+                    "Ich fahre sowieso nur Rad. Statt neue Parkhäuser zu bauen, sollte die Stadt mehr Radwege bauen.",
+                    True,
+                ),
+                (
+                    "Frau Seidel (52)",
+                    "Mein Geschäft lebt von Kunden, die mit dem Auto kommen. Ohne Parkplätze muss ich vielleicht schließen.",
+                    False,
+                ),
+                (
+                    "Lars (40)",
+                    "In Kopenhagen funktioniert es super. Wenn es genug Busse gibt, ist eine autofreie Stadt viel schöner.",
+                    True,
+                ),
+                (
+                    "Herr Albers (46)",
+                    "Die Idee ist zwar gut, aber zu radikal. Man sollte die Autos langsam reduzieren, nicht sofort verbieten.",
+                    False,
+                ),
+                (
+                    "Marie (19)",
+                    "Ich bin froh über jeden Platz, wo man ohne Autolärm sitzen kann. Das macht die Stadt lebendig.",
+                    True,
+                ),
+            ],
+        ),
+        (
+            "rules",
+            """
+            Regeln im Gemeinschaftsgarten „Grüne Mitte“
+
+            Jedes Mitglied bekommt ein eigenes Beet und hilft einmal im Monat bei der
+            Gartenarbeit für alle. Werkzeug finden Sie im Gartenhaus; bitte bringen Sie es
+            sauber zurück. Chemische Mittel sind nicht erlaubt. Das Gemüse aus den gemeinsamen
+            Beeten wird geteilt. Der Mitgliedsbeitrag beträgt 20 Euro im Jahr.
+            """,
+            [
+                (
+                    "Einmal im Monat …",
+                    "hilft jedes Mitglied bei der Gartenarbeit für alle.",
+                    "gibt es ein Fest.",
+                    "bekommt man neues Werkzeug.",
+                ),
+                (
+                    "Das Werkzeug …",
+                    "liegt im Gartenhaus.",
+                    "muss man selbst mitbringen.",
+                    "kann man kaufen.",
+                ),
+                ("Chemische Mittel …", "sind verboten.", "sind erlaubt.", "gibt es im Gartenhaus."),
+                (
+                    "Der Mitgliedsbeitrag …",
+                    "kostet 20 Euro pro Jahr.",
+                    "kostet 20 Euro pro Monat.",
+                    "ist kostenlos.",
                 ),
             ],
         ),
