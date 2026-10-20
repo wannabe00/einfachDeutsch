@@ -441,6 +441,72 @@ LEKTION_CHECKS = dict(
                 ),
             ],
         ),
+        _l(
+            22,
+            [
+                ("Die Mauer [wurde] 1961 gebaut.", "passive"),
+                ("Der Euro ist 2002 eingeführt [worden].", "passive"),
+                ("Berlin wurde in vier Sektoren [aufgeteilt].", "aufteilen"),
+                ("Die Stadt wurde [von] den Soldaten besetzt.", "by"),
+                ("1990 kam die [Wiedervereinigung].", "reunification"),
+            ],
+            [
+                ("I'd have liked to be there.", "Ich wäre gern dabei gewesen."),
+                (
+                    "The wall was opened in 1989.",
+                    "Die Mauer wurde 1989 geöffnet.",
+                    "1989 wurde die Mauer geöffnet.",
+                ),
+                (
+                    "In the FRG democracy was introduced.",
+                    "In der BRD wurde die Demokratie eingeführt.",
+                ),
+                (
+                    "Do you know when the GDR was founded? (Sie)",
+                    "Wissen Sie, wann die DDR gegründet wurde?",
+                ),
+            ],
+        ),
+        _l(
+            23,
+            [
+                ("Ich fahre Rad, statt das Auto [zu] nehmen.", "zu"),
+                ("Er ging, [ohne] sich zu verabschieden.", "without"),
+                ("Vor der Kreuzung musst du [bremsen].", "brake"),
+                ("Wir sollten auf das Auto [verzichten].", "do without"),
+                ("Das [hängt] vom Wetter ab.", "abhängen"),
+            ],
+            [
+                ("Cycling is in.", "Fahrradfahren ist in."),
+                ("We should avoid waste.", "Wir sollten Abfall vermeiden."),
+                (
+                    "She left without saying goodbye.",
+                    "Sie ging, ohne sich zu verabschieden.",
+                    "Sie ist gegangen, ohne sich zu verabschieden.",
+                ),
+                ("Cycling is sustainable.", "Fahrradfahren ist nachhaltig."),
+            ],
+        ),
+        _l(
+            24,
+            [
+                ("Ich lerne Deutsch, [um] in Wien zu studieren.", "in order to"),
+                ("Sie spricht langsam, [damit] die Kinder sie verstehen.", "so that"),
+                ("Er tut so, als ob er alles [wüsste].", "wissen"),
+                ("Wir haben uns auf einen Plan [geeinigt].", "einigen"),
+                ("Die Nachbarin wohnt [nebenan].", "next door"),
+            ],
+            [
+                ("That solves several problems at once.", "Das löst mehrere Probleme auf einmal."),
+                ("It was nice to meet you. (euch)", "Es war schön, euch kennenzulernen."),
+                ("She acts as if she were ill.", "Sie tut so, als ob sie krank wäre."),
+                (
+                    "All the best for the future!",
+                    "Alles Gute für die Zukunft!",
+                    "Viel Erfolg für die Zukunft!",
+                ),
+            ],
+        ),
     ]
 )
 
@@ -910,6 +976,71 @@ mehr bekamen.
             "Die anderen werden es dir danken!",
             "Vorher muss natürlich fleißig geübt werden.",
             "Die Altstadt ist immer einen Besuch wert.",
+        ],
+    ),
+    8: modul_check(
+        LEVEL,
+        24,
+        dialogue=(
+            [
+                "A: Wissen Sie, wann die Mauer geöffnet wurde?",
+                "B: ___",
+                "A: Danke! Da wäre ich gern dabei gewesen.",
+            ],
+            "Ja, am 9. November 1989.",
+            "Ich fahre Rad, statt das Auto zu nehmen.",
+            "Er tut so, als ob er alles wüsste.",
+        ),
+        qa=[
+            ("Wann wurde die BRD gegründet?", "Im Jahr 1949."),
+            ("Warum fährst du Rad?", "Um fit zu bleiben."),
+            ("Warum sprichst du so langsam?", "Damit alle mich verstehen."),
+            ("Wie war der Abend?", "Es war, als ob wir eine große Familie wären."),
+            ("Was kann jeder für das Klima tun?", "Abfall vermeiden und Rad fahren."),
+        ],
+        odd=[
+            ("die Bremse", "die Diktatur", "die Republik", "die Revolution"),
+            ("die Luftbrücke", "die Klingel", "der Radweg", "das Ersatzteil"),
+            ("nachhaltig", "die Einsamkeit", "die Gemeinschaft", "das Zusammenleben"),
+            ("bremsen", "um ... zu", "damit", "als ob"),
+        ],
+        reading=(
+            """
+In einem Dorf bei Kassel haben sich junge und alte Menschen zusammengeschlossen.
+Sie wohnen in einem großen Haus, um sich gegenseitig zu helfen. Die Älteren
+kümmern sich um die Kinder, damit die Eltern arbeiten können. Die Jüngeren
+kaufen ein und fahren die Älteren mit dem Auto zum Arzt. Anfangs gab es viel
+Streit, aber allmählich hat die Gruppe Kompromisse gefunden. Eine Bewohnerin
+sagt: Es ist, als ob wir eine große Familie wären.
+""",
+            [
+                ("Im Haus wohnen nur alte Menschen.", False),
+                ("Die Älteren passen auf die Kinder auf.", True),
+                ("Von Anfang an gab es keine Probleme.", False),
+                ("Die Bewohner fühlen sich wie eine Familie.", True),
+            ],
+        ),
+        form=[
+            ("Die Mauer ___ 1961 gebaut. (Präteritum)", "wurde"),
+            ("Er fuhr weiter, ohne eine Pause ___ machen.", "zu"),
+            ("Ich spare, ___ ein Rad zu kaufen.", "um"),
+            ("Ich erkläre es, ___ du es verstehst.", "damit"),
+            ("Er tut so, als ob er der Chef ___. (sein)", "wäre"),
+        ],
+        mistake=[
+            ("Der Euro ist 2002 eingeführt *geworden*.", "Der Euro ist 2002 eingeführt worden."),
+            ("Sie fährt Rad, statt das Auto *nehmen*.", "Sie fährt Rad, statt das Auto zu nehmen."),
+            (
+                "Ich lerne, *damit* die Prüfung zu bestehen.",
+                "Ich lerne, um die Prüfung zu bestehen.",
+            ),
+            ("Er tut so, als ob er alles *weiß*.", "Er tut so, als ob er alles wüsste."),
+        ],
+        dictation=[
+            "In der BRD wurde die Demokratie eingeführt.",
+            "Fahrradfahren ist in.",
+            "Das löst mehrere Probleme auf einmal.",
+            "Er tut so, als ob er alles wüsste.",
         ],
     ),
 }
