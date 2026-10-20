@@ -143,6 +143,63 @@ LEKTION_CHECKS = dict(
                 ("I have to decline the invitation.", "Ich muss die Einladung ablehnen."),
             ],
         ),
+        _l(
+            7,
+            [
+                ("Hast du Lust, die Katze [zu] füttern?", "zu"),
+                ("Ich rate dir, gut darüber [nachzudenken].", "nachdenken"),
+                ("Der Hund [frisst] viel Fleisch.", "fressen"),
+                ("Ein Hamster wohnt im [Käfig].", "cage"),
+                ("Danke, das ist ein guter [Hinweis].", "tip"),
+            ],
+            [
+                ("Can I help you? (Sie)", "Kann ich Ihnen helfen?"),
+                (
+                    "It is important to inform yourself first.",
+                    "Es ist wichtig, sich vorher zu informieren.",
+                ),
+                ("A guinea pig is easy to look after.", "Ein Meerschweinchen ist pflegeleicht."),
+                ("I'd like to get a dog.", "Ich möchte mir einen Hund anschaffen."),
+            ],
+        ),
+        _l(
+            8,
+            [
+                ("Ich frühstücke, [bevor] ich zur Arbeit fahre.", "before"),
+                ("Ich höre Musik, [während] ich koche.", "while"),
+                ("[Da] ich gern helfe, werde ich Krankenpfleger.", "since"),
+                ("Das [entspricht] meinen Fähigkeiten.", "entsprechen"),
+                ("Er spricht nicht gern mit Fremden. Er ist [schüchtern].", "shy"),
+            ],
+            [
+                ("That suits me very well.", "Das passt sehr gut zu mir."),
+                ("I wouldn't have expected that.", "Das hätte ich nicht erwartet."),
+                ("She is suitable for the job.", "Sie ist für den Beruf geeignet."),
+                (
+                    "Before I sleep, I read a book.",
+                    "Bevor ich schlafe, lese ich ein Buch.",
+                ),
+            ],
+        ),
+        _l(
+            9,
+            [
+                ("Sport trägt zu einem [größeren] Wohlbefinden bei.", "groß"),
+                ("Das ist die [wichtigste] Regel.", "wichtig"),
+                ("Rauchen [schadet] der Gesundheit.", "schaden"),
+                ("[Atmen] Sie tief ein!", "atmen"),
+                ("Im [Durchschnitt] schlafen wir sieben Stunden.", "average"),
+            ],
+            [
+                ("Thank you for listening.", "Vielen Dank fürs Zuhören."),
+                ("Close your eyes. (Sie)", "Schließen Sie die Augen."),
+                (
+                    "We are looking for a quieter workplace.",
+                    "Wir suchen einen ruhigeren Arbeitsplatz.",
+                ),
+                ("We want to reduce stress.", "Wir wollen den Stress reduzieren."),
+            ],
+        ),
     ]
 )
 
@@ -278,6 +335,67 @@ er sein Geld zurück.
             "Bald wird in fast jedem Haushalt ein PC stehen.",
             "Fühlen Sie sich wie zu Hause.",
             "Falls Sie später kommen, rufen Sie bitte an.",
+        ],
+    ),
+    3: modul_check(
+        LEVEL,
+        9,
+        dialogue=(
+            [
+                "A: Kann ich Ihnen helfen?",
+                "B: ___",
+                "A: Dann würde ich Ihnen eine Katze empfehlen.",
+            ],
+            "Ja, ich möchte ein Haustier, aber ich arbeite tagsüber.",
+            "Vielen Dank fürs Zuhören.",
+            "Das ist die wichtigste Regel.",
+        ),
+        qa=[
+            ("Was frisst ein Kaninchen?", "Heu und Möhren."),
+            ("Was sagt der Test?", "Dass ich ein kreativer Typ bin."),
+            ("Warum soll man Sport treiben?", "Weil er zur Gesundheit beiträgt."),
+            ("Wann putzt du die Zähne?", "Bevor ich ins Bett gehe."),
+            ("Haben Sie noch Fragen?", "Nein, danke für den Vortrag."),
+        ],
+        odd=[
+            ("der Vortrag", "das Kaninchen", "der Hamster", "das Meerschweinchen"),
+            ("das Heu", "schüchtern", "ehrgeizig", "kontaktfreudig"),
+            ("füttern", "die Folie", "der Vortrag", "die Präsentation"),
+            ("zutraulich", "der Raucher", "das Rauchverbot", "die Sucht"),
+        ],
+        reading=(
+            """
+Die Firma Holtz hat neue Regeln für die Gesundheit ihrer Mitarbeiter. Jeden
+Mittag gibt es eine kurze Entspannungsübung im Freien. In der Kantine kann man
+gesünderes Essen kaufen, und Raucher dürfen nur noch draußen rauchen. Die
+Unternehmensleitung glaubt, dass diese Regeln zu einem größeren Wohlbefinden
+beitragen. Viele Mitarbeiter sind zufrieden, aber einige Raucher ärgern sich.
+""",
+            [
+                ("Die Entspannungsübung ist am Morgen.", False),
+                ("In der Kantine gibt es jetzt gesünderes Essen.", True),
+                ("Man darf im Büro rauchen.", False),
+                ("Nicht alle Mitarbeiter finden die Regeln gut.", True),
+            ],
+        ),
+        form=[
+            ("Ich habe vergessen, die Tür ___. (abschließen)", "abzuschließen"),
+            ("Hast du Zeit, mir ___ helfen?", "zu"),
+            ("___ ich koche, höre ich Radio. (while)", "Während"),
+            ("Das ist der ___ Weg. (kurz, Superlativ)", "kürzeste"),
+            ("Wir suchen eine ___ Lösung. (gut, Komparativ)", "bessere"),
+        ],
+        mistake=[
+            ("Ich muss den Käfig *zu* putzen.", "Ich muss den Käfig putzen."),
+            ("Ich rate dir, *zu nachdenken*.", "Ich rate dir, nachzudenken."),
+            ("Bevor ich schlafe, ich *lese* ein Buch.", "Bevor ich schlafe, lese ich ein Buch."),
+            ("Das ist die *wichtigeste* Regel.", "Das ist die wichtigste Regel."),
+        ],
+        dictation=[
+            "Hast du Lust, die Kaninchen zu füttern?",
+            "Während andere lange nachdenken, entscheidet sie sofort.",
+            "Sport trägt zu einem größeren Wohlbefinden bei.",
+            "Vielen Dank für Ihre Aufmerksamkeit.",
         ],
     ),
 }
