@@ -13,8 +13,8 @@ when it is added to `LIVE` after its audio exists (DEBUG shows every set).
 from ..a2.hoeren import _sound
 from ..dsl import clip, hoeren_teil, hoeren_tf, hoeren_who, mc
 
-# Empty until the B1 audio is recorded (owner runs make_hoeren_audio locally).
-LIVE: set[int] = set()
+# Recorded 2026-10-20 (make_hoeren_audio --level B1, Azure).
+LIVE = set(range(1, 9))
 
 SHORT = "Listen to the text. Answer both questions. (You hear it twice.)"
 TALK = "Listen to the talk. Choose a, b or c. (You hear it once.)"
