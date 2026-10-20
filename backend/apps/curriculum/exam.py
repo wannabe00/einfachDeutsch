@@ -22,7 +22,7 @@ import random
 from django.conf import settings
 from django.utils import timezone
 
-from apps.accounts.levels import LEVEL_RANK, level_rank, visible_levels
+from apps.accounts.levels import COURSE_LEVELS, TOP_LEVEL, visible_levels
 from apps.exercises.models import Exercise
 
 from . import grading
@@ -51,10 +51,14 @@ GRADABLE_TYPES = [
 
 
 def next_level_of(level: str) -> str | None:
-    """The level after `level`, or None at the top of the ladder."""
-    ordered = sorted(LEVEL_RANK, key=LEVEL_RANK.get)
-    idx = level_rank(level)
-    return ordered[idx + 1] if idx + 1 < len(ordered) else None
+    """The level after `level`, or None at the top of the course (B1)."""
+    idx = COURSE_LEVELS.index(level) if level in COURSE_LEVELS else len(COURSE_LEVELS)
+    return COURSE_LEVELS[idx + 1] if idx + 1 < len(COURSE_LEVELS) else None
+
+
+def course_complete(user) -> bool:
+    """Passed the exam of the course's last level: the whole course is done."""
+    return LevelExamAttempt.objects.filter(user=user, cefr_level=TOP_LEVEL, passed=True).exists()
 
 
 def _level_exercise_qs(level: str):
@@ -113,6 +117,7 @@ def exam_status(user) -> dict:
     return {
         "level": level,
         "next_level": next_level_of(level),
+        "course_complete": course_complete(user),
         "completed_lessons": completed,
         "total_lessons": total,
         "progress": round(ratio, 3),
@@ -194,6 +199,7 @@ def submit_attempt(user, attempt_id: int, answers: dict) -> dict:
         "total": total,
         "pass_threshold": PASS_THRESHOLD,
         "promoted_to": promoted_to,
+        "course_complete": passed and attempt.cefr_level == TOP_LEVEL,
         "level": user.profile.cefr_level,
         "visible_levels": visible_levels(user.profile.cefr_level),
     }

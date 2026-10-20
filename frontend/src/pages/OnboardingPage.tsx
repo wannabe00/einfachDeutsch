@@ -12,8 +12,9 @@ import { cn } from "@/lib/utils"
 import { PlacementTestForm } from "@/components/onboarding/PlacementTestForm"
 import { AuthShell, AuthWordmark } from "@/components/auth/AuthShell"
 import { AUTH_CARD } from "@/lib/authCard"
+import { COURSE_LEVELS } from "@/lib/site"
 
-const LEVELS: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
+const LEVELS: CEFRLevel[] = [...COURSE_LEVELS]
 
 type Phase = "choose" | "test" | "result"
 

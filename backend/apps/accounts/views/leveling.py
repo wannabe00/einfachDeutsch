@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from apps.ai_assistant.throttles import PlacementThrottle
 
 from ..leveling import local_level, public_test, score_objective
-from ..models import CEFR_LEVELS
+from ..levels import COURSE_LEVELS, cap_level
 from ..scheduling import streak_status
 
-VALID_LEVELS = {code for code, _ in CEFR_LEVELS}
+VALID_LEVELS = set(COURSE_LEVELS)
 
 
 @api_view(["POST"])
@@ -52,7 +52,7 @@ def placement_test(request):
 
     summary = score_objective(answers)
     result = {
-        "suggested_level": local_level(summary),
+        "suggested_level": cap_level(local_level(summary)),
         "source": "local",
         "rationale": "",
         "correct": summary["correct"],
@@ -64,8 +64,8 @@ def placement_test(request):
         from apps.ai_assistant.llm import AIConfigError, determine_level
 
         ai = determine_level(summary, writing)
-        if ai.get("level") in VALID_LEVELS:
-            result["suggested_level"] = ai["level"]
+        if ai.get("level"):
+            result["suggested_level"] = cap_level(str(ai["level"]).upper())
             result["source"] = "ai"
             result["rationale"] = ai.get("rationale", "")
     except AIConfigError:

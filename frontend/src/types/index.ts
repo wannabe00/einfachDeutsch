@@ -423,6 +423,8 @@ export interface Gamification {
 export interface ExamStatus {
   level: CEFRLevel
   next_level: CEFRLevel | null
+  /** Passed the B1 exam, the course's last level. */
+  course_complete: boolean
   completed_lessons: number
   total_lessons: number
   /** 0..1 share of the level's lessons completed. */
@@ -447,6 +449,8 @@ export interface ExamResult {
   pass_threshold: number
   /** The level you were promoted to, or null if you didn't pass. */
   promoted_to: CEFRLevel | null
+  /** This pass finished the course (B1). */
+  course_complete: boolean
   level: CEFRLevel
   visible_levels: CEFRLevel[]
 }
