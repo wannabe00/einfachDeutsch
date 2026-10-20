@@ -20,9 +20,17 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         for lesson in LESSONS:
+            picture = {}
+            if lesson.get("image"):
+                picture = {
+                    "image_url": f"/history/{lesson['image']}.jpg",
+                    "image_credit": lesson["image_credit"],
+                }
+            # Without a bundled picture, keep the one backfill_history_images found.
             HistoryLesson.objects.update_or_create(
                 order=lesson["order"],
                 defaults={
+                    **picture,
                     "cefr_level": lesson["level"],
                     "era": lesson["era"],
                     "title": lesson["title"],
@@ -30,9 +38,6 @@ class Command(BaseCommand):
                     "body_de": lesson["body_de"].strip(),
                     "body_en": lesson["body_en"].strip(),
                     "quiz": lesson["quiz"],
-                    # No picture yet: the UI draws the era tile.
-                    "image_url": f"/history/{lesson['image']}.jpg" if lesson.get("image") else "",
-                    "image_credit": lesson.get("image_credit", ""),
                 },
             )
         orders = [lesson["order"] for lesson in LESSONS]
