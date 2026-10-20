@@ -1,29 +1,158 @@
-"""B1 Schreiben sets: one per Modul, in the same two-Teil shape as A2 but longer,
-as in the Goethe B1 writing paper. Teil 1: an informal e-mail to a friend
-(60-80 words). Teil 2: a formal e-mail or letter (40-60 words). Three points
-each, graded with the A2 rubric.
+"""B1 Schreiben sets, shaped like the Goethe-Zertifikat B1 writing paper: one set
+per Modul. Teil 1: an e-mail to a friend (about 80 words). Teil 2: a forum post
+giving your opinion (about 80 words, no greeting needed). Teil 3: a short
+formal message (about 40 words). Three points each, graded with the A-E rubric.
 
 All tasks and model answers are original, on the Modul's topics.
 """
 
 from ..dsl import schreiben_text
 
-INFORMAL = "Write an e-mail to a friend (60-80 words)."
-FORMAL = "Write a formal e-mail (40-60 words)."
+INFORMAL = "Write an e-mail to a friend (about 80 words)."
+FORUM_POST = "Write a forum post with your opinion (about 80 words)."
+FORMAL = "Write a formal message (about 40 words)."
 
 
-def _set(informal, formal) -> list:
-    """Each is (situation, points, model answer)."""
-    (s1, p1, m1), (s2, p2, m2) = informal, formal
-    return [
-        schreiben_text(INFORMAL, s1, p1, (60, 80), m1, teil=1),
-        schreiben_text(FORMAL, s2, p2, (40, 60), m2, formal=True, teil=2),
-    ]
+def _pair(informal, formal):
+    """The two letters of a Modul; its forum post is in FORUM."""
+    return informal, formal
 
 
-SCHREIBEN = {
+FORUM = {
+    1: (
+        "Im Online-Forum einer Zeitschrift lesen Sie die Frage: „Sollen junge Leute "
+        "nach der Schule sofort allein wohnen?“ Schreiben Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Nennen Sie Vorteile oder Nachteile.",
+            "Erzählen Sie von Ihrer Erfahrung.",
+        ],
+        """
+        Ich finde, dass junge Leute nach der Schule nicht sofort allein wohnen müssen.
+        Ein Vorteil ist natürlich, dass man selbstständig wird und lernt, einen Haushalt
+        zu führen. Allerdings sind die Mieten in den Großstädten sehr hoch, und viele
+        Auszubildende verdienen wenig. Ich selbst habe nach der Schule noch zwei Jahre bei
+        meinen Eltern gewohnt und Geld gespart. Danach bin ich in eine WG gezogen. Das war
+        für mich die beste Lösung, weil ich nie allein war.
+        """,
+    ),
+    2: (
+        "In einem Forum diskutieren Leute: „Werden Roboter bald unsere Hausarbeit machen? "
+        "Ist das gut?“ Schreiben Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Nennen Sie einen Vorteil und einen Nachteil.",
+            "Was machen Sie selbst im Haushalt gern oder nicht gern?",
+        ],
+        """
+        Ich glaube, dass in zwanzig Jahren in vielen Wohnungen Roboter arbeiten werden.
+        Das finde ich eigentlich gut. Ein großer Vorteil ist, dass wir mehr Zeit für die
+        Familie und für Hobbys haben werden. Ein Nachteil ist aber, dass solche Geräte
+        teuer sind und nicht alle Menschen sie bezahlen können. Ich selbst putze nicht
+        gern Fenster, deshalb würde ich mir sofort einen Fensterroboter kaufen. Kochen
+        möchte ich aber immer selbst, das macht mir einfach zu viel Spaß.
+        """,
+    ),
+    3: (
+        "Im Forum einer Firmenzeitung lesen Sie die Frage: „Sollen Firmen Sportkurse "
+        "während der Arbeitszeit anbieten?“ Schreiben Sie Ihre Meinung.",
+        ["Sagen Sie Ihre Meinung.", "Begründen Sie Ihre Meinung.", "Machen Sie einen Vorschlag."],
+        """
+        Meiner Meinung nach sollten Firmen ihren Mitarbeitern Sportkurse während der
+        Arbeitszeit anbieten. Viele Menschen sitzen acht Stunden am Schreibtisch und haben
+        deshalb oft Rückenschmerzen. Wer sich regelmäßig bewegt, ist gesünder und arbeitet
+        auch besser. Außerdem ist die Atmosphäre im Team besser, wenn man zusammen Sport
+        macht. Ich schlage vor, dass jede Firma zweimal pro Woche eine kurze Gymnastik am
+        Arbeitsplatz anbietet. Das kostet nicht viel Geld, aber es hilft allen.
+        """,
+    ),
+    4: (
+        "In einem Forum lesen Sie: „Betriebsfeiern sind Zeitverschwendung.“ Schreiben "
+        "Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Erzählen Sie von einer Feier, die Sie erlebt haben.",
+            "Was macht eine gute Feier aus?",
+        ],
+        """
+        Ich bin ganz anderer Meinung: Betriebsfeiern sind keine Zeitverschwendung. Bei der
+        Arbeit hat man oft keine Zeit, die Kollegen richtig kennenzulernen. Letztes Jahr
+        haben wir einen Betriebsausflug an einen See gemacht. Obwohl es geregnet hat,
+        hatten alle viel Spaß, und ich habe mich zum ersten Mal lange mit meiner Chefin
+        unterhalten. Eine gute Feier braucht nicht viel Geld. Wichtig sind gutes Essen,
+        etwas Musik und vor allem Kollegen, die gern dabei sind.
+        """,
+    ),
+    5: (
+        "Im Forum einer Volkshochschule lesen Sie die Frage: „Lohnt sich eine "
+        "Weiterbildung auch mit 50 noch?“ Schreiben Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Begründen Sie Ihre Meinung.",
+            "Welchen Kurs würden Sie gern machen?",
+        ],
+        """
+        Ich bin davon überzeugt, dass man nie zu alt zum Lernen ist. Die Arbeitswelt
+        verändert sich sehr schnell, deshalb muss man sowohl mit dreißig als auch mit
+        fünfzig neue Dinge lernen. Ältere Menschen haben außerdem viel Erfahrung, und
+        das hilft beim Lernen. Meine Mutter hat mit 55 einen Computerkurs gemacht und
+        hat danach eine neue Stelle gefunden. Ich selbst würde gern einen Fotokurs
+        besuchen, weil ich schon lange bessere Bilder von meinen Reisen machen möchte.
+        """,
+    ),
+    6: (
+        "In einem Forum diskutieren Leute: „Sollen Jugendliche schon mit 16 wählen dürfen?“ "
+        "Schreiben Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Nennen Sie ein Argument dafür und eins dagegen.",
+            "Wie ist das in Ihrem Heimatland?",
+        ],
+        """
+        Ich finde, dass Jugendliche schon mit 16 wählen dürfen sollten. Viele junge Menschen
+        engagieren sich für den Klimaschutz und interessieren sich sehr für Politik. Die
+        Entscheidungen von heute betreffen vor allem ihre Zukunft. Ein Argument dagegen
+        ist zwar, dass manche Jugendliche noch nicht genug über Parteien wissen. Aber das
+        gilt auch für viele Erwachsene. In meinem Heimatland darf man erst mit 18 wählen,
+        und ich glaube, dass sich das bald ändern sollte.
+        """,
+    ),
+    7: (
+        "Im Forum einer Reisezeitschrift lesen Sie die Frage: „Sollen beliebte Regionen "
+        "die Zahl der Touristen begrenzen?“ Schreiben Sie Ihre Meinung.",
+        ["Sagen Sie Ihre Meinung.", "Begründen Sie Ihre Meinung.", "Wohin reisen Sie selbst gern?"],
+        """
+        Meiner Meinung nach ist es sinnvoll, die Zahl der Touristen in manchen Regionen zu
+        begrenzen. Je mehr Menschen kommen, desto mehr Müll und Verkehr gibt es, sodass die
+        Natur und die Einwohner leiden. Allerdings leben viele Familien vom Tourismus.
+        Deshalb finde ich eine Lösung gut, bei der man vorher eine Karte kaufen muss. Ich
+        selbst reise am liebsten in kleine Dörfer in den Bergen, wo es ruhig ist und
+        man sich gut erholen kann.
+        """,
+    ),
+    8: (
+        "In einem Forum lesen Sie die Frage: „Soll unsere Innenstadt autofrei werden?“ "
+        "Schreiben Sie Ihre Meinung.",
+        [
+            "Sagen Sie Ihre Meinung.",
+            "Nennen Sie Vorteile oder Nachteile.",
+            "Wie kommen Sie selbst in die Stadt?",
+        ],
+        """
+        Ich bin dafür, dass die Innenstadt autofrei wird. Statt mit dem Auto zu fahren,
+        könnten die Leute den Bus oder das Fahrrad nehmen. Dadurch wird die Luft sauberer,
+        und es ist leiser und sicherer für Kinder. Ein Nachteil ist, dass ältere Menschen
+        ohne Auto nicht so leicht zum Einkaufen kommen. Deshalb braucht man mehr Busse und
+        vielleicht kleine Elektrobusse nur für die Altstadt. Ich selbst fahre jeden Tag mit
+        dem Rad in die Stadt, um fit zu bleiben.
+        """,
+    ),
+}
+
+
+_LETTERS = {
     # Modul 1 (Lektionen 1-3): friendship, internships, housing.
-    1: _set(
+    1: _pair(
         (
             "Sie haben gerade ein Praktikum in einer anderen Stadt begonnen. Schreiben "
             "Sie Ihrer Freundin Lea eine E-Mail.",
@@ -63,7 +192,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 2 (Lektionen 4-6): complaints, technology, invitations.
-    2: _set(
+    2: _pair(
         (
             "Ihr Freund Ben hat Sie zu seinem Geburtstagsessen eingeladen. Schreiben "
             "Sie ihm eine E-Mail.",
@@ -104,7 +233,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 3 (Lektionen 7-9): pets, careers, health at work.
-    3: _set(
+    3: _pair(
         (
             "Sie haben sich ein Haustier angeschafft. Schreiben Sie Ihrem Freund Max eine E-Mail.",
             [
@@ -143,7 +272,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 4 (Lektionen 10-12): mishaps, happiness, company events.
-    4: _set(
+    4: _pair(
         (
             "Ihnen ist gestern etwas Dummes passiert. Schreiben Sie Ihrer Freundin Julia "
             "eine E-Mail.",
@@ -183,7 +312,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 5 (Lektionen 13-15): misunderstandings, courses, applications.
-    5: _set(
+    5: _pair(
         (
             "Sie haben einen Kurs an der Volkshochschule angefangen. Schreiben Sie Ihrem "
             "Freund Leo eine E-Mail.",
@@ -224,7 +353,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 6 (Lektionen 16-18): memories, art, politics.
-    6: _set(
+    6: _pair(
         (
             "Sie haben eine interessante Ausstellung besucht. Schreiben Sie Ihrer "
             "Freundin Anna eine E-Mail.",
@@ -264,7 +393,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 7 (Lektionen 19-21): tourism, mountain huts, concerts and cities.
-    7: _set(
+    7: _pair(
         (
             "Sie waren am Wochenende auf einem Konzert. Schreiben Sie Ihrem Freund Tom "
             "eine E-Mail.",
@@ -304,7 +433,7 @@ SCHREIBEN = {
         ),
     ),
     # Modul 8 (Lektionen 22-24): history, environment, living together.
-    8: _set(
+    8: _pair(
         (
             "Sie fahren seit einem Monat nur noch mit dem Fahrrad zur Arbeit. Schreiben "
             "Sie Ihrer Freundin Sophie eine E-Mail.",
@@ -343,4 +472,16 @@ SCHREIBEN = {
             """,
         ),
     ),
+}
+
+
+SCHREIBEN = {
+    modul: [
+        schreiben_text(INFORMAL, *informal[:2], (65, 90), informal[2], teil=1),
+        schreiben_text(
+            FORUM_POST, *FORUM[modul][:2], (65, 90), FORUM[modul][2], teil=2, forum=True
+        ),
+        schreiben_text(FORMAL, *formal[:2], (35, 55), formal[2], formal=True, teil=3),
+    ]
+    for modul, (informal, formal) in _LETTERS.items()
 }

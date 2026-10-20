@@ -34,6 +34,13 @@ def set_source(skill: str, level: str, modul: int, teil: int) -> str:
     return f"seed-{level.lower()}-{skill}-m{modul}-t{teil}"
 
 
+def exam_teil(prompt: str, fallback: int) -> int:
+    """The exam's Teil number from a prompt like "Teil 2 · ...". In B1 one exam
+    Teil can be several exercises (Lesen Teil 2: two texts; Hören Teil 1: five)."""
+    m = re.match(r"Teil (\d+) ·", prompt or "")
+    return int(m[1]) if m else fallback
+
+
 def parse_source(source: str):
     """(skill, level, modul, teil) of a set exercise's source, or None."""
     m = _SOURCE.match(source)

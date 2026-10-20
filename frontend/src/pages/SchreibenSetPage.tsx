@@ -186,8 +186,10 @@ function WriteTeil({ teil, level, onNext }: { teil: SchreibenTeil; level: string
             ))}
           </ul>
           <p className="mt-3 text-sm text-muted-foreground">
-            {task.min_words}–{task.max_words} words · {task.formal ? "formal (Sie)" : "informal (du)"} · start with a
-            greeting and end with a sign-off.
+            {task.min_words}–{task.max_words} words ·{" "}
+            {task.forum
+              ? "a forum post: give your opinion, no greeting needed."
+              : `${task.formal ? "formal (Sie)" : "informal (du)"} · start with a greeting and end with a sign-off.`}
           </p>
 
           <textarea
@@ -198,7 +200,7 @@ function WriteTeil({ teil, level, onNext }: { teil: SchreibenTeil; level: string
             rows={7}
             maxLength={2000}
             aria-label="Your text"
-            placeholder={task.formal ? "Sehr geehrte …" : "Hallo …"}
+            placeholder={task.forum ? "Ich finde …" : task.formal ? "Sehr geehrte …" : "Hallo …"}
             className="mt-5 w-full rounded-2xl border border-transparent bg-surface-2 px-4 py-3 text-base leading-relaxed placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-80"
           />
           <p
@@ -277,8 +279,8 @@ function Grading({
             <CheckChip ok={checks.in_range}>
               {checks.words} words ({checks.min_words}–{checks.max_words})
             </CheckChip>
-            <CheckChip ok={checks.greeting}>Greeting</CheckChip>
-            <CheckChip ok={checks.closing}>Sign-off</CheckChip>
+            {!checks.forum && <CheckChip ok={checks.greeting}>Greeting</CheckChip>}
+            {!checks.forum && <CheckChip ok={checks.closing}>Sign-off</CheckChip>}
           </ul>
         )}
         {checks?.too_short && (
