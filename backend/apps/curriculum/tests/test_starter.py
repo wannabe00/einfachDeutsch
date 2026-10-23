@@ -1,8 +1,10 @@
 """The Grundlagen starter units (A0): optional, always open, free of energy."""
 
 import base64
+from unittest import mock
 
 from apps.books.models import Book, Chapter
+from apps.curriculum import speech
 from apps.curriculum.content.dsl import dictate, hear
 from apps.curriculum.grading import public_exercise
 from apps.curriculum.management.commands.seed_path import exercise_fields
@@ -58,3 +60,10 @@ class StarterTests(LessonFixture):
     def test_spelling_reads_the_letters_not_the_word(self):
         say = public_exercise(self.spell)["payload"]["say"]
         self.assertEqual(base64.b64decode(say).decode(), "M. A. X.")
+
+    def test_recorded_audio_is_sent_when_it_exists(self):
+        with mock.patch.object(speech, "RECORDED", set()):
+            self.assertNotIn("say_audio", public_exercise(self.hear)["payload"])
+        with mock.patch.object(speech, "RECORDED", {speech.clip_name("drei")}):
+            url = public_exercise(self.hear)["payload"]["say_audio"]
+        self.assertEqual(url, f"/speech/{speech.clip_name('drei')}.mp3")

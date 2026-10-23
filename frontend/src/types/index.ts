@@ -294,6 +294,8 @@ export interface ExercisePayload {
   context?: string
   /** Base64 of German the browser reads aloud ("which word do you hear?", dictation). */
   say?: string
+  /** A recorded MP3 of `say` (Grundlagen); without it the browser reads it. */
+  say_audio?: string
   /** A Hören recording and how often it may be played before checking. */
   audio?: { url: string; plays: number }
 }
