@@ -82,6 +82,9 @@ export function AccountSection() {
           <Button variant="outline" asChild>
             <Link to="/privacy">Privacy policy</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/terms">Terms</Link>
+          </Button>
         </div>
       </Section>
 

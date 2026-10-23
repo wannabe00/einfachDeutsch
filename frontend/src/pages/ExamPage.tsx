@@ -8,6 +8,7 @@ import type { ExamQuestion, ExamResult } from "@/types"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { SITE_NAME } from "@/lib/site"
 import { BackLink } from "@/components/ui/BackLink"
 import { SessionBar } from "@/components/ui/SessionBar"
 import { ProgressRing } from "@/components/lektion/ProgressRing"
@@ -165,8 +166,10 @@ export default function ExamPage() {
                 <Fact label="energy" value="0" />
               </dl>
               <p className="mt-4 text-sm text-muted-foreground">
-                Pass and you move up{status.next_level ? ` to ${status.next_level}` : ""}. If you
-                don't, you keep your level and can try again after some review.
+                {status.next_level
+                  ? `Pass and you move up to ${status.next_level}.`
+                  : `This is the last level: pass and you finish ${SITE_NAME}.`}{" "}
+                If you don't, you keep your level and can try again after some review.
               </p>
               <Button size="lg" className="mt-7 w-full" disabled={begin.isPending} onClick={() => begin.mutate()}>
                 {begin.isPending ? "Preparing…" : "Start exam"}
@@ -235,7 +238,9 @@ function Result({
           {score}%
         </span>
         <h1 className="mt-6 text-3xl font-extrabold">
-          {result.promoted_to
+          {result.course_complete
+            ? "Kurs geschafft!"
+            : result.promoted_to
             ? `Willkommen bei ${result.promoted_to}!`
             : result.passed
               ? "Bestanden!"
@@ -246,7 +251,11 @@ function Result({
           {Math.round(result.pass_threshold * 100)}%
         </p>
 
-        {result.promoted_to ? (
+        {result.course_complete ? (
+          <p className="mt-4 text-muted-foreground">
+            You passed B1 and finished all of {SITE_NAME}. Everything stays open for review.
+          </p>
+        ) : result.promoted_to ? (
           <p className="mt-4 text-muted-foreground">
             Your level is now <strong className="text-foreground">{result.promoted_to}</strong>.
             New Lektionen are open on your path.

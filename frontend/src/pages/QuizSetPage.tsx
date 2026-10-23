@@ -62,7 +62,7 @@ function Player({ set, skill }: { set: LesenSetDetail; skill: QuizSkill }) {
         closeLabel={`Back to ${def.title}`}
         title={title}
         progress={(step / set.teile.length) * 100}
-        counter={`Teil ${step + 1}/${set.teile.length}`}
+        counter={`Teil ${set.teile[step].teil} · ${step + 1}/${set.teile.length}`}
       />
       <TeilStep
         key={`${run}-${step}`}

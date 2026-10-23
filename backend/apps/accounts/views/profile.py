@@ -183,19 +183,7 @@ def complete_onboarding(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def export_data(request):
-    """Return the user's stored personal data as JSON (a simple data export)."""
-    u = request.user
-    p = u.profile
-    return Response(
-        {
-            "email": u.email,
-            "username": u.username,
-            "first_name": u.first_name,
-            "last_name": u.last_name,
-            "birthday": p.birthday,
-            "cefr_level": p.cefr_level,
-            "role": p.role,
-            "joined": u.date_joined,
-            "preferences": p.preferences,
-        }
-    )
+    """Everything stored about the user, as JSON (see accounts/export.py)."""
+    from ..export import user_data
+
+    return Response(user_data(request.user))

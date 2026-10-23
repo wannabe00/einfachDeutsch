@@ -33,7 +33,7 @@ function AuthPhoto() {
       {ok && (
         <img
           src={MUNICH_PHOTO}
-          alt="München"
+          alt="Munich's old town at sunset"
           onError={() => setOk(false)}
           className="absolute inset-0 size-full object-cover"
         />

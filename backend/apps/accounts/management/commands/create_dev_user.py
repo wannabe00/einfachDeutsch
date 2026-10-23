@@ -16,11 +16,11 @@ Against production, always pass your own --password.
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from apps.accounts.models import CEFR_LEVELS
+from apps.accounts.levels import COURSE_LEVELS
 
 User = get_user_model()
 
-VALID_LEVELS = {code for code, _ in CEFR_LEVELS}
+VALID_LEVELS = set(COURSE_LEVELS)
 
 
 class Command(BaseCommand):

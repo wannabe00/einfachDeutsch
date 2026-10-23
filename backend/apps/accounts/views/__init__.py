@@ -5,16 +5,18 @@
 - social.py: Google/GitHub code exchange, throttled login
 - danger.py: logout everywhere, deactivate, delete, reset progress
 - diagnostics.py: staff-only client address check (throttle keys)
-- premium.py: premium status and the one-time trial
+- premium.py: premium status
+- billing.py: Stripe Checkout, Customer Portal, webhook
 - twofactor.py: authenticator-app two-factor login
 
 Everything is re-exported so `from . import views` keeps working.
 """
 
+from .billing import checkout, portal, webhook
 from .danger import deactivate_account, delete_account, logout_all, reset_progress
 from .diagnostics import client_ip
 from .leveling import placement_test, set_level, streak
-from .premium import premium_status, start_trial
+from .premium import premium_status
 from .profile import complete_onboarding, export_data, update_profile, upload_avatar
 from .social import (
     GitHubLogin,
@@ -43,7 +45,9 @@ __all__ = [
     "ThrottledPasswordResetView",
     "complete_onboarding",
     "premium_status",
-    "start_trial",
+    "checkout",
+    "portal",
+    "webhook",
     "deactivate_account",
     "delete_account",
     "export_data",

@@ -14,9 +14,9 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
-from apps.accounts.models import CEFR_LEVELS
+from apps.accounts.levels import COURSE_LEVELS
 
-VALID_LEVELS = sorted(code for code, _ in CEFR_LEVELS)
+VALID_LEVELS = list(COURSE_LEVELS)
 
 
 class Command(BaseCommand):

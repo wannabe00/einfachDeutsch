@@ -25,7 +25,7 @@ from .exam_sets import PASS_SHARE, header, open_set, open_teil, visible_sets
 from .models import WritingAttempt
 
 SKILL = "schreiben"
-WRITING_FIELDS = ("situation", "points", "min_words", "max_words", "formal", "model")
+WRITING_FIELDS = ("situation", "points", "min_words", "max_words", "formal", "forum", "model")
 MAX_TEXT = 2000  # characters; the exam texts are 20-40 words
 GRADES = ("full", "partial", "missing")
 POINT_SCORE = {"full": 3, "partial": 1.5, "missing": 0}  # A1, per content point
@@ -67,6 +67,7 @@ def checks(text: str, task: dict) -> dict:
         "too_short": words < task["min_words"] / 2,
         "greeting": bool(lines and _GREETING.search(lines[0])),
         "closing": len(lines) > 1 and bool(_CLOSING.search("\n".join(lines[-2:]))),
+        "forum": bool(task.get("forum")),  # a forum post needs no greeting or sign-off
     }
 
 

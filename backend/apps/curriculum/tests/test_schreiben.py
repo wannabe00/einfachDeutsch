@@ -22,21 +22,26 @@ BASE = "/api/curriculum/schreiben"
 
 class ContentTests(TestCase):
     def test_every_set_has_the_exam_shape(self):
+        ranges = {"A2": [(20, 30), (30, 40)], "B1": [(65, 90), (65, 90), (35, 55)]}
         for level, spec in LEVELS.items():
             self.assertEqual(sorted(spec["schreiben"]), list(range(1, 9)), level)
-            for modul, (teil1, teil2) in spec["schreiben"].items():
+            for modul, teile in spec["schreiben"].items():
                 where = f"{level} Modul {modul}"
                 if level == "A1":
+                    teil1, teil2 = teile
                     self.assertEqual(teil1["type"], "group", where)
                     self.assertEqual(len(teil1["parts"]), 5, where)
                     self.assertTrue(all(p["type"] == "fill_blank" for p in teil1["parts"]))
                     self.assertTrue(teil1["context"], where)
                     texts = [teil2]
                 else:
-                    self.assertEqual((teil1["min_words"], teil1["max_words"]), (20, 30), where)
-                    self.assertEqual((teil2["min_words"], teil2["max_words"]), (30, 40), where)
-                    self.assertTrue(teil2["formal"], where)
-                    texts = [teil1, teil2]
+                    texts = teile
+                    self.assertEqual(
+                        [(t["min_words"], t["max_words"]) for t in texts], ranges[level], where
+                    )
+                    self.assertTrue(texts[-1]["formal"], where)
+                    if level == "B1":  # Goethe B1: e-mail, forum post, formal message
+                        self.assertEqual([t["forum"] for t in texts], [False, True, False])
                 for task in texts:
                     self.assertEqual(task["type"], "free_text", where)
                     self.assertEqual(len(task["points"]), 3, where)
@@ -51,8 +56,9 @@ class ContentTests(TestCase):
                     check = schreiben.checks(task["model"], task)
                     where = f"{level} Modul {modul}: {task['model'][:40]}"
                     self.assertTrue(check["in_range"], f"{where} ({check['words']} words)")
-                    self.assertTrue(check["greeting"], where)
-                    self.assertTrue(check["closing"], where)
+                    if not task["forum"]:  # a forum post has no greeting or sign-off
+                        self.assertTrue(check["greeting"], where)
+                        self.assertTrue(check["closing"], where)
 
 
 class RubricTests(TestCase):
@@ -102,6 +108,8 @@ class SchreibenFlowTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
+        self.user.profile.is_premium = True  # the skills are premium
+        self.user.profile.save()
         self.api = APIClient()
         self.api.force_authenticate(self.user)
         self.units = {u.order: u for u in Unit.objects.filter(cefr_level="A1")}
@@ -117,12 +125,15 @@ class SchreibenFlowTests(TestCase):
         exercise = exercise or self.message
         return self.api.post(f"{BASE}/teil/{exercise.id}/write/", {"text": text}, format="json")
 
-    def premium(self):
-        self.user.profile.is_premium = True
+    def test_free_users_are_turned_away(self):
+        self.user.profile.is_premium = False
         self.user.profile.save()
+        for skill in ("lesen", "schreiben", "hoeren"):
+            self.assertEqual(self.api.get(f"/api/curriculum/{skill}/").status_code, 403)
 
     def test_sets_are_seeded_and_locked_like_lesen(self):
-        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 32)
+        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 56)
+
         sets = self.api.get(f"{BASE}/").json()
         self.assertEqual([s["locked"] for s in sets], [False] + [True] * 7)
         self.assertEqual(self.api.get(f"{BASE}/A1/2/").status_code, 403)
@@ -175,6 +186,8 @@ class SchreibenFlowTests(TestCase):
         rows = self.api.get(f"{BASE}/teil/{self.message.id}/attempts/").json()
         self.assertEqual(len(rows), 2)
         other = get_user_model().objects.create_user("ben", password="pw")
+        other.profile.is_premium = True
+        other.profile.save()
         attempt = WritingAttempt.objects.filter(user=self.user).first()
         api = APIClient()
         api.force_authenticate(other)
@@ -188,9 +201,6 @@ class SchreibenFlowTests(TestCase):
             "Guten Tag, Frau Berg,\nich bin Ana aus Brasilien und wohne in Köln.\nGruß, Ana"
         )
         url = f"{BASE}/attempts/{attempt.json()['attempt']['id']}/ai/"
-        self.assertEqual(self.api.post(url).status_code, 403)
-
-        self.premium()
         graded = {
             "points": ["full", "full", "missing"],
             "comments": ["ok", "ok", "Say which languages you speak."],
@@ -204,7 +214,6 @@ class SchreibenFlowTests(TestCase):
         self.assertEqual(res["feedback"]["tips"], ["Name your languages."])
 
     def test_ai_errors_save_nothing(self):
-        self.premium()
         attempt = self.write(
             "Guten Tag, Frau Berg,\nich bin Ana aus Brasilien und wohne in Köln.\nGruß, Ana"
         )

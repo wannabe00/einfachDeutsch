@@ -328,6 +328,9 @@ STREAK_FREEZE_MAX = int(os.getenv("STREAK_FREEZE_MAX", "5"))
 # ---- Talk to AI cost control ----
 # Talk to AI: live voice conversations per premium user per day.
 TALK_DAILY_CAP = int(os.getenv("TALK_DAILY_CAP", "5"))
+# Talks (each LIVE_MINUTES = 5 min) per premium user per calendar month: 25 minutes,
+# what $2.99/mo breaks even on for a heavy user.
+TALK_MONTHLY_CAP = int(os.getenv("TALK_MONTHLY_CAP", "5"))
 
 # ---- AI-written history lessons (premium) ----
 # Most lessons one user may have the AI write per day.
@@ -337,7 +340,7 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 
 # ---- Video / show suggestions ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
-VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
+VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "A1")
 
 
 # ---- Learning path: energy + premium ----
@@ -346,6 +349,17 @@ ENERGY_MAX = int(os.getenv("ENERGY_MAX", "3"))
 ENERGY_REFILL_HOURS = int(os.getenv("ENERGY_REFILL_HOURS", "4"))
 # Length of the premium free trial, in days.
 PREMIUM_TRIAL_DAYS = int(os.getenv("PREMIUM_TRIAL_DAYS", "7"))
+
+# ---- Stripe (accounts/views/billing.py) ----
+# Test-mode values locally, live ones on the server. Without the secret key the
+# billing endpoints answer 503.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_MONTHLY = os.getenv("STRIPE_PRICE_MONTHLY", "")
+STRIPE_PRICE_ANNUAL = os.getenv("STRIPE_PRICE_ANNUAL", "")
+# Stripe Tax in Checkout (VAT/sales tax from the billing address). Turn on only
+# once Stripe Tax is set up in the dashboard, or Checkout errors.
+STRIPE_AUTOMATIC_TAX = os.getenv("STRIPE_AUTOMATIC_TAX", "") == "1"
 
 # ---- Level checkpoint exam ----
 # Share of a level's lessons that must be completed before the exam unlocks,

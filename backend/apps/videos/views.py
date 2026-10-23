@@ -14,8 +14,8 @@ from .serializers import ShowSuggestionSerializer
 def suggestions(request):
     """Curated watch suggestions.
 
-    Two separate rules: suggestions unlock at `VIDEO_UNLOCK_MIN_LEVEL` (B1 by
-    default, i.e. after finishing A2), and after that you still only see
+    Two separate rules: suggestions unlock at `VIDEO_UNLOCK_MIN_LEVEL` (A1 by
+    default, i.e. open from the start), and after that you still only see
     entries at or below your level.
     """
     min_level = settings.VIDEO_UNLOCK_MIN_LEVEL

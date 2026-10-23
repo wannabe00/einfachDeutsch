@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 
 import { fetchPublicStats } from "@/api/stats"
-import { SITE_NAME } from "@/lib/site"
+import { LEGAL_PAGES, SITE_NAME } from "@/lib/site"
 import { MUNICH_PHOTO } from "@/lib/photos"
 import { cn } from "@/lib/utils"
 import { BookMarked, GraduationCap, Landmark, Route as RouteIcon, Sparkles, Swords, type LucideIcon } from "lucide-react"
@@ -91,7 +91,7 @@ function Hero() {
         <img
           ref={imgRef}
           src={MUNICH_PHOTO}
-          alt="München"
+          alt="Munich's old town at sunset"
           onError={() => setOk(false)}
           className="absolute inset-0 h-[135%] w-full object-cover"
         />
@@ -101,7 +101,7 @@ function Hero() {
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         <Reveal>
           <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.2em] text-white/75">
-            Deutsch lernen · A1
+            Deutsch lernen · A1–B1
           </p>
           <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] sm:text-7xl lg:text-[84px]">
             Learn German,
@@ -109,9 +109,9 @@ function Hero() {
             one short lesson a day.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-white/85 sm:text-xl">
-            A guided A1 course with flashcards that come back just before you forget
-            them, quick drills, and short reads on German history. More levels are
-            being written.
+            A guided A1–B1 German course: flashcards that come back just before you
+            forget them, quick drills, Goethe-style exam practice for Lesen, Schreiben,
+            Hören and Sprechen, and short reads on German history.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/login" className={cn(PRIMARY_LINK, "w-full sm:w-auto")}>
@@ -217,7 +217,7 @@ const FEATURES: { title: string; body: string; icon: LucideIcon }[] = [
   {
     icon: RouteIcon,
     title: "The path",
-    body: "A1 split into units of two or three lessons: new words, grammar, then conversation and review.",
+    body: "A1, A2 and B1, split into units of two or three lessons: new words, grammar, then conversation and review.",
   },
   {
     icon: GraduationCap,
@@ -378,7 +378,7 @@ function CultureMoment() {
 const FAQS = [
   {
     q: "Is it free?",
-    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, the AI tutor and Talk to AI.",
+    a: "Yes. The whole A1–B1 path (limited by energy), review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, Lesen, Hören and Schreiben practice, the AI tutor and Talk to AI.",
   },
   {
     q: "Do I need an account?",
@@ -386,7 +386,7 @@ const FAQS = [
   },
   {
     q: "What level is it for?",
-    a: "Beginners, for now. The A1 course is being added a few lessons at a time, and higher levels come after. If you already know some German, the placement test picks your starting level.",
+    a: "Beginners up to intermediate: the course covers A1, A2 and B1 in full and stops at B1. B2 and higher aren't on the site yet. If you already know some German, the placement test picks your starting level.",
   },
 ]
 
@@ -423,10 +423,12 @@ function FaqCta() {
         <span>
           © {new Date().getFullYear()} {SITE_NAME}
         </span>
-        <div className="flex gap-4">
-          <Link to="/privacy" className="hover:text-foreground">
-            Privacy
-          </Link>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+          {LEGAL_PAGES.map((p) => (
+            <Link key={p.to} to={p.to} className="hover:text-foreground">
+              {p.label}
+            </Link>
+          ))}
           <Link to="/login" className="hover:text-foreground">
             Log in
           </Link>

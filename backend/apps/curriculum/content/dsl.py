@@ -612,6 +612,53 @@ def lesen_directory(board: str, rows, teil: int = 2) -> dict:
     return item
 
 
+def lesen_rf(what: str, text: str, statements, teil: int = 1) -> dict:
+    """B1 Teil 1: one text (a blog post) and (statement, is_true) pairs."""
+    item = group(
+        f"Teil {teil} · Read the {what}. Richtig oder falsch?",
+        *[_rf(s, ok) for s, ok in statements],
+    )
+    item["context"] = _text(text)
+    return item
+
+
+NO_AD = "0"  # B1 Teil 3: no advert fits this situation
+
+
+def lesen_ads(ads: dict, rows, teil: int = 3) -> dict:
+    """B1 Teil 3: adverts {letter: text} and (situation, letter or NO_AD) rows.
+    Each advert fits one situation at most; at least one situation has none."""
+    letters = sorted(ads)
+    picked = [letter for _, letter in rows if letter != NO_AD]
+    assert len(set(picked)) == len(picked) and NO_AD in [r for _, r in rows], rows
+    assert all(letter in ads for letter in picked), rows
+    parts = [
+        _exercise("multiple_choice", situation, options=[*letters, NO_AD], answer=letter)
+        for situation, letter in rows
+    ]
+    item = group(
+        f"Teil {teil} · Read the adverts. Which one fits each situation? (0 = none fits)", *parts
+    )
+    item["context"] = "\n\n".join(f"{k}) {_text(ads[k])}" for k in letters)
+    return item
+
+
+def lesen_opinions(question: str, comments, teil: int = 4) -> dict:
+    """B1 Teil 4: readers' comments on one question. Each comment is
+    (name, text, is_for): is the person for it? Ja / Nein."""
+    parts = []
+    for name, text, is_for in comments:
+        part = _exercise(
+            "multiple_choice",
+            f"{name}: {question}",
+            options=["Ja", "Nein"],
+            answer="Ja" if is_for else "Nein",
+        )
+        part["context"] = _text(text)
+        parts.append(part)
+    return group(f"Teil {teil} · Read the comments. Is the person for it? Ja oder nein?", *parts)
+
+
 def lesen_people(ads: dict, people, teil: int = 4) -> dict:
     """A2 Teil 4: adverts {letter: text} and (person, letter) rows. There is
     one advert more than people, so the last one can't be guessed."""
@@ -640,9 +687,12 @@ def schreiben_form(situation: str, fields, teil: int = 1) -> dict:
     return item
 
 
-def schreiben_text(what: str, situation: str, points, words, model: str, formal=False, teil=2):
+def schreiben_text(
+    what: str, situation: str, points, words, model: str, formal=False, teil=2, forum=False
+):
     """Free writing: a situation, three points to write about, a word range
-    (min, max) and an original model answer that's shown after the attempt."""
+    (min, max) and an original model answer that's shown after the attempt.
+    `forum`: a forum post (B1 Teil 2), so no greeting or sign-off is expected."""
     points = list(points)
     assert len(points) == 3, situation
     return _exercise(
@@ -653,6 +703,7 @@ def schreiben_text(what: str, situation: str, points, words, model: str, formal=
         min_words=words[0],
         max_words=words[1],
         formal=formal,
+        forum=forum,
         model=_text(model),
     )
 
@@ -680,7 +731,9 @@ def clip(
     recording's file name (a hash of this dict) stays the same until it changes."""
     script = [list(line) for line in lines]
     speakers = {s for s, _ in script}
-    assert speakers <= set(SPEAKERS) and len(speakers) <= 2, script
+    # Three voices only for the B1 radio discussion (Azure speaks any number;
+    # the Gemini fallback takes two).
+    assert speakers <= set(SPEAKERS) and len(speakers) <= 3, script
     assert plays in (1, 2), plays
     assert not scene or scene in SCENES, scene
     assert phone + gong + radio <= 1, "one of phone, gong (loudspeaker) or radio"
@@ -713,6 +766,17 @@ def hoeren_yn(statement: str, is_true: bool) -> dict:
     return _exercise(
         "multiple_choice", statement, options=["Ja", "Nein"], answer="Ja" if is_true else "Nein"
     )
+
+
+def hoeren_tf(statement: str, is_true: bool) -> dict:
+    """A richtig/falsch statement about the Teil's recording (B1 Teil 1 and 3)."""
+    return _rf(statement, is_true)
+
+
+def hoeren_who(statement: str, answer: str, speakers) -> dict:
+    """B1 Teil 4: who says it? `speakers` keep their order (moderator first)."""
+    assert answer in speakers, statement
+    return _exercise("multiple_choice", statement, options=list(speakers), answer=answer)
 
 
 def hoeren_match(teil: int, instruction: str, recording: dict, choices: dict, rows) -> dict:

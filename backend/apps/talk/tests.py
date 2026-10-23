@@ -82,6 +82,15 @@ class TalkTests(TestCase):
         self.assertEqual(self.start().status_code, 200)
         self.assertEqual(self.start().status_code, 429)
 
+    @override_settings(TALK_MONTHLY_CAP=2)
+    def test_monthly_cap_counts_every_started_talk(self):
+        old = Talk.objects.create(user=self.user, level="A1")
+        last_month = timezone.localtime().replace(day=1) - timezone.timedelta(days=1)
+        Talk.objects.filter(id=old.id).update(started_at=last_month)  # doesn't count
+        self.assertEqual(self.start().json()["minutes"], llm.LIVE_MINUTES)
+        self.assertEqual(self.start().status_code, 200)
+        self.assertEqual(self.start().status_code, 429)
+
     def test_ai_errors_create_no_talk(self):
         self.token.side_effect = llm.AIResponseError("busy")
         self.assertEqual(self.start().status_code, 502)

@@ -1,8 +1,12 @@
 """Premium gating.
 
-Premium means unlimited energy, the AI Assistant, AI explanations and Talk to AI.
-Free users get the whole path (limited by energy) and every content page, so
-this only guards features that cost money to run (Gemini).
+The premium matrix (owner, 2026-10-20; $2.99/mo or $29.99/yr):
+
+  Free:    the path (energy-limited), level exams, Review, Exercises, Drills,
+           Word Bank, Grammar, Books, Videos, History lessons
+  Premium: unlimited energy; the four skills — Lesen, Hören, Schreiben (incl. AI
+           grading) and Sprechen / Talk to AI (TALK_MONTHLY_CAP: 5 talks of 5 min a month);
+           AI Assistant (chat, mic, read-aloud); AI explanations; AI history lessons
 
 Until payments exist, premium is a flag set in the admin. Always check
 `profile.has_premium`, never a hardcoded list of users.

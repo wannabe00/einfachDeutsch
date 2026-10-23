@@ -31,7 +31,26 @@ def _plays(teil):
     return (teil.get("clip") or teil["parts"][0]["clip"])["plays"]
 
 
+# B1 like Goethe B1: five short texts (2 questions, twice), a talk (5, once), a
+# conversation (7, once) and a discussion with three voices (8, twice).
+B1_SHAPE = [(2, 2)] * 5 + [(5, 1), (7, 1), (8, 2)]
+
+
 class ContentTests(TestCase):
+    def test_b1_sets_have_the_exam_shape(self):
+        for modul, teile in LEVELS["B1"]["hoeren"].items():
+            where = f"B1 Modul {modul}"
+            self.assertEqual([(len(t["parts"]), _plays(t)) for t in teile], B1_SHAPE, where)
+            self.assertEqual(sum(len(t["parts"]) for t in teile), 30, where)
+            for teil in teile:
+                for part in teil["parts"]:
+                    self.assertIn(part["answer"], part["options"], where)
+            for teil in teile[5:]:
+                self.assertGreater(len({p["answer"] for p in teil["parts"]}), 1, where)
+            speakers = {who for who, _ in teile[7]["clip"]["script"]}
+            self.assertEqual(len(speakers), 3, where)  # host and two guests
+            self.assertTrue(teile[7]["clip"]["radio"], where)
+
     def test_a2_sets_have_the_exam_shape(self):
         for modul, teile in LEVELS["A2"]["hoeren"].items():
             where = f"A2 Modul {modul}"
@@ -71,6 +90,8 @@ class HoerenFlowTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
+        self.user.profile.is_premium = True  # the skills are premium
+        self.user.profile.save()
         self.api = APIClient()
         self.api.force_authenticate(self.user)
         units = {u.order: u for u in Unit.objects.filter(cefr_level="A1")}

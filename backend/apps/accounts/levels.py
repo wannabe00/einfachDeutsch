@@ -14,10 +14,19 @@ from .models import CEFR_LEVELS
 # explicitly rather than relying on that.)
 LEVEL_RANK = {code: i for i, (code, _) in enumerate(CEFR_LEVELS)}
 LOWEST_LEVEL = CEFR_LEVELS[0][0]
+# The course ends at B1 (owner, 2026-10-20): passing its exam finishes the
+# course. B2-C2 stay in CEFR_LEVELS for the model choices only.
+TOP_LEVEL = "B1"
+COURSE_LEVELS = [code for code, _ in CEFR_LEVELS if LEVEL_RANK[code] <= LEVEL_RANK[TOP_LEVEL]]
 
 
 def level_rank(code: str) -> int:
     return LEVEL_RANK.get(code, 0)
+
+
+def cap_level(code: str) -> str:
+    """A level within the course: anything above B1 becomes B1."""
+    return code if level_rank(code) <= LEVEL_RANK[TOP_LEVEL] else TOP_LEVEL
 
 
 def visible_levels(user_level: str) -> list[str]:

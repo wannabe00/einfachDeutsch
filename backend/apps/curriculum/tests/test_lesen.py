@@ -16,7 +16,11 @@ from apps.curriculum.models import PathLessonProgress, ReadingResult, Unit
 from apps.exercises.models import Exercise
 
 # Questions per Teil and Teile per set, as in the exams.
-SHAPE = {"A1": [5, 5, 5], "A2": [5, 5, 5, 5]}
+SHAPE = {
+    "A1": [5, 5, 5],
+    "A2": [5, 5, 5, 5],
+    "B1": [6, 3, 3, 7, 7, 4],
+}  # Goethe B1: Teil 2 is two texts
 
 
 class ContentTests(TestCase):
@@ -51,6 +55,8 @@ class LesenFlowTests(TestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user("anna", password="pw")
+        self.user.profile.is_premium = True  # the skills are premium
+        self.user.profile.save()
         self.api = APIClient()
         self.api.force_authenticate(self.user)
         self.units = {u.order: u for u in Unit.objects.filter(cefr_level="A1")}
@@ -71,7 +77,7 @@ class LesenFlowTests(TestCase):
 
     def test_sets_are_seeded_once(self):
         count = Exercise.objects.filter(source__contains="-lesen-m").count()
-        self.assertEqual(count, 8 * 3 + 8 * 4)
+        self.assertEqual(count, 8 * 3 + 8 * 4 + 8 * 6)  # A1, A2, B1
         call_command("seed_path", stdout=StringIO())
         self.assertEqual(Exercise.objects.filter(source__contains="-lesen-m").count(), count)
 

@@ -44,6 +44,13 @@ def _summary(talk: Talk) -> dict:
     }
 
 
+def talks_this_month(user) -> int:
+    """Every started talk counts: the server can't see when the browser hangs up,
+    so charging per talk (not per minute) leaves nothing to tamper with."""
+    month = timezone.localtime().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    return Talk.objects.filter(user=user, started_at__gte=month).count()
+
+
 def _topics(user) -> list[str]:
     """Themes of the Lektionen the user has finished, and of all lower levels."""
     level = user.profile.cefr_level
@@ -66,13 +73,18 @@ def _ai_error(fn):
 @permission_classes(PREMIUM)
 @throttle_classes(AI_THROTTLES)
 def start(request):
-    """Check the daily cap, then hand out a Live token for one talk."""
+    """Check the monthly and daily caps, then hand out a Live token for one talk."""
     user = request.user
     level = user.profile.cefr_level
     today = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
     if Talk.objects.filter(user=user, started_at__gte=today).count() >= settings.TALK_DAILY_CAP:
         return Response(
             {"detail": f"That's {settings.TALK_DAILY_CAP} talks today. Come back tomorrow!"},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+    if talks_this_month(user) >= settings.TALK_MONTHLY_CAP:
+        return Response(
+            {"detail": f"You've had your {settings.TALK_MONTHLY_CAP} talks this month."},
             status=status.HTTP_429_TOO_MANY_REQUESTS,
         )
 

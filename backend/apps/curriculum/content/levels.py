@@ -14,6 +14,11 @@ from .a2 import checks as a2_checks
 from .a2 import hoeren as a2_hoeren
 from .a2 import lesen as a2_lesen
 from .a2 import schreiben as a2_schreiben
+from .b1 import B1_LEVEL, B1_UNITS
+from .b1 import checks as b1_checks
+from .b1 import hoeren as b1_hoeren
+from .b1 import lesen as b1_lesen
+from .b1 import schreiben as b1_schreiben
 
 # {level: {"units", "lektion_checks", "modul_checks", "lesen", "schreiben", "hoeren"}}, lowest level first.
 LEVELS = {
@@ -35,6 +40,15 @@ LEVELS = {
         "schreiben": a2_schreiben.SCHREIBEN,
         "hoeren": a2_hoeren.HOEREN,
         "hoeren_live": a2_hoeren.LIVE,
+    },
+    B1_LEVEL: {
+        "units": B1_UNITS,
+        "lektion_checks": b1_checks.LEKTION_CHECKS,
+        "modul_checks": b1_checks.MODUL_CHECKS,
+        "lesen": b1_lesen.LESEN,
+        "schreiben": b1_schreiben.SCHREIBEN,
+        "hoeren": b1_hoeren.HOEREN,
+        "hoeren_live": b1_hoeren.LIVE,
     },
 }
 
