@@ -1,5 +1,6 @@
 from django.db import models
 
+from apps.accounts.levels import STARTER_LEVEL
 from apps.accounts.models import CEFR_LEVELS
 
 
@@ -23,7 +24,9 @@ class Chapter(models.Model):
     # The chapter's CEFR level. Its words and grammar rules inherit it, so the
     # level rule is a single join. A chapter is one Lektion (one path Unit),
     # which is why the level lives here and not on each word.
-    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS, default="A1")
+    cefr_level = models.CharField(
+        max_length=2, choices=[(STARTER_LEVEL, "Grundlagen"), *CEFR_LEVELS], default="A1"
+    )
 
     class Meta:
         ordering = ["number"]

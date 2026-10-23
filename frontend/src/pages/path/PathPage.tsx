@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Award, Check, ChevronDown, Lock, PartyPopper, Trophy } from "lucide-react"
+import {
+  ArrowRight,
+  Award,
+  CaseSensitive,
+  Check,
+  ChevronDown,
+  Lock,
+  PartyPopper,
+  Trophy,
+} from "lucide-react"
 
 import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
@@ -14,6 +23,7 @@ import { lektionColor } from "@/components/lektion/lektionColor"
 
 type UnitStatus = "done" | "current" | "open" | "locked"
 
+const STARTER_LEVEL = "A0" // the Grundlagen units (backend accounts/levels.py)
 const MODUL_SIZE = 3 // Lektionen per Modul, like the books (backend curriculum/checks.py)
 
 function unitStatus(unit: PathUnit): UnitStatus {
@@ -38,7 +48,10 @@ export default function PathPage() {
   if (isLoading) return <PathSkeleton />
   if (isError || !data) return <Message>Couldn’t load your path. Try again.</Message>
 
-  const { level, next_up, units } = data
+  const { level, next_up } = data
+  // Grundlagen (A0) is optional and sits outside the level's counts and Moduls.
+  const starter = data.units.filter((u) => u.cefr_level === STARTER_LEVEL)
+  const units = data.units.filter((u) => u.cefr_level !== STARTER_LEVEL)
   const lessons = units.flatMap((u) => u.lessons)
   const done = lessons.filter((l) => l.state === "completed").length
   const pct = lessons.length > 0 ? done / lessons.length : 0
@@ -72,6 +85,9 @@ export default function PathPage() {
         </div>
       </header>
 
+      {/* Up top until the first A1 lesson is done, then folded away at the bottom. */}
+      {starter.length > 0 && done === 0 && <StarterSection units={starter} open />}
+
       {exam?.course_complete ? (
         <CourseCompleteCard lessons={lessons.length} />
       ) : (
@@ -95,6 +111,8 @@ export default function PathPage() {
       <ModulTests level={level} />
 
       <ModulList units={units} current={current} />
+
+      {starter.length > 0 && done > 0 && <StarterSection units={starter} open={false} />}
     </div>
   )
 }
@@ -132,6 +150,46 @@ function CurrentUnit({ unit, nextLessonId }: { unit: PathUnit; nextLessonId: num
         </div>
       </div>
     </section>
+  )
+}
+
+/** Grundlagen: optional starter lessons (letters, sounds, numbers, first
+    words), always open and free of energy. */
+function StarterSection({ units, open }: { units: PathUnit[]; open: boolean }) {
+  const lessons = units.flatMap((u) => u.lessons)
+  const finished = lessons.filter((l) => l.state === "completed").length
+  return (
+    <details open={open} className="group overflow-hidden rounded-[24px] bg-surface shadow-card">
+      <summary className="flex cursor-pointer list-none items-center gap-4 p-5 transition-colors hover:bg-surface-2 sm:p-6 [&::-webkit-details-marker]:hidden">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[hsl(var(--section-2))]/15 text-[hsl(var(--section-2))]">
+          <CaseSensitive className="size-6" aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+            Grundlagen · optional · free
+          </span>
+          <span className="block text-xl font-extrabold leading-tight">New to German? Start here</span>
+          <span className="block text-sm text-muted-foreground">
+            Letters, sounds, numbers and first words before Lektion 1.
+          </span>
+        </span>
+        <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+          {finished}/{lessons.length}
+        </span>
+        <ChevronDown
+          className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+          aria-hidden="true"
+        />
+      </summary>
+      <div className="flex flex-col gap-5 border-t border-border/70 p-5 sm:p-6">
+        {units.map((unit) => (
+          <div key={unit.id}>
+            <p className="mb-2 font-bold">{unit.title}</p>
+            <LessonRows lessons={unit.lessons} unitId={unit.id} />
+          </div>
+        ))}
+      </div>
+    </details>
   )
 }
 

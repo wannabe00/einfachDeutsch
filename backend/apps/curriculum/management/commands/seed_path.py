@@ -1,7 +1,7 @@
 """Seed the learning path of every level from `apps/curriculum/content`.
 
     python manage.py seed_path            # every level
-    python manage.py seed_path --level A2 # one level
+    python manage.py seed_path --level A2 # one level (A0 = the Grundlagen starter units)
 
 For each level, builds the book "einfachDeutsch — <level>" with one chapter
 per unit (Lektion), each holding the unit's words, grammar and exercises, plus
@@ -23,7 +23,7 @@ from django.db import transaction
 
 from apps.books.models import Book, Chapter
 from apps.curriculum.checks import MODUL_SIZE, check_source
-from apps.curriculum.content.levels import LEVELS
+from apps.curriculum.content.levels import SEED_LEVELS
 from apps.curriculum.exam_sets import SKILLS, set_source
 from apps.curriculum.models import Lesson, LessonItem, Unit
 from apps.curriculum.schreiben import WRITING_FIELDS
@@ -84,6 +84,8 @@ def exercise_fields(item: dict) -> dict:
         fields["correct_answer"] = item["answer"]
     if item.get("clip"):  # a Hören recording for the whole Teil
         fields["payload"]["clip"] = item["clip"]
+    if item.get("say"):  # German the browser reads aloud ("what do you hear?")
+        fields["payload"]["say"] = item["say"]
     if item.get("context"):  # a dialogue or reading text shown above the task
         fields["payload"]["context"] = item["context"]
     return fields
@@ -143,11 +145,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--level", action="append", choices=list(LEVELS), help="Only this level (repeatable)."
+            "--level",
+            action="append",
+            choices=list(SEED_LEVELS),
+            help="Only this level (repeatable).",
         )
 
     def handle(self, *args, level=None, **options):
-        for code in level or LEVELS:
+        for code in level or SEED_LEVELS:
             with transaction.atomic():
                 if code == "A1":
                     legacy = Book.objects.filter(title__in=LEGACY_BOOKS)
@@ -159,7 +164,7 @@ class Command(BaseCommand):
                 book, _ = Book.objects.get_or_create(
                     title=book_title(code), defaults={"description": f"The {code} learning path."}
                 )
-                counts = self._seed(book, code, LEVELS[code])
+                counts = self._seed(book, code, SEED_LEVELS[code])
 
             self.stdout.write(self.style.SUCCESS(f"Seeded the {code} learning path:"))
             for k, v in counts.items():

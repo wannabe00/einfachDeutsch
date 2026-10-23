@@ -133,7 +133,7 @@ def public_part(part: dict) -> dict:
     }
     if part.get("say"):  # a word to hear, set by the checks
         payload["say"] = encode_speech(part["say"])
-    if part.get("type") == "dictation":
+    if part.get("type") == "dictation" and not part.get("say"):
         payload["say"] = encode_speech(_accepted(part)[0])
     if part.get("type") == "matching":
         pairs = payload.pop("pairs", [])

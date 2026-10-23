@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/contexts/AuthContext"
 import { fetchPlacementTest, setLevel, submitPlacementTest } from "@/api/leveling"
 import type { CEFRLevel, PlacementResult } from "@/types"
-import { ArrowRight, ClipboardCheck, Sprout } from "lucide-react"
+import { ArrowRight, CaseSensitive, ClipboardCheck, Sprout } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -32,10 +32,11 @@ export default function OnboardingPage() {
   })
 
   const save = useMutation({
-    mutationFn: (level: CEFRLevel) => setLevel(level),
-    onSuccess: async () => {
+    // `to`: complete beginners land on the path, where Grundlagen comes first.
+    mutationFn: ({ level }: { level: CEFRLevel; to: string }) => setLevel(level),
+    onSuccess: async (_, { to }) => {
       await refreshUser()
-      navigate("/")
+      navigate(to)
     },
   })
 
@@ -64,7 +65,7 @@ export default function OnboardingPage() {
       <div>
         <AuthWordmark />
 
-        {/* Step 1: start at A1 or take the test. There's no free choice of level. */}
+        {/* Step 1: Grundlagen, A1 or the test. There's no free choice of level. */}
         {phase === "choose" && (
           <div className="mt-6 lg:mt-0">
             <h1 className="text-center text-3xl font-extrabold lg:text-left">What's your German level?</h1>
@@ -73,12 +74,20 @@ export default function OnboardingPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3">
               <LevelChoice
+                icon={CaseSensitive}
+                color="hsl(var(--section-2))"
+                title="I'm completely new"
+                body="Start with Grundlagen: letters, sounds, numbers and first words. Free, no energy."
+                disabled={save.isPending}
+                onClick={() => save.mutate({ level: "A1", to: "/path" })}
+              />
+              <LevelChoice
                 icon={Sprout}
                 color="hsl(var(--section-4))"
                 title={save.isPending ? "Starting…" : "I'm a beginner"}
                 body="Start at A1 with the very first Lektion."
                 disabled={save.isPending}
-                onClick={() => save.mutate("A1")}
+                onClick={() => save.mutate({ level: "A1", to: "/" })}
               />
               <LevelChoice
                 icon={ClipboardCheck}
@@ -139,7 +148,7 @@ export default function OnboardingPage() {
               size="lg"
               className="mt-7 w-full"
               disabled={save.isPending}
-              onClick={() => save.mutate(chosen)}
+              onClick={() => save.mutate({ level: chosen, to: "/" })}
             >
               {save.isPending ? "Saving…" : `Start at ${chosen}`}
             </Button>

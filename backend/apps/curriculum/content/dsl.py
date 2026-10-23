@@ -47,6 +47,20 @@ def mc(prompt: str, answer: str, *wrong: str, hint: str = "") -> dict:
     return _exercise("multiple_choice", prompt, hint, options=options, answer=answer)
 
 
+def hear(say: str, answer: str, *wrong: str, prompt: str = "What do you hear?") -> dict:
+    """Multiple choice with a Listen button: the browser reads `say` aloud."""
+    return {**mc(prompt, answer, *wrong), "say": say}
+
+
+def dictate(
+    german: str, prompt: str = "Listen and type what you hear.", say: str = "", hint: str = ""
+) -> dict:
+    """Type what the browser reads aloud: `german`, or `say` when that differs
+    (a name spelled letter by letter). `german` may list alternatives as "a|b"."""
+    ex = _exercise("dictation", prompt, hint, answer=german)
+    return {**ex, "say": say} if say else ex
+
+
 def fill(prompt: str, answer: str, hint: str = "") -> dict:
     """Type the missing word. `answer` may list alternatives as "a|b"."""
     return _exercise("fill_blank", prompt, hint, answer=answer)
@@ -213,6 +227,7 @@ GROUP_PROMPTS = {
     "article": "Write the article: der, die or das.",
     "sentence_order": "Put the words in order.",
     "word_bank": "Fill the gaps.",
+    "dictation": "Listen and type what you hear.",
 }
 # Most parts per group, so one screen stays readable. Matching blocks are big
 # already and stay one per screen.
