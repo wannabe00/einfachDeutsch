@@ -302,10 +302,8 @@ U2_L1 = lesson(
         fill("45 = ___", "fünfundvierzig|fuenfundvierzig"),
         fill("80 = ___", "achtzig"),
     ),
-    hear(
-        "Das kostet vier Euro neunzig.", "4,90 €", "9,40 €", "4,19 €", prompt="What does it cost?"
-    ),
-    hear("null eins sieben sechs", "0176", "0167", "0716", prompt="Which number do you hear?"),
+    hear("sieben", "7", "17", "70", prompt="Which number do you hear?"),
+    hear("null", "0", "6", "9", prompt="Which number do you hear?"),
     group(
         "Listen and type the number as a word.",
         dictate("dreißig|dreissig"),
@@ -345,7 +343,7 @@ U2_L2 = lesson(
         ],
         "Match the days.",
     ),
-    hear("Mittwoch", "Mittwoch", "Montag", "Donnerstag", prompt="Which day do you hear?"),
+    hear("Montag", "Montag", "Mittwoch", "Donnerstag", prompt="Which day do you hear?"),
     mc("Which day comes after “Freitag”?", "Samstag", "Sonntag", "Donnerstag"),
     match(
         [
@@ -401,11 +399,11 @@ U2_L3 = lesson(
         "Heute ich komme.",
         "Komme heute ich.",
     ),
-    hear("Wie heißen Sie?", "Wie heißen Sie?", "Wie heißt du?", prompt="What do you hear?"),
+    hear("heißen", "heißen", "heißt", "heiße", prompt="Which word do you hear?"),
     group(
-        "Listen and type the sentence.",
-        dictate("Wie heißt du?|Wie heißt du|Wie heisst du"),
-        dictate("Ich heiße Max.|Ich heiße Max|Ich heisse Max"),
+        "Listen and type the word.",
+        dictate("heißt|heisst"),
+        dictate("heiße|heisse"),
     ),
 )
 

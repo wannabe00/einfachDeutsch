@@ -188,6 +188,13 @@ function StarterSection({ units, open }: { units: PathUnit[]; open: boolean }) {
             <LessonRows lessons={unit.lessons} unitId={unit.id} />
           </div>
         ))}
+        <p className="text-xs text-muted-foreground">
+          Recordings by native speakers from Wikimedia Commons (
+          <a href="/speech/CREDITS.txt" className="underline" target="_blank" rel="noreferrer">
+            credits and licences
+          </a>
+          ).
+        </p>
       </div>
     </details>
   )

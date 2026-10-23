@@ -1,0 +1,54 @@
+Pronunciation recordings from Wikimedia Commons, converted to MP3.
+Each file keeps its licence; CC BY-SA files may be shared under the same licence.
+
+De-A.ogg: T.Voekler, Public domain, https://commons.wikimedia.org/wiki/File%3ADe-A.ogg
+De-Bier.ogg: unknown, Public domain, https://commons.wikimedia.org/wiki/File%3ADe-Bier.ogg
+De-Danke.ogg: unknown, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-Danke.ogg
+De-E.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-E.ogg
+De-Entschuldigung.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-Entschuldigung.ogg
+De-Hallo.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-Hallo.ogg
+De-J.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-J.ogg
+De-Käse.ogg: Bleibein, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-K%C3%A4se.ogg
+De-L.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-L.ogg
+De-M.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-M.ogg
+De-Montag.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-Montag.ogg
+De-N.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-N.ogg
+De-P.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-P.ogg
+De-Schule.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-Schule.ogg
+De-U.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-U.ogg
+De-V.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-V.ogg
+De-W.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-W.ogg
+De-Wasser.ogg: Tosca, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-Wasser.ogg
+De-X.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-X.ogg
+De-Z.ogg: T.Voekler, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-Z.ogg
+De-achtundvierzig.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-achtundvierzig.ogg
+De-blau.ogg: Kampy, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-blau.ogg
+De-drei.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-drei.ogg
+De-dreißig.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-drei%C3%9Fig.ogg
+De-einundzwanzig.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-einundzwanzig.ogg
+De-elf.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-elf.ogg
+De-fünfunddreißig.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-f%C3%BCnfunddrei%C3%9Fig.ogg
+De-fünfzehn.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-f%C3%BCnfzehn.ogg
+De-h.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-h.ogg
+De-heiße.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-hei%C3%9Fe.ogg
+De-heißen.ogg: myself, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-hei%C3%9Fen.ogg
+De-heißt.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-hei%C3%9Ft.ogg
+De-hundert.ogg: Kampy, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-hundert.ogg
+De-i.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-i.ogg
+De-ja.ogg: MiER, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-ja.ogg
+De-mein.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-mein.ogg
+De-müde.ogg: Kampy, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-m%C3%BCde.ogg
+De-nein.ogg: Lars Engelmann, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-nein.ogg
+De-neun.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-neun.ogg
+De-neunundneunzig.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-neunundneunzig.ogg
+De-null.ogg: Jeuwre, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File%3ADe-null.ogg
+De-rot.ogg: Bleibein, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-rot.ogg
+De-schön.ogg: Kampy, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-sch%C3%B6n.ogg
+De-sechzehn.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-sechzehn.ogg
+De-sechzig.ogg: Kampy, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-sechzig.ogg
+De-sieben.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-sieben.ogg
+De-siebzehn.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-siebzehn.ogg
+De-vier.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-vier.ogg
+De-vierundzwanzig.ogg: unknown, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-vierundzwanzig.ogg
+De-zwanzig.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-zwanzig.ogg
+De-zwölf.ogg: joni, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File%3ADe-zw%C3%B6lf.ogg

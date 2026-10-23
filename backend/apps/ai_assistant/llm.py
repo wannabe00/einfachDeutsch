@@ -423,20 +423,6 @@ def _azure_speech(script: list, slow: bool) -> bytes:
     return _azure(lines, "raw-24khz-16bit-mono-pcm")
 
 
-def speak_german(text: str) -> bytes:
-    """An MP3 of a short German word, letter or sentence for the listening tasks,
-    recorded once by `make_speech_audio`. A German-only voice, so short words are
-    never read as English; a single letter is read by its German name."""
-    if len(text) == 1:
-        text_ssml = f'<say-as interpret-as="characters">{escape(text)}</say-as>'
-    else:
-        text_ssml = escape(text)
-    return _azure(
-        f'<voice name="{AZURE_VOICES["Ansage"]}"><prosody rate="-10%">{text_ssml}</prosody></voice>',
-        "audio-24khz-48kbitrate-mono-mp3",
-    )
-
-
 @metered("speech", amount=lambda text: len(text))
 def read_aloud(text: str) -> bytes:
     """An MP3 of a chat message. The multilingual voice reads English
