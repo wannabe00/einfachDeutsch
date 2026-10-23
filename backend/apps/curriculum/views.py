@@ -6,6 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.levels import STARTER_LEVEL
 from apps.accounts.permissions import IsPremium
 from apps.accounts.scheduling import record_activity
 from apps.ai_assistant.llm import AIConfigError, AIResponseError
@@ -97,7 +98,7 @@ def path(request):
     level = user.profile.cefr_level
 
     units = (
-        Unit.objects.filter(cefr_level__in=gating.visible_levels(level))
+        Unit.objects.filter(cefr_level__in=[STARTER_LEVEL, *gating.visible_levels(level)])
         .order_by("cefr_level", "order")
         .prefetch_related("lessons")
     )
@@ -184,6 +185,11 @@ def _get_playable_lesson(user, lesson_id: int) -> Lesson:
     return lesson
 
 
+def _costs_energy(user, lesson: Lesson) -> bool:
+    """Free users spend energy on new lessons; the Grundlagen units are free."""
+    return not user.profile.has_premium and lesson.unit.cefr_level != STARTER_LEVEL
+
+
 def _already_completed(user, lesson: Lesson) -> bool:
     return PathLessonProgress.objects.filter(
         user=user, lesson=lesson, completed_at__isnull=False
@@ -202,7 +208,7 @@ def lesson_detail(request, lesson_id: int):
     lesson = _get_playable_lesson(user, lesson_id)
 
     is_new = not _already_completed(user, lesson)
-    if is_new and not user.profile.has_premium and energy_lib.current_energy(user) < 1:
+    if _costs_energy(user, lesson) and is_new and energy_lib.current_energy(user) < 1:
         return Response(
             {
                 "detail": "Out of energy.",
@@ -281,7 +287,7 @@ def lesson_complete(request, lesson_id: int):
     spent_energy = False
     if passed and not was_completed:
         # First real completion: this is what costs energy.
-        if not energy_lib.consume(user):
+        if _costs_energy(user, lesson) and not energy_lib.consume(user):
             return Response(
                 {
                     "detail": "Out of energy.",
@@ -289,7 +295,7 @@ def lesson_complete(request, lesson_id: int):
                 },
                 status=status.HTTP_402_PAYMENT_REQUIRED,
             )
-        spent_energy = not user.profile.has_premium
+        spent_energy = _costs_energy(user, lesson)
         progress.completed_at = timezone.now()
         progress.crown = max(progress.crown, 1)
         progress.xp_earned = lesson.xp_reward

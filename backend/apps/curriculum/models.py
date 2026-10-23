@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from apps.accounts.levels import STARTER_LEVEL
 from apps.accounts.models import CEFR_LEVELS
 
 
@@ -19,7 +20,9 @@ class Unit(models.Model):
     """A themed section of a level's path (e.g. A1 · "Kennenlernen"). Contains
     an ordered list of Lessons. Global/shared content."""
 
-    cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS)
+    cefr_level = models.CharField(
+        max_length=2, choices=[(STARTER_LEVEL, "Grundlagen"), *CEFR_LEVELS]
+    )
     order = models.PositiveIntegerField(default=0)  # position within the level
     title = models.CharField(max_length=200)
     theme = models.CharField(max_length=100, blank=True)

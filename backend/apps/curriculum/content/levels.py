@@ -4,6 +4,7 @@ Kept out of `content/__init__.py` so importing the content helpers (dsl) doesn't
 load every level's content files.
 """
 
+from .a0 import A0_LEVEL, A0_UNITS
 from .a1 import A1_LEVEL, A1_UNITS
 from .a1 import checks as a1_checks
 from .a1 import hoeren as a1_hoeren
@@ -52,4 +53,9 @@ LEVELS = {
     },
 }
 
-ALL_UNITS = [(level, u) for level, spec in LEVELS.items() for u in spec["units"]]
+# The Grundlagen starter units: seeded like a level, but nobody is at A0, so no
+# checks, skill sets or exam (see accounts.levels.STARTER_LEVEL).
+STARTER = {"units": A0_UNITS, "lektion_checks": {}, "modul_checks": {}}
+SEED_LEVELS = {A0_LEVEL: STARTER, **LEVELS}
+
+ALL_UNITS = [(level, u) for level, spec in SEED_LEVELS.items() for u in spec["units"]]

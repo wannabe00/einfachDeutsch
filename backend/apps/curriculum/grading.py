@@ -15,6 +15,8 @@ import unicodedata
 
 from apps.exercises.models import Exercise
 
+from . import speech
+
 _PUNCT_EDGES = re.compile(r"^[\s\"'“”„»«]+|[\s\.\!\?\,\;\:\"'“”„»«]+$")
 
 
@@ -131,10 +133,11 @@ def public_part(part: dict) -> dict:
             "clip",  # a Hören script is the transcript: only shown after answering
         )
     }
-    if part.get("say"):  # a word to hear, set by the checks
-        payload["say"] = encode_speech(part["say"])
-    if part.get("type") == "dictation":
-        payload["say"] = encode_speech(_accepted(part)[0])
+    spoken = speech.spoken_text(part)  # a word to hear, or a dictation
+    if spoken:
+        payload["say"] = encode_speech(spoken)
+        if url := speech.audio_url(spoken):
+            payload["say_audio"] = url
     if part.get("type") == "matching":
         pairs = payload.pop("pairs", [])
         payload["left"] = [p[0] for p in pairs]

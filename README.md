@@ -30,6 +30,9 @@ production.
   words and sentences you've learned, weak words more often.
 - **Videos and History.** Curated watch suggestions and history reads with a
   quiz, filtered to your level.
+- **Grundlagen.** Optional, free starter lessons before A1 for complete
+  beginners: the alphabet, sounds, numbers and first words, with listening
+  tasks read aloud by the browser.
 - **Premium.** Unlimited energy, Lesen, Hören and Schreiben practice, an AI tutor
   with saved conversations, and Talk to AI (voice). The course covers A1 to
   B1 and stops there. Premium comes from Stripe, with an admin flag as a

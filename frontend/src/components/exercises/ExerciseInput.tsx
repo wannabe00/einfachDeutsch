@@ -109,7 +109,7 @@ export function ExerciseInput({
       <div className="grid gap-2">
         {content.payload.context && <ContextText text={content.payload.context} />}
         {content.payload.audio && <AudioClip audio={content.payload.audio} free={verdict !== undefined} />}
-        {content.payload.say && <ListenButtons say={content.payload.say} />}
+        {content.payload.say && <ListenButtons say={content.payload.say} audio={content.payload.say_audio} />}
         {(content.payload.options ?? []).map((option) => {
           const checked = verdict !== undefined
           const isRight = checked && option === (right ?? (verdict ? picked : null))
@@ -225,7 +225,7 @@ export function ExerciseInput({
   if (content.type === "dictation") {
     return (
       <div className="flex flex-col gap-3">
-        {content.payload.say && <ListenButtons say={content.payload.say} />}
+        {content.payload.say && <ListenButtons say={content.payload.say} audio={content.payload.say_audio} />}
         <TextAnswer
           value={value}
           onChange={onChange}
@@ -322,8 +322,10 @@ function ContextText({ text }: { text: string }) {
   )
 }
 
-/** Play the German (and play it slowly) with the browser's speech synthesis. */
-function ListenButtons({ say }: { say: string }) {
+/** Play the German (and play it slowly): the recorded MP3 when there is one,
+    else the browser's speech synthesis. */
+function ListenButtons({ say, audio }: { say: string; audio?: string }) {
+  if (audio) return <RecordedButtons src={audio} />
   if (!canSpeak()) {
     return <p className="text-sm text-muted-foreground">This browser can't play audio. Skip this one.</p>
   }
@@ -340,6 +342,32 @@ function ListenButtons({ say }: { say: string }) {
       <button
         type="button"
         onClick={() => speak(text, true)}
+        className="inline-flex h-12 items-center rounded-full bg-surface-2 px-5 font-semibold transition-colors hover:bg-border"
+      >
+        Slower
+      </button>
+    </div>
+  )
+}
+
+function RecordedButtons({ src }: { src: string }) {
+  function play(rate: number) {
+    const clip = new Audio(src)
+    clip.playbackRate = rate // the pitch stays the same
+    void clip.play()
+  }
+  return (
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={() => play(1)}
+        className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-5 font-semibold text-primary-foreground transition hover:brightness-110 active:scale-[0.97]"
+      >
+        <Volume2 className="size-5" aria-hidden="true" /> Listen
+      </button>
+      <button
+        type="button"
+        onClick={() => play(0.7)}
         className="inline-flex h-12 items-center rounded-full bg-surface-2 px-5 font-semibold transition-colors hover:bg-border"
       >
         Slower

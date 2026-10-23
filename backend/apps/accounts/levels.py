@@ -13,6 +13,10 @@ from .models import CEFR_LEVELS
 # A1=0, A2=1, … C2=5. (Codes also happen to sort lexicographically, but rank
 # explicitly rather than relying on that.)
 LEVEL_RANK = {code: i for i, (code, _) in enumerate(CEFR_LEVELS)}
+# Grundlagen, the optional starter units before A1. Content only: no user is at
+# A0, so it ranks below every level and is always open, like review.
+STARTER_LEVEL = "A0"
+LEVEL_RANK[STARTER_LEVEL] = -1
 LOWEST_LEVEL = CEFR_LEVELS[0][0]
 # The course ends at B1 (owner, 2026-10-20): passing its exam finishes the
 # course. B2-C2 stay in CEFR_LEVELS for the model choices only.
