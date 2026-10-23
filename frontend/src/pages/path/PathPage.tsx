@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Award, Check, ChevronDown, Lock, PartyPopper } from "lucide-react"
+import { ArrowRight, Award, Check, ChevronDown, Lock, PartyPopper, Trophy } from "lucide-react"
 
 import { fetchPath, fetchExamStatus } from "@/api/curriculum"
 import type { PathUnit } from "@/types"
@@ -73,12 +73,12 @@ export default function PathPage() {
       </header>
 
       {exam?.course_complete ? (
-        <CourseCompleteCard />
+        <CourseCompleteCard lessons={lessons.length} />
       ) : (
         exam?.unlocked && <ExamCard level={exam.level} nextLevel={exam.next_level} />
       )}
 
-      {current ? (
+      {exam?.course_complete ? null : current ? (
         <CurrentUnit unit={current} nextLessonId={next_up?.lesson_id ?? null} />
       ) : (
         lessons.length > 0 &&
@@ -295,18 +295,56 @@ function ExamCard({ level, nextLevel }: { level: string; nextLevel: string | nul
 }
 
 /** B1 passed: the whole course is done. Everything stays open for review. */
-function CourseCompleteCard() {
+function CourseCompleteCard({ lessons }: { lessons: number }) {
   return (
-    <section className="flex flex-col gap-4 rounded-[24px] bg-surface p-5 shadow-card ring-2 ring-[hsl(var(--success))]/60 sm:flex-row sm:items-center sm:p-6">
-      <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[hsl(var(--success-bg))] text-[hsl(var(--success))]">
-        <PartyPopper className="size-6" aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-lg font-bold">You finished {SITE_NAME}!</p>
-        <p className="text-muted-foreground">
-          You passed the B1 exam, the last level. Keep everything fresh with Review, the skills and
-          Talk to AI.
-        </p>
+    <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-primary to-[hsl(354_100%_28%)] p-6 text-primary-foreground shadow-card sm:p-8">
+      <Trophy
+        className="pointer-events-none absolute -right-6 -top-6 size-44 text-white/10"
+        aria-hidden="true"
+      />
+      <div className="relative flex flex-col gap-5">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-white/15">
+          <Trophy className="size-7" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white/75">
+            Kurs abgeschlossen
+          </p>
+          <h2 className="mt-1 text-[28px] font-extrabold leading-tight sm:text-[34px]">
+            You finished {SITE_NAME}!
+          </h2>
+          <p className="mt-2 max-w-xl text-white/85">
+            You passed the B1 exam, the last level. Everything stays open, so keep it fresh.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {["A1", "A2", "B1"].map((l) => (
+            <span
+              key={l}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold"
+            >
+              <Check className="size-4" aria-hidden="true" />
+              {l}
+            </span>
+          ))}
+          <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
+            {lessons} lessons
+          </span>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            to="/review"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 font-semibold text-primary transition hover:brightness-95"
+          >
+            Review words <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
+          <Link
+            to="/talk"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-white/15 px-6 font-semibold transition hover:bg-white/25"
+          >
+            Talk to AI
+          </Link>
+        </div>
       </div>
     </section>
   )
