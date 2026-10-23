@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 /*
  * Video suggestions, each with artwork for its source. The server applies two
- * rules: the page unlocks at VIDEO_UNLOCK_MIN_LEVEL (B1 by default), and after
+ * rules: the page unlocks at VIDEO_UNLOCK_MIN_LEVEL (A1 by default), and after
  * that you still only see picks at or below your level.
  */
 const LEVEL_ORDER: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
