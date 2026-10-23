@@ -69,7 +69,7 @@ export default function OnboardingPage() {
           <div className="mt-6 lg:mt-0">
             <h1 className="text-center text-3xl font-extrabold lg:text-left">What's your German level?</h1>
             <p className="mt-1 text-center text-muted-foreground lg:text-left">
-              New to German? Start at A1. Already know some? The placement test sets your level.
+              New to German? Start at A1. Already know some? The placement test sets your level. The course goes up to B1.
             </p>
             <div className="mt-8 flex flex-col gap-3">
               <LevelChoice

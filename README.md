@@ -30,10 +30,10 @@ production.
   words and sentences you've learned, weak words more often.
 - **Videos and History.** Curated watch suggestions and history reads with a
   quiz, filtered to your level.
-- **Premium.** Unlimited energy, an AI tutor with saved conversations, and
-  Recite: read a text, retell it aloud and get feedback. The audio is
-  transcribed and then discarded. Payments aren't live yet, so premium is a
-  flag set in the admin (plus a one-time 7-day trial).
+- **Premium.** Unlimited energy, Lesen, Hören and Schreiben practice, an AI tutor
+  with saved conversations, and Talk to AI (voice). The course covers A1 to
+  B1 and stops there. Premium comes from Stripe, with an admin flag as a
+  fallback (7-day trial, one per account).
 - **Accounts.** Sign up with Google or GitHub, then set a username and
   password during onboarding. Guests can try parts of the app with a daily
   limit.
