@@ -302,7 +302,8 @@ def grade_writing(level: str, prompt: str, task: dict, text: str) -> dict:
         f"Level: {level}\nTask: {prompt}\nSituation: {task['situation']}\n"
         f"Content points:\n{bullets}\n"
         f"Length asked: {task['min_words']}-{task['max_words']} words. "
-        f"Register: {'formal (Sie)' if task['formal'] else 'informal (du)'}.\n\n"
+        f"Register: {'formal (Sie)' if task['formal'] else 'informal (du)'}."
+        f"{' A forum post: no greeting or sign-off is expected.' if task.get('forum') else ''}\n\n"
         f"Learner's text:\n{text}"
     )
     try:

@@ -101,7 +101,7 @@ function Hero() {
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
         <Reveal>
           <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.2em] text-white/75">
-            Deutsch lernen · A1–A2
+            Deutsch lernen · A1–B1
           </p>
           <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] sm:text-7xl lg:text-[84px]">
             Learn German,
@@ -109,7 +109,7 @@ function Hero() {
             one short lesson a day.
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-white/85 sm:text-xl">
-            A guided A1–A2 German course: flashcards that come back just before you
+            A guided A1–B1 German course: flashcards that come back just before you
             forget them, quick drills, Goethe-style exam practice for Lesen, Schreiben,
             Hören and Sprechen, and short reads on German history.
           </p>
@@ -217,7 +217,7 @@ const FEATURES: { title: string; body: string; icon: LucideIcon }[] = [
   {
     icon: RouteIcon,
     title: "The path",
-    body: "A1 split into units of two or three lessons: new words, grammar, then conversation and review.",
+    body: "A1, A2 and B1, split into units of two or three lessons: new words, grammar, then conversation and review.",
   },
   {
     icon: GraduationCap,
@@ -378,7 +378,7 @@ function CultureMoment() {
 const FAQS = [
   {
     q: "Is it free?",
-    a: "Yes. The A1 path, review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, Lesen, Hören and Schreiben practice, the AI tutor and Talk to AI.",
+    a: "Yes. The whole A1–B1 path (limited by energy), review, Word Bank, grammar, drills, videos and history are free. Premium adds unlimited energy, Lesen, Hören and Schreiben practice, the AI tutor and Talk to AI.",
   },
   {
     q: "Do I need an account?",
@@ -386,7 +386,7 @@ const FAQS = [
   },
   {
     q: "What level is it for?",
-    a: "Beginners and early learners: the full A1 and A2 levels are ready, and B1 comes next. If you already know some German, the placement test picks your starting level.",
+    a: "Beginners up to intermediate: the course covers A1, A2 and B1 in full and stops at B1. B2 and higher aren't on the site yet. If you already know some German, the placement test picks your starting level.",
   },
 ]
 

@@ -340,7 +340,7 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 
 # ---- Video / show suggestions ----
 # Minimum CEFR level at which curated video suggestions unlock (after A2 = B1).
-VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "B1")
+VIDEO_UNLOCK_MIN_LEVEL = os.getenv("VIDEO_UNLOCK_MIN_LEVEL", "A1")
 
 
 # ---- Learning path: energy + premium ----
@@ -357,6 +357,9 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_MONTHLY = os.getenv("STRIPE_PRICE_MONTHLY", "")
 STRIPE_PRICE_ANNUAL = os.getenv("STRIPE_PRICE_ANNUAL", "")
+# Stripe Tax in Checkout (VAT/sales tax from the billing address). Turn on only
+# once Stripe Tax is set up in the dashboard, or Checkout errors.
+STRIPE_AUTOMATIC_TAX = os.getenv("STRIPE_AUTOMATIC_TAX", "") == "1"
 
 # ---- Level checkpoint exam ----
 # Share of a level's lessons that must be completed before the exam unlocks,

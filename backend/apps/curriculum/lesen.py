@@ -8,7 +8,7 @@ energy. The best result per Teil is kept in `ReadingResult`.
 """
 
 from . import grading
-from .exam_sets import PASS_SHARE, header, open_set, open_teil, visible_sets
+from .exam_sets import PASS_SHARE, exam_teil, header, open_set, open_teil, visible_sets
 from .models import ReadingResult
 
 SKILL = "lesen"
@@ -40,7 +40,7 @@ def status(user, skill: str = SKILL, keep=None) -> list[dict]:
             "teile": [
                 {
                     "id": e.id,
-                    "teil": teil,
+                    "teil": exam_teil(e.prompt, teil),
                     "title": e.prompt,
                     "questions": len(grading.parts_of(e)),
                     "best": results[e.id].best_correct if e.id in results else None,
@@ -64,7 +64,7 @@ def detail(user, level: str, modul: int, skill: str = SKILL, public=None) -> dic
         **_score(teile, results),
         "teile": [
             {
-                "teil": teil,
+                "teil": exam_teil(e.prompt, teil),
                 "best": results[e.id].best_correct if e.id in results else None,
                 **public(e),
             }

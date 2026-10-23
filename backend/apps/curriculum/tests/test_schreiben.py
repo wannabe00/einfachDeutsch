@@ -22,23 +22,26 @@ BASE = "/api/curriculum/schreiben"
 
 class ContentTests(TestCase):
     def test_every_set_has_the_exam_shape(self):
+        ranges = {"A2": [(20, 30), (30, 40)], "B1": [(65, 90), (65, 90), (35, 55)]}
         for level, spec in LEVELS.items():
-            if level == "B1" and not spec["schreiben"]:
-                continue  # shortcut: B1's skill sets land after its Module; remove then
             self.assertEqual(sorted(spec["schreiben"]), list(range(1, 9)), level)
-            for modul, (teil1, teil2) in spec["schreiben"].items():
+            for modul, teile in spec["schreiben"].items():
                 where = f"{level} Modul {modul}"
                 if level == "A1":
+                    teil1, teil2 = teile
                     self.assertEqual(teil1["type"], "group", where)
                     self.assertEqual(len(teil1["parts"]), 5, where)
                     self.assertTrue(all(p["type"] == "fill_blank" for p in teil1["parts"]))
                     self.assertTrue(teil1["context"], where)
                     texts = [teil2]
                 else:
-                    self.assertEqual((teil1["min_words"], teil1["max_words"]), (20, 30), where)
-                    self.assertEqual((teil2["min_words"], teil2["max_words"]), (30, 40), where)
-                    self.assertTrue(teil2["formal"], where)
-                    texts = [teil1, teil2]
+                    texts = teile
+                    self.assertEqual(
+                        [(t["min_words"], t["max_words"]) for t in texts], ranges[level], where
+                    )
+                    self.assertTrue(texts[-1]["formal"], where)
+                    if level == "B1":  # Goethe B1: e-mail, forum post, formal message
+                        self.assertEqual([t["forum"] for t in texts], [False, True, False])
                 for task in texts:
                     self.assertEqual(task["type"], "free_text", where)
                     self.assertEqual(len(task["points"]), 3, where)
@@ -53,8 +56,9 @@ class ContentTests(TestCase):
                     check = schreiben.checks(task["model"], task)
                     where = f"{level} Modul {modul}: {task['model'][:40]}"
                     self.assertTrue(check["in_range"], f"{where} ({check['words']} words)")
-                    self.assertTrue(check["greeting"], where)
-                    self.assertTrue(check["closing"], where)
+                    if not task["forum"]:  # a forum post has no greeting or sign-off
+                        self.assertTrue(check["greeting"], where)
+                        self.assertTrue(check["closing"], where)
 
 
 class RubricTests(TestCase):
@@ -128,7 +132,8 @@ class SchreibenFlowTests(TestCase):
             self.assertEqual(self.api.get(f"/api/curriculum/{skill}/").status_code, 403)
 
     def test_sets_are_seeded_and_locked_like_lesen(self):
-        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 32)
+        self.assertEqual(Exercise.objects.filter(source__contains="-schreiben-m").count(), 56)
+
         sets = self.api.get(f"{BASE}/").json()
         self.assertEqual([s["locked"] for s in sets], [False] + [True] * 7)
         self.assertEqual(self.api.get(f"{BASE}/A1/2/").status_code, 403)

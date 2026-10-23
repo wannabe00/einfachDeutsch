@@ -84,6 +84,14 @@ class BillingTests(TestCase):
         params = self.stripe.v1.checkout.sessions.create.call_args.kwargs["params"]
         self.assertNotIn("trial_period_days", params["subscription_data"])
         self.assertEqual(self.stripe.v1.customers.create.call_count, 1)  # customer reused
+        self.assertNotIn("automatic_tax", params)
+
+    @override_settings(STRIPE_AUTOMATIC_TAX=True)
+    def test_checkout_turns_on_stripe_tax(self):
+        self.api.post("/api/billing/checkout/", {"plan": "monthly"}, format="json")
+        params = self.stripe.v1.checkout.sessions.create.call_args.kwargs["params"]
+        self.assertEqual(params["automatic_tax"], {"enabled": True})
+        self.assertEqual(params["customer_update"]["address"], "auto")
 
     def test_checkout_needs_a_plan_and_a_key(self):
         res = self.api.post("/api/billing/checkout/", {"plan": "weekly"}, format="json")

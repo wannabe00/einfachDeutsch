@@ -853,4 +853,302 @@ Growing together was not always easy for East and West. Many people in the East 
             },
         ],
     },
+    {
+        "order": 13,
+        "level": "B1",
+        "era": "Geteiltes Deutschland",
+        "title": "Die Stunde null und das Grundgesetz",
+        "excerpt": "Nach 1945 lagen viele Städte in Trümmern. 1949 bekam der Westen eine demokratische Verfassung.",
+        "body_de": """Am 8. Mai 1945 war der Zweite Weltkrieg in Europa zu Ende. Viele Deutsche nannten diesen Moment später die „Stunde null“. Die großen Städte waren zerstört, Millionen Menschen hatten keine Wohnung, und es gab kaum genug zu essen. Dazu kamen etwa zwölf Millionen Flüchtlinge und Vertriebene aus dem Osten, die eine neue Heimat suchten.
+
+Weil so viele Männer im Krieg gestorben oder in Gefangenschaft waren, räumten oft Frauen die Steine der kaputten Häuser weg. Man nannte sie „Trümmerfrauen“. Stein für Stein wurden die Städte in den folgenden Jahren wieder aufgebaut.
+
+Auch das Essen war knapp. Lebensmittel gab es nur mit Marken, und viele Menschen fuhren aufs Land, um dort ihre letzten Wertsachen gegen Kartoffeln oder Eier zu tauschen. Auf dem Schwarzmarkt bezahlte man oft nicht mit Geld, sondern mit Zigaretten. Der Winter 1946/47 war außerdem extrem kalt, sodass viele Menschen froren und hungerten.
+
+Die vier Siegermächte wollten, dass Deutschland nie wieder einen Krieg beginnt. In den drei Westzonen wurde 1948 eine neue Währung eingeführt, die D-Mark. Fast über Nacht waren die Geschäfte wieder voll, obwohl die Menschen noch wenig Geld hatten.
+
+Danach wurde im Westen eine Verfassung geschrieben. Sie heißt nicht „Verfassung“, sondern „Grundgesetz“, weil man hoffte, dass Deutschland bald wieder ein Land sein würde. Am 23. Mai 1949 trat das Grundgesetz in Kraft. Der erste Satz von Artikel 1 lautet: „Die Würde des Menschen ist unantastbar.“ Nach den Erfahrungen der Diktatur sollten die Grundrechte jedes Menschen geschützt werden.
+
+Im September 1949 wurde Konrad Adenauer der erste Bundeskanzler der Bundesrepublik. Er regierte bis 1963 und brachte das Land eng an die Seite der westlichen Staaten. Bonn, eine kleine Stadt am Rhein, wurde die Hauptstadt, eigentlich nur für eine kurze Zeit. Am Ende blieb Bonn mehr als vierzig Jahre lang Regierungssitz.
+
+Das Grundgesetz gilt bis heute. Seit 1990 ist es die Verfassung des ganzen wiedervereinigten Deutschlands.""",
+        "body_en": """On 8 May 1945 the Second World War in Europe was over. Many Germans later called this moment "zero hour". The big cities were destroyed, millions of people had no home, and there was hardly enough to eat. On top of that came about twelve million refugees and expellees from the east looking for a new home.
+
+Because so many men had died in the war or were prisoners, it was often women who cleared away the stones of the ruined houses. They were called "rubble women". Stone by stone, the cities were rebuilt over the following years.
+
+Food was scarce too. Groceries were only available with ration coupons, and many people went to the countryside to swap their last valuables for potatoes or eggs. On the black market people often paid not with money but with cigarettes. The winter of 1946/47 was also extremely cold, so many people froze and went hungry.
+
+The four victorious powers wanted Germany never to start a war again. In 1948 a new currency, the Deutsche Mark, was introduced in the three western zones. Almost overnight the shops were full again, although people still had little money.
+
+After that, a constitution was written in the west. It is not called a "constitution" but the "Basic Law", because people hoped that Germany would soon be one country again. The Basic Law came into force on 23 May 1949. The first sentence of Article 1 reads: "Human dignity shall be inviolable." After the experience of dictatorship, the basic rights of every person were to be protected.
+
+In September 1949 Konrad Adenauer became the first Chancellor of the Federal Republic. He governed until 1963 and placed the country firmly on the side of the Western states. Bonn, a small town on the Rhine, became the capital, really only for a short time. In the end Bonn remained the seat of government for more than forty years.
+
+The Basic Law is still in force today. Since 1990 it has been the constitution of the whole reunified Germany.""",
+        "quiz": [
+            {
+                "prompt": "Was waren die „Trümmerfrauen“?",
+                "options": [
+                    "Frauen, die die Steine der zerstörten Häuser wegräumten",
+                    "Frauen, die in der Regierung arbeiteten",
+                    "Frauen, die aus dem Westen kamen",
+                    "Frauen, die Häuser verkauften",
+                ],
+                "answer": "Frauen, die die Steine der zerstörten Häuser wegräumten",
+            },
+            {
+                "prompt": "Welche Währung wurde 1948 im Westen eingeführt?",
+                "options": ["die D-Mark", "der Euro", "die Reichsmark", "der Schilling"],
+                "answer": "die D-Mark",
+            },
+            {
+                "prompt": "Warum heißt die Verfassung „Grundgesetz“?",
+                "options": [
+                    "Man hoffte auf ein vereinigtes Deutschland.",
+                    "Sie war sehr kurz.",
+                    "Die Alliierten haben sie geschrieben.",
+                    "Sie galt nur für Bonn.",
+                ],
+                "answer": "Man hoffte auf ein vereinigtes Deutschland.",
+            },
+            {
+                "prompt": "Wann trat das Grundgesetz in Kraft?",
+                "options": [
+                    "am 23. Mai 1949",
+                    "am 8. Mai 1945",
+                    "am 3. Oktober 1990",
+                    "am 13. August 1961",
+                ],
+                "answer": "am 23. Mai 1949",
+            },
+            {
+                "prompt": "Wer war der erste Bundeskanzler?",
+                "options": ["Konrad Adenauer", "Willy Brandt", "Helmut Kohl", "Ludwig Erhard"],
+                "answer": "Konrad Adenauer",
+            },
+        ],
+    },
+    {
+        "order": 14,
+        "level": "B1",
+        "era": "Geteiltes Deutschland",
+        "title": "Das Wirtschaftswunder und die Gastarbeiter",
+        "excerpt": "In den 1950er-Jahren wuchs die Wirtschaft im Westen schnell. Millionen Menschen kamen zum Arbeiten.",
+        "body_de": """In den 1950er-Jahren ging es der Bundesrepublik wirtschaftlich immer besser. Die Fabriken produzierten wieder, und fast jeder, der arbeiten wollte, fand eine Stelle. Viele Familien konnten sich zum ersten Mal einen Kühlschrank, einen Fernseher oder sogar ein Auto leisten. Das bekannteste Auto dieser Zeit war der VW Käfer. Man sprach vom „Wirtschaftswunder“.
+
+Wichtig dafür waren auch die Hilfe aus den USA, der sogenannte Marshallplan, und die neue D-Mark. Die Menschen arbeiteten viel, oft auch am Samstag. Wer etwas Geld gespart hatte, machte Urlaub, und viele Familien fuhren zum ersten Mal mit dem eigenen Auto über die Alpen nach Italien.
+
+Ein wichtiger Politiker dieser Zeit war Ludwig Erhard, zuerst Wirtschaftsminister und später Bundeskanzler. Er setzte auf die „soziale Marktwirtschaft“: Der Markt sollte frei sein, aber der Staat sollte auch für Menschen sorgen, die Hilfe brauchen.
+
+Bald gab es so viel Arbeit, dass nicht genug Arbeitskräfte da waren. Deshalb schloss die Bundesrepublik Verträge mit anderen Ländern: 1955 mit Italien, später mit Spanien, Griechenland, der Türkei (1961), Portugal und Jugoslawien. Die Menschen, die kamen, nannte man „Gastarbeiter“, weil man dachte, dass sie nur ein paar Jahre bleiben würden.
+
+Die Arbeit war oft schwer und schlecht bezahlt, zum Beispiel in Fabriken, im Bergbau oder auf dem Bau. Viele wohnten zuerst in einfachen Heimen und schickten Geld an ihre Familien. 1973 stoppte die Regierung die Anwerbung, weil es eine Wirtschaftskrise gab.
+
+Trotzdem blieben viele Gastarbeiter in Deutschland. Sie holten ihre Familien nach, ihre Kinder gingen hier zur Schule, und Deutschland wurde zu einem Einwanderungsland. Heute haben Millionen Menschen in Deutschland Eltern oder Großeltern, die damals als Gastarbeiter gekommen sind. Ohne sie wäre das Wirtschaftswunder nicht möglich gewesen. Viele von ihnen haben außerdem Firmen, Restaurants und Geschäfte gegründet, die heute zu ganz normalen deutschen Städten gehören.""",
+        "body_en": """In the 1950s the Federal Republic's economy kept getting better. The factories were producing again, and almost everyone who wanted to work found a job. For the first time many families could afford a fridge, a television or even a car. The best-known car of the time was the VW Beetle. People spoke of the "economic miracle".
+
+Help from the USA, the so-called Marshall Plan, and the new Deutsche Mark were also important for this. People worked a lot, often on Saturdays too. Those who had saved some money went on holiday, and many families drove over the Alps to Italy in their own car for the first time.
+
+An important politician of this time was Ludwig Erhard, first Minister of Economics and later Chancellor. He relied on the "social market economy": the market should be free, but the state should also care for people who need help.
+
+Soon there was so much work that there were not enough workers. So the Federal Republic signed agreements with other countries: in 1955 with Italy, later with Spain, Greece, Turkey (1961), Portugal and Yugoslavia. The people who came were called "guest workers", because it was thought they would only stay a few years.
+
+The work was often hard and badly paid, for example in factories, in mining or on building sites. Many lived at first in simple hostels and sent money to their families. In 1973 the government stopped recruiting because there was an economic crisis.
+
+Even so, many guest workers stayed in Germany. They brought their families over, their children went to school here, and Germany became a country of immigration. Today millions of people in Germany have parents or grandparents who came as guest workers back then. Without them the economic miracle would not have been possible. Many of them also founded companies, restaurants and shops that are now part of perfectly ordinary German towns.""",
+        "quiz": [
+            {
+                "prompt": "Was war das bekannteste Auto der 1950er-Jahre?",
+                "options": [
+                    "der VW Käfer",
+                    "der Trabant",
+                    "der Mercedes Benz Patent-Motorwagen",
+                    "der Golf",
+                ],
+                "answer": "der VW Käfer",
+            },
+            {
+                "prompt": "Was bedeutet „soziale Marktwirtschaft“?",
+                "options": [
+                    "Ein freier Markt, aber der Staat hilft Menschen in Not.",
+                    "Der Staat bestimmt alle Preise.",
+                    "Es gibt keinen Markt.",
+                    "Nur große Firmen dürfen verkaufen.",
+                ],
+                "answer": "Ein freier Markt, aber der Staat hilft Menschen in Not.",
+            },
+            {
+                "prompt": "Mit welchem Land schloss die Bundesrepublik 1955 den ersten Vertrag?",
+                "options": ["mit Italien", "mit der Türkei", "mit Spanien", "mit Polen"],
+                "answer": "mit Italien",
+            },
+            {
+                "prompt": "Warum nannte man sie „Gastarbeiter“?",
+                "options": [
+                    "Man dachte, sie bleiben nur kurz.",
+                    "Sie arbeiteten in Hotels.",
+                    "Sie waren Touristen.",
+                    "Sie arbeiteten ohne Geld.",
+                ],
+                "answer": "Man dachte, sie bleiben nur kurz.",
+            },
+            {
+                "prompt": "Wann stoppte die Regierung die Anwerbung?",
+                "options": ["1973", "1955", "1961", "1990"],
+                "answer": "1973",
+            },
+        ],
+    },
+    {
+        "order": 15,
+        "level": "B1",
+        "era": "Geteiltes Deutschland",
+        "title": "Willy Brandt und die Ostpolitik",
+        "excerpt": "Willy Brandt wollte Frieden mit den Nachbarn im Osten. 1971 bekam er den Friedensnobelpreis.",
+        "body_de": """Willy Brandt wurde 1913 in Lübeck geboren. Als junger Mann kämpfte er gegen die Nationalsozialisten. Weil er in Deutschland in Gefahr war, floh er 1933 nach Norwegen und später nach Schweden. Erst nach dem Krieg kam er zurück.
+
+Eigentlich hieß er Herbert Frahm. Den Namen Willy Brandt benutzte er zuerst im Exil, damit die Nazis ihn nicht so leicht finden konnten. Später behielt er diesen Namen für immer. In Norwegen arbeitete er als Journalist und schrieb über die Lage in Deutschland.
+
+Von 1957 bis 1966 war Brandt Regierender Bürgermeister von West-Berlin. In dieser Zeit wurde die Mauer gebaut. Brandt erlebte, wie Familien getrennt wurden, und er glaubte, dass man mit der DDR und der Sowjetunion sprechen musste, damit das Leben der Menschen leichter wird.
+
+1969 wurde Brandt Bundeskanzler, als erster Sozialdemokrat in der Bundesrepublik. Sein Ziel war eine neue Politik gegenüber den Ländern im Osten, die „Ostpolitik“. Ihr Motto war „Wandel durch Annäherung“: Durch Gespräche und Verträge sollten die Spannungen kleiner werden. Die Bundesrepublik schloss Verträge mit der Sowjetunion, mit Polen und mit der DDR. Danach konnten zum Beispiel West-Berliner ihre Verwandten im Osten leichter besuchen.
+
+Am 7. Dezember 1970 besuchte Brandt Warschau. Vor dem Denkmal für die Opfer des Aufstands im jüdischen Ghetto kniete er plötzlich nieder. Dieses Bild ging um die Welt. Viele Menschen verstanden es als Bitte um Vergebung für die Verbrechen der Deutschen im Zweiten Weltkrieg. In Deutschland war die Geste aber auch umstritten.
+
+1971 bekam Willy Brandt den Friedensnobelpreis. 1974 trat er zurück, nachdem man entdeckt hatte, dass einer seiner engsten Mitarbeiter, Günter Guillaume, ein Spion der DDR war. Brandt blieb aber bis zu seinem Tod 1992 ein wichtiger Politiker. Er erlebte noch den Fall der Mauer und sagte 1989: „Jetzt wächst zusammen, was zusammengehört.“""",
+        "body_en": """Willy Brandt was born in Lübeck in 1913. As a young man he fought against the National Socialists. Because he was in danger in Germany, he fled to Norway in 1933 and later to Sweden. He only came back after the war.
+
+His real name was Herbert Frahm. He first used the name Willy Brandt in exile so that the Nazis could not find him so easily. Later he kept this name for good. In Norway he worked as a journalist and wrote about the situation in Germany.
+
+From 1957 to 1966 Brandt was Governing Mayor of West Berlin. The Wall was built during this time. Brandt saw how families were separated, and he believed that one had to talk to the GDR and the Soviet Union so that people's lives would become easier.
+
+In 1969 Brandt became Chancellor, the first Social Democrat to do so in the Federal Republic. His goal was a new policy towards the countries in the east, "Ostpolitik". Its motto was "change through rapprochement": through talks and treaties, tensions were to be reduced. The Federal Republic signed treaties with the Soviet Union, with Poland and with the GDR. Afterwards, for example, West Berliners could visit their relatives in the east more easily.
+
+On 7 December 1970 Brandt visited Warsaw. In front of the memorial to the victims of the uprising in the Jewish ghetto he suddenly knelt down. This image went around the world. Many people understood it as a plea for forgiveness for the crimes the Germans committed in the Second World War. In Germany, however, the gesture was also controversial.
+
+In 1971 Willy Brandt received the Nobel Peace Prize. In 1974 he resigned after it was discovered that one of his closest aides, Günter Guillaume, was a GDR spy. Brandt nevertheless remained an important politician until his death in 1992. He lived to see the fall of the Wall and said in 1989: "Now what belongs together is growing together." """,
+        "quiz": [
+            {
+                "prompt": "Warum floh Willy Brandt 1933 nach Norwegen?",
+                "options": [
+                    "Er war in Deutschland in Gefahr.",
+                    "Er wollte dort studieren.",
+                    "Er hatte dort Familie.",
+                    "Er machte Urlaub.",
+                ],
+                "answer": "Er war in Deutschland in Gefahr.",
+            },
+            {
+                "prompt": "Was war Brandt von 1957 bis 1966?",
+                "options": [
+                    "Regierender Bürgermeister von West-Berlin",
+                    "Bundeskanzler",
+                    "Bundespräsident",
+                    "Journalist in Oslo",
+                ],
+                "answer": "Regierender Bürgermeister von West-Berlin",
+            },
+            {
+                "prompt": "Was war das Motto der Ostpolitik?",
+                "options": [
+                    "Wandel durch Annäherung",
+                    "Freiheit statt Sozialismus",
+                    "Keine Experimente",
+                    "Wir sind das Volk",
+                ],
+                "answer": "Wandel durch Annäherung",
+            },
+            {
+                "prompt": "Was tat Brandt 1970 in Warschau?",
+                "options": [
+                    "Er kniete vor einem Denkmal nieder.",
+                    "Er hielt eine lange Rede.",
+                    "Er eröffnete eine Botschaft.",
+                    "Er besuchte ein Fußballspiel.",
+                ],
+                "answer": "Er kniete vor einem Denkmal nieder.",
+            },
+            {
+                "prompt": "Warum trat Brandt 1974 zurück?",
+                "options": [
+                    "Ein enger Mitarbeiter war ein Spion der DDR.",
+                    "Er hatte die Wahl verloren.",
+                    "Er war sehr krank.",
+                    "Er wollte in Norwegen leben.",
+                ],
+                "answer": "Ein enger Mitarbeiter war ein Spion der DDR.",
+            },
+        ],
+    },
+    {
+        "order": 16,
+        "level": "B1",
+        "era": "Geteiltes Deutschland",
+        "title": "Alltag in der DDR",
+        "excerpt": "Wie lebten die Menschen in der DDR? Zwischen Kinderkrippe, Trabant und Westfernsehen.",
+        "body_de": """In der DDR bestimmte der Staat viele Teile des Lebens. Es gab nur eine wichtige Partei, die SED, und die Wirtschaft wurde vom Staat geplant. Die Fabriken gehörten dem Volk, so hieß es offiziell. In Wirklichkeit entschied die Partei, was produziert wurde und was es kostete.
+
+Für viele Menschen hatte der Alltag auch gute Seiten. Fast jeder hatte eine Arbeit, auch die meisten Frauen. Damit Mütter arbeiten konnten, gab es für fast alle Kinder einen Platz in einer Krippe oder im Kindergarten. Mieten, Brot und Busfahrkarten waren sehr billig.
+
+Andere Dinge waren dagegen schwer zu bekommen. Wer ein Auto kaufen wollte, musste oft zehn Jahre oder länger warten, bis er endlich einen Trabant bekam, ein kleines Auto aus Kunststoff. Südfrüchte wie Bananen und Orangen gab es nur selten. Deshalb freuten sich viele Familien über Pakete von Verwandten aus dem Westen, in denen Kaffee, Schokolade oder Jeans waren.
+
+Schon als Kinder sollten die Menschen lernen, den Staat zu lieben. Die meisten Schüler waren Mitglied bei den Jungpionieren und später in der Jugendorganisation FDJ. Wer nicht mitmachte, hatte es manchmal schwerer, einen Studienplatz zu bekommen.
+
+Reisen war nur in andere sozialistische Länder möglich, zum Beispiel an den Balaton in Ungarn oder an das Schwarze Meer in Bulgarien. In den Westen durften die meisten Menschen nicht fahren. Trotzdem wussten viele genau, wie das Leben dort aussah: Fast überall konnte man Westfernsehen empfangen, obwohl der Staat das nicht gern sah.
+
+Nach 1990 veränderte sich für die Menschen im Osten fast alles auf einmal. Viele Fabriken schlossen, und viele Menschen verloren ihre Arbeit. Manche erinnern sich heute mit gemischten Gefühlen an die DDR: an die Unfreiheit, aber auch an die Gemeinschaft, die sie damals erlebt haben.""",
+        "body_en": """In the GDR the state decided many parts of life. There was only one important party, the SED, and the economy was planned by the state. The factories belonged to the people, so it was officially said. In reality the party decided what was produced and what it cost.
+
+For many people everyday life also had good sides. Almost everyone had a job, including most women. So that mothers could work, there was a place in a crèche or a kindergarten for almost every child. Rents, bread and bus tickets were very cheap.
+
+Other things, by contrast, were hard to get. Anyone who wanted to buy a car often had to wait ten years or longer before finally getting a Trabant, a small car made of plastic. Tropical fruit such as bananas and oranges was rare. That is why many families were happy about parcels from relatives in the west containing coffee, chocolate or jeans.
+
+From childhood on, people were supposed to learn to love the state. Most pupils were members of the Young Pioneers and later of the youth organisation FDJ. Those who did not take part sometimes found it harder to get a university place.
+
+Travel was only possible to other socialist countries, for example to Lake Balaton in Hungary or to the Black Sea in Bulgaria. Most people were not allowed to go to the west. Even so, many knew exactly what life there looked like: almost everywhere one could receive Western television, although the state did not like it.
+
+After 1990 almost everything changed at once for the people in the east. Many factories closed, and many people lost their jobs. Today some remember the GDR with mixed feelings: the lack of freedom, but also the sense of community they experienced back then.""",
+        "quiz": [
+            {
+                "prompt": "Wie lange musste man oft auf einen Trabant warten?",
+                "options": ["zehn Jahre oder länger", "eine Woche", "einen Monat", "gar nicht"],
+                "answer": "zehn Jahre oder länger",
+            },
+            {
+                "prompt": "Was war in der DDR sehr billig?",
+                "options": ["Mieten und Brot", "Autos", "Bananen", "Reisen in den Westen"],
+                "answer": "Mieten und Brot",
+            },
+            {
+                "prompt": "Was war die FDJ?",
+                "options": [
+                    "eine Jugendorganisation",
+                    "eine Automarke",
+                    "eine Zeitung",
+                    "eine Kirche",
+                ],
+                "answer": "eine Jugendorganisation",
+            },
+            {
+                "prompt": "Wohin konnten die meisten Menschen in den Urlaub fahren?",
+                "options": [
+                    "in andere sozialistische Länder",
+                    "nach Italien",
+                    "nach Westdeutschland",
+                    "in die USA",
+                ],
+                "answer": "in andere sozialistische Länder",
+            },
+            {
+                "prompt": "Was passierte nach 1990 mit vielen Fabriken im Osten?",
+                "options": [
+                    "Sie schlossen.",
+                    "Sie wurden größer.",
+                    "Sie zogen nach Bonn.",
+                    "Sie bauten Trabants.",
+                ],
+                "answer": "Sie schlossen.",
+            },
+        ],
+    },
 ]

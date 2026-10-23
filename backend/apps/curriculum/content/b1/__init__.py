@@ -6,7 +6,7 @@ written for this app. Word lists only hold words that are new at B1: the A1 and
 A2 words are already learned, and the exercises use them freely.
 """
 
-from . import m1
+from . import m1, m2, m3, m4, m5, m6, m7, m8
 
 B1_LEVEL = "B1"
-B1_UNITS = [*m1.UNITS]
+B1_UNITS = [*m1.UNITS, *m2.UNITS, *m3.UNITS, *m4.UNITS, *m5.UNITS, *m6.UNITS, *m7.UNITS, *m8.UNITS]

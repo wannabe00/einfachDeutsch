@@ -659,6 +659,8 @@ export interface WritingTask {
   min_words: number
   max_words: number
   formal: boolean
+  /** A forum post (B1): no greeting or sign-off. */
+  forum?: boolean
 }
 
 export type PointGrade = "full" | "partial" | "missing"
@@ -712,6 +714,7 @@ export interface WritingChecks {
   too_short: boolean
   greeting: boolean
   closing: boolean
+  forum?: boolean
 }
 
 export interface WritingAttempt {

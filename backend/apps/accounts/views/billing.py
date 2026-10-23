@@ -73,9 +73,18 @@ def checkout(request):
     subscription = {"metadata": {"user_id": str(request.user.id)}}
     if profile.trial_started_at is None:
         subscription["trial_period_days"] = settings.PREMIUM_TRIAL_DAYS
+    tax = {}
+    if settings.STRIPE_AUTOMATIC_TAX:
+        # Tax needs the customer's address; Checkout asks for it and saves it.
+        tax = {
+            "automatic_tax": {"enabled": True},
+            "billing_address_collection": "required",
+            "customer_update": {"address": "auto", "name": "auto"},
+        }
     try:
         session = client.v1.checkout.sessions.create(
             params={
+                **tax,
                 "mode": "subscription",
                 "customer": _customer(client, profile),
                 "line_items": [{"price": price, "quantity": 1}],
