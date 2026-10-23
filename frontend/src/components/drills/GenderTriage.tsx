@@ -16,7 +16,7 @@ import { DrillShell } from "./DrillShell"
  * lists the mistakes and can replay just those.
  *
  * Green and red only mean right and wrong. The articles are told apart by the
- * logo's shapes (der circle, die triangle, das square) in their own colours.
+ * logo's shapes (der square, die triangle, das circle) in their own colours.
  */
 const ROUNDS = 15
 const ARTICLES = ["der", "die", "das"] as const
@@ -227,13 +227,14 @@ const ARTICLE_COLOUR: Record<string, string> = {
   das: "hsl(var(--article-das))",
 }
 
-/** The logo's marks: der a circle, die a triangle, das a square. */
+/** The logo's marks: der a square, die a triangle, das a circle. The square is
+    drawn a little smaller so the three look the same size. */
 function ArticleShape({ article }: { article: string }) {
   return (
     <svg viewBox="0 0 24 24" className="size-5 shrink-0" aria-hidden="true" fill={ARTICLE_COLOUR[article]}>
-      {article === "der" && <circle cx="12" cy="12" r="10" />}
+      {article === "der" && <rect x="3.5" y="3.5" width="17" height="17" rx="2" />}
       {article === "die" && <path d="M12 2.5 22 21H2z" />}
-      {article === "das" && <rect x="3" y="3" width="18" height="18" rx="2" />}
+      {article === "das" && <circle cx="12" cy="12" r="10" />}
     </svg>
   )
 }
